@@ -26,6 +26,8 @@ mcp = FastMCP(
         "Onchain security scanner — scan token approvals, detect rugpulls,"
         " check honeypots, revoke dangerous approvals"
     ),
+    host=os.getenv("VIGIL_MCP_HOST", "127.0.0.1"),
+    port=int(os.getenv("VIGIL_MCP_PORT", "3100")),
 )
 
 # Initialize scanners
@@ -376,10 +378,8 @@ def main():
         logger.info("Starting VIGIL MCP server (stdio transport)")
         mcp.run(transport="stdio")
     elif transport == "sse":
-        host = os.getenv("VIGIL_MCP_HOST", "127.0.0.1")
-        port = int(os.getenv("VIGIL_MCP_PORT", "3100"))
-        logger.info(f"Starting VIGIL MCP server (SSE transport on {host}:{port})")
-        mcp.run(transport="sse", host=host, port=port)
+        logger.info(f"Starting VIGIL MCP server (SSE transport)")
+        mcp.run(transport="sse")
     else:
         logger.error(f"Unknown transport: {transport}")
         sys.exit(1)
