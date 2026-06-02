@@ -1,18 +1,19 @@
-# VIGIL — X/Twitter Content
+# VIGIL — X/Twitter Content (English)
 
-## Bio (160 chars max)
+## Profile
+
+**Handle:** @vigil_codes
+**Name:** VIGIL
+**Bio:**
 ```
-👁️ Onchain security agent on Base
-🔍 Approvals • Honeypots • Rugpull detection
-⚡ Agent-based MCP server
-🛡️ vigil-web-theta.vercel.app
+Onchain security agent on Base
+Scan approvals · detect honeypots · score contracts
+Agent-based MCP server · Open source
+vigil.codes
 ```
 
-## Profile Picture
-vigil-logo-512.png (download dari https://vigil-web-theta.vercel.app/assets/png/vigil-logo-512.png)
-
-## Banner/Header
-vigil-banner-1500x500.png (download dari https://vigil-web-theta.vercel.app/assets/png/vigil-banner-1500x500.png)
+**Location:** Global
+**Website:** https://vigil.codes
 
 ---
 
@@ -31,31 +32,32 @@ An onchain security agent on Base — built as an MCP server.
 → Revoke dangerous approvals
 → Full wallet security report
 
-Plug it into Claude, Cursor, or any AI client.
+Plug into Claude, Cursor, or any AI client.
 
-🔗 github.com/vigilcodes/vigil-mcp
+🔗 vigil.codes
+💻 github.com/vigilcodes/vigil-mcp
 ```
 
 ---
 
 ## Launch Thread
 
-**Tweet 1:**
+### Tweet 1
 ```
 Introducing VIGIL 👁️
 
-Onchain security, vigilan terus.
+Onchain security, always vigilant.
 
 An agent-based MCP server that protects your wallet on Base.
 
 Here's what it does ↓
 ```
 
-**Tweet 2:**
+### Tweet 2
 ```
 🔍 Approval Scanner
 
-Lists every ERC-20/ERC-721 approval on your wallet.
+Lists every ERC-20 and ERC-721 approval on your wallet.
 
 Flags unlimited approvals.
 Identifies unverified spender contracts.
@@ -63,7 +65,7 @@ Identifies unverified spender contracts.
 Most people have no idea how many tokens can drain their wallet right now.
 ```
 
-**Tweet 3:**
+### Tweet 3
 ```
 🍯 Honeypot Detector
 
@@ -77,7 +79,7 @@ Catches tokens that:
 One scan = saved from a rug.
 ```
 
-**Tweet 4:**
+### Tweet 4
 ```
 📊 Safety Score
 
@@ -93,7 +95,7 @@ Every contract gets a 0-100 rating based on:
 23/100 = run away
 ```
 
-**Tweet 5:**
+### Tweet 5
 ```
 ⚡ It's an MCP server.
 
@@ -106,7 +108,7 @@ Any MCP-compatible agent? ✓
 No custom integration. Just plug and scan.
 ```
 
-**Tweet 6:**
+### Tweet 6
 ```
 🛡️ Built for Base.
 
@@ -115,7 +117,7 @@ Purpose-built for Base L2 ecosystem.
 
 Every tool optimized for Base's contract patterns and RPC infrastructure.
 
-🔗 vigil-web-theta.vercel.app
+🔗 vigil.codes
 
 Open source → github.com/vigilcodes/vigil-mcp
 
@@ -126,8 +128,9 @@ Stay vigilant. 👁️
 
 ---
 
-## Daily Tweets (mix & match)
+## Daily Tweets
 
+### Tweet A — Approvals
 ```
 How many token approvals does your wallet have right now?
 
@@ -138,8 +141,10 @@ That's exactly how drains happen.
 VIGIL scans every approval on your Base wallet in seconds.
 ```
 
+### Tweet B — Rugpull Patterns
 ```
 90% of rugpulls have these in common:
+
 - Hidden mint function
 - Proxy pattern
 - Owner-controlled blacklist
@@ -148,6 +153,7 @@ VIGIL scans every approval on your Base wallet in seconds.
 VIGIL checks all of them before you buy.
 ```
 
+### Tweet C — Safety Score
 ```
 "Is this token safe?"
 
@@ -159,6 +165,7 @@ Code + Ownership + Liquidity + Holders
 Data, not vibes.
 ```
 
+### Tweet D — Unlimited Approvals
 ```
 The scariest DeFi stat:
 
@@ -169,6 +176,7 @@ One exploit = your entire balance.
 VIGIL finds them. VIGIL revokes them.
 ```
 
+### Tweet E — MCP Protocol
 ```
 MCP is the future of AI agents.
 
@@ -179,6 +187,7 @@ Any AI client becomes a blockchain security expert.
 No glue code. No custom API. Just standard protocol.
 ```
 
+### Tweet F — Open Source
 ```
 Built an onchain security agent called VIGIL.
 
@@ -193,6 +202,7 @@ All on Base. All open source.
 github.com/vigilcodes/vigil-mcp
 ```
 
+### Tweet G — Before You Ape
 ```
 Before you ape into a Base token:
 
@@ -201,4 +211,37 @@ Before you ape into a Base token:
 3. Scan contract for rugpull indicators
 
 30 seconds of scanning > losing your entire bag.
+```
+
+### Tweet H — Wallet Drain
+```
+Most wallet drains follow the same pattern:
+
+1. You approved a token months ago
+2. That contract gets exploited
+3. Your balance disappears
+
+VIGIL finds every active approval on your wallet and flags the dangerous ones.
+```
+
+### Tweet I — DeFi Security
+```
+DeFi security is not optional.
+
+Every time you sign a transaction, you trust a smart contract with your funds.
+
+VIGIL tells you if that trust is deserved.
+
+0-100 safety score. No guessing.
+```
+
+### Tweet J — Agent Future
+```
+The future of crypto security:
+
+AI agents that scan contracts before you sign.
+
+Not after you lose your money.
+
+VIGIL is that agent. Running on Base. Open source. Free to use.
 ```

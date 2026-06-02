@@ -740,7 +740,7 @@
     @media (max-width: 1024px) {
       .wrap { padding: 0 32px; }
       .hero-grid { grid-template-columns: 1fr; gap: 48px; }
-      .hero-right { order: -1; }
+      .hero-right { order: -1; display: flex; justify-content: center; }
       .radar-container { width: 300px; height: 300px; }
       .features-grid { grid-template-columns: 1fr; }
       .arch-flow { flex-direction: column; }
@@ -752,24 +752,128 @@
     }
 
     @media (max-width: 768px) {
-      .wrap { padding: 0 20px; }
+      .wrap { padding: 0 16px; }
       body { cursor: auto; }
       .cursor-dot, .cursor-ring { display: none; }
-      .nav-right { gap: 20px; }
-      .nav-right a { font-size: 10px; letter-spacing: 1px; }
-      .hero-title { font-size: 40px; }
-      .radar-container { width: 240px; height: 240px; }
-      .feat-cell { padding: 32px; }
-      .feat-num { font-size: 48px; }
-      section { padding: 80px 0; }
-      .foot-row { flex-direction: column; gap: 20px; text-align: center; }
+
+      /* Nav — hamburger */
+      nav { padding: 12px 0; }
+      .nav-right {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(8,8,8,0.97);
+        backdrop-filter: blur(20px);
+        flex-direction: column;
+        padding: 16px 24px 24px;
+        gap: 0;
+        border-bottom: 1px solid var(--border);
+        z-index: 200;
+      }
+      .nav-right.open { display: flex; }
+      .nav-right a {
+        font-size: 13px;
+        letter-spacing: 2px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        display: block;
+      }
+      .nav-right a:last-child { border-bottom: none; }
+      .hamburger { display: flex !important; }
+
+      /* Hero */
+      .hero { min-height: auto; padding: 100px 0 60px; }
+      .hero-title { font-size: 36px; line-height: 1.1; }
+      .hero-desc { font-size: 14px; margin-bottom: 32px; }
+      .hero-actions { flex-direction: column; gap: 12px; }
+      .hero-actions .btn-gold,
+      .hero-actions .btn-outline { width: 100%; justify-content: center; padding: 14px 24px; }
+      .radar-container { width: 200px; height: 200px; }
+      .hero-right { margin-bottom: 16px; }
+
+      /* Ticker */
+      .ticker { padding: 14px 0; }
+      .ticker-item { font-size: 10px; letter-spacing: 2px; }
+
+      /* Sections */
+      section { padding: 64px 0; }
+      .s-title { font-size: 28px; }
+      .s-desc { font-size: 14px; }
+
+      /* Features */
+      .features-grid { margin-top: 40px; }
+      .feat-cell { padding: 24px; }
+      .feat-num { font-size: 36px; margin-bottom: 16px; }
+      .feat-cell h3 { font-size: 18px; }
+      .feat-cell p { font-size: 13px; }
+
+      /* Architecture */
+      .arch-visual { margin-top: 40px; }
+      .arch-node { padding: 20px 16px; }
+      .arch-node .a-icon { font-size: 24px; margin-bottom: 12px; }
+      .arch-node .a-title { font-size: 11px; }
+      .arch-node .a-desc { font-size: 12px; }
+
+      /* Terminal */
+      .term-block { margin-top: 40px; }
+      .term-body { padding: 20px; font-size: 11px; line-height: 2; }
+
+      /* Chains */
+      .chain-row { grid-template-columns: 1fr 50px 50px 50px; padding: 20px 0; }
+      .chain-header { grid-template-columns: 1fr 50px 50px 50px; padding: 12px 0; }
+      .chain-header span { font-size: 9px; letter-spacing: 1px; }
+      .chain-icon { width: 32px; height: 32px; font-size: 14px; }
+      .chain-name span { font-size: 16px; }
+      .chain-status { font-size: 11px; }
+
+      /* Install */
+      .install-grid { margin-top: 32px; gap: 16px; }
+      .install-card { padding: 24px; }
+      .install-card h3 { font-size: 16px; }
+      .install-code { font-size: 12px; padding: 12px; }
+      .config-block { margin-top: 40px; gap: 24px; }
+      .config-body { padding: 16px; font-size: 11px; }
+
+      /* Footer */
+      .foot-row { flex-direction: column; gap: 16px; text-align: center; }
     }
 
     @media (max-width: 480px) {
-      .chain-row { grid-template-columns: 1fr 60px 60px 60px; }
-      .chain-header { grid-template-columns: 1fr 60px 60px 60px; }
-      .hero-actions { flex-direction: column; }
+      .wrap { padding: 0 12px; }
+      .hero-title { font-size: 30px; }
+      .radar-container { width: 160px; height: 160px; }
+      .s-title { font-size: 24px; }
+      .feat-cell { padding: 20px; }
+      .feat-num { font-size: 28px; }
+      .chain-row { grid-template-columns: 1fr 40px 40px 40px; }
+      .chain-header { grid-template-columns: 1fr 40px 40px 40px; }
+      .chain-icon { width: 28px; height: 28px; font-size: 12px; }
+      .chain-name span { font-size: 14px; }
+      .ticker-item { font-size: 9px; }
     }
+
+    /* Hamburger button — hidden on desktop */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+      z-index: 201;
+    }
+    .hamburger span {
+      width: 22px;
+      height: 2px;
+      background: var(--gold);
+      transition: all 0.3s;
+    }
+    .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
   </style>
 </head>
 <body>
@@ -783,11 +887,15 @@
         <img src="assets/vigil-logo.svg" alt="">
         <span>Vigil</span>
       </a>
-      <div class="nav-right">
+      <div class="nav-right" id="navMenu">
         <a href="#features">Functions</a>
         <a href="#arch">Architecture</a>
         <a href="#install">Install</a>
+        <a href="https://github.com/vigilcodes/vigil-mcp" target="_blank">GitHub</a>
       </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
@@ -801,7 +909,10 @@
           <p class="hero-desc">An autonomous onchain security agent on Base that scans approvals, detects honeypots, and scores token contracts — before you sign.</p>
           <div class="hero-actions">
             <a href="#install" class="btn-gold">Install Vigil</a>
-            <a href="#arch" class="btn-outline">Read Docs</a>
+            <a href="https://github.com/vigilcodes/vigil-mcp" target="_blank" class="btn-outline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              GitHub
+            </a>
           </div>
         </div>
         <div class="hero-right">
@@ -1056,6 +1167,10 @@
           <img src="assets/vigil-logo.svg" alt="">
           <span>Vigil</span>
         </div>
+        <div style="display:flex;gap:24px;align-items:center;">
+          <a href="https://github.com/vigilcodes/vigil-mcp" target="_blank" style="color:var(--text-dim);text-decoration:none;font-family:var(--mono);font-size:12px;transition:color 0.3s;">GitHub</a>
+          <a href="https://vigil-web-theta.vercel.app" style="color:var(--text-dim);text-decoration:none;font-family:var(--mono);font-size:12px;transition:color 0.3s;">vigil.codes</a>
+        </div>
         <div class="foot-copy">MIT License · 2026</div>
       </div>
     </div>
@@ -1119,7 +1234,16 @@
         e.preventDefault();
         const t = document.querySelector(a.getAttribute('href'));
         if (t) t.scrollIntoView({ behavior: 'smooth' });
+        // Close mobile menu
+        document.getElementById('navMenu').classList.remove('open');
+        document.getElementById('hamburger').classList.remove('active');
       });
+    });
+
+    // Hamburger toggle
+    document.getElementById('hamburger').addEventListener('click', () => {
+      document.getElementById('navMenu').classList.toggle('open');
+      document.getElementById('hamburger').classList.toggle('active');
     });
 
     // Parallax radar
