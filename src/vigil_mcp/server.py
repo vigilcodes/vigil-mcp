@@ -1,11 +1,14 @@
 """VIGIL MCP Server — FastMCP implementation exposing security scanning tools."""
 
+import json
 import logging
 import os
 import sys
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from vigil_mcp.bridge.base_mcp import BaseMCPBridge
 from vigil_mcp.revoker.engine import RevocationEngine
@@ -363,6 +366,138 @@ async def get_token_info() -> str:
             {"name": "Archon", "stake": 5000, "scans": "Unlimited", "revokes": "Unlimited"},
         ],
     }
+
+
+# ─────────────────────────────────────────────────────────────
+# HTTP JSON-RPC ENDPOINTS (for curl/bash access)
+# ─────────────────────────────────────────────────────────────
+
+TOOL_MAP = {
+    "vigil_scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
+    "vigil_scan_token": lambda args: vigil_scan_token(args.get("token", ""), args.get("chain", "base")),
+    "vigil_detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token", ""), args.get("chain", "base")),
+    "vigil_safety_score": lambda args: vigil_safety_score(args.get("contract", ""), args.get("chain", "base")),
+    "vigil_wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
+    "scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
+    "scan_token": lambda args: vigil_scan_token(args.get("token", ""), args.get("chain", "base")),
+    "detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token", ""), args.get("chain", "base")),
+    "safety_score": lambda args: vigil_safety_score(args.get("contract", ""), args.get("chain", "base")),
+    "wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
+}
+
+
+@mcp.custom_route("/tools/list", methods=["GET", "POST"])
+async def tools_list(request: Request) -> JSONResponse:
+    """List available MCP tools."""
+    tools = [
+        {
+            "name": "vigil_scan_approvals",
+            "description": "Scan all token approvals for a wallet. Flags unlimited approvals and risky spenders.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "wallet": {"type": "string", "description": "Wallet address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["wallet"],
+            },
+        },
+        {
+            "name": "vigil_scan_token",
+            "description": "Scan a token contract for rugpull indicators.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
+            },
+        },
+        {
+            "name": "vigil_detect_honeypot",
+            "description": "Detect honeypot tokens by simulating buy/sell transactions.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
+            },
+        },
+        {
+            "name": "vigil_safety_score",
+            "description": "Get a 0-100 safety score for any contract.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "contract": {"type": "string", "description": "Contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["contract"],
+            },
+        },
+        {
+            "name": "vigil_wallet_report",
+            "description": "Generate a full security report for a wallet.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "wallet": {"type": "string", "description": "Wallet address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["wallet"],
+            },
+        },
+    ]
+    return JSONResponse({"jsonrpc": "2.0", "id": None, "result": {"tools": tools}})
+
+
+@mcp.custom_route("/tools/call", methods=["POST"])
+async def tools_call(request: Request) -> JSONResponse:
+    """Call an MCP tool via JSON-RPC HTTP POST."""
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse(
+            {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}},
+            status_code=400,
+        )
+
+    req_id = body.get("id", None)
+    params = body.get("params", {})
+    tool_name = params.get("name", "")
+    arguments = params.get("arguments", {})
+
+    if not tool_name:
+        return JSONResponse(
+            {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32600, "message": "Missing tool name"}},
+            status_code=400,
+        )
+
+    handler = TOOL_MAP.get(tool_name)
+    if not handler:
+        return JSONResponse(
+            {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": f"Unknown tool: {tool_name}"}},
+            status_code=404,
+        )
+
+    try:
+        result = await handler(arguments)
+        return JSONResponse({"jsonrpc": "2.0", "id": req_id, "result": result})
+    except Exception as e:
+        logger.error(f"Tool {tool_name} failed: {e}")
+        return JSONResponse(
+            {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32000, "message": str(e)}},
+            status_code=500,
+        )
+
+
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request: Request) -> JSONResponse:
+    """Health check endpoint."""
+    return JSONResponse({"status": "ok", "service": "vigil-mcp", "tools": len(TOOL_MAP)})
 
 
 # ─────────────────────────────────────────────────────────────
