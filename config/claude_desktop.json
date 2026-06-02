@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "vigil": {
+      "command": "python3",
+      "args": ["-m", "vigil_mcp.server"],
+      "cwd": "/root/vigil-mcp/src",
+      "env": {
+        "BANKR_API_KEY": "bk_YOUR_KEY_HERE",
+        "VIGIL_API": "https://api.bankr.bot/vigil",
+        "VIGIL_LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

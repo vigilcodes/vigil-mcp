@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIGIL — Onchain Security Scanner for Base</title>
+  <meta name="description" content="Agent-based MCP server for onchain security on Base.">
+  <link rel="icon" type="image/svg+xml" href="assets/vigil-logo.svg">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #080808;
+      --bg-elevated: #0e0e0e;
+      --bg-subtle: #141414;
+      --gold: #c8a961;
+      --gold-dim: rgba(200, 169, 97, 0.12);
+      --gold-glow: rgba(200, 169, 97, 0.06);
+      --text: #d4d0c8;
+      --text-dim: #6b6860;
+      --text-ghost: #3a3830;
+      --border: #1e1e1c;
+      --serif: 'DM Serif Display', serif;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+      cursor: none;
+    }
+
+    ::selection { background: var(--gold); color: var(--bg); }
+
+    /* Custom cursor */
+    .cursor-dot {
+      position: fixed;
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(200, 169, 97, 0.3);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transition: all 0.15s ease-out;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9990;
+      opacity: 0.6;
+    }
+
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 0 48px; }
+
+    /* ---- NAV ---- */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 20px 0;
+      mix-blend-mode: difference;
+    }
+    nav .wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+    .nav-logo img { width: 32px; height: 32px; }
+    .nav-logo span {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    .nav-right a {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      text-decoration: none;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .nav-right a:hover { color: var(--gold); }
+
+    /* ---- HERO ---- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      padding: 0 0 80px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .hero-left {}
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+    .hero-title {
+      font-family: var(--serif);
+      font-size: clamp(48px, 7vw, 96px);
+      font-weight: 400;
+      line-height: 1.05;
+      color: var(--text);
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.4s forwards;
+    }
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold);
+    }
+    .hero-desc {
+      font-size: 16px;
+      color: var(--text-dim);
+      max-width: 440px;
+      line-height: 1.8;
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 24px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.8s forwards;
+    }
+
+    .btn-gold {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      background: var(--gold);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .btn-gold:hover {
+      background: #d4b86e;
+      transform: translateY(-2px);
+    }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .btn-outline:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* Hero right — radar */
+    .hero-right {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      animation: fadeUp 1s ease 0.6s forwards;
+    }
+    .radar-container {
+      position: relative;
+      width: 420px;
+      height: 420px;
+    }
+    .radar-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+    }
+    .radar-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .radar-ring:nth-child(2) { width: 75%; height: 75%; }
+    .radar-ring:nth-child(3) { width: 50%; height: 50%; }
+    .radar-ring:nth-child(4) { width: 25%; height: 25%; }
+    .radar-cross-h {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--border);
+    }
+    .radar-cross-v {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+    .radar-sweep {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      transform-origin: left center;
+      animation: radarSweep 4s linear infinite;
+      opacity: 0.6;
+    }
+    .radar-sweep::after {
+      content: '';
+      position: absolute;
+      top: -60px;
+      left: 0;
+      width: 100%;
+      height: 120px;
+      background: conic-gradient(from -30deg at 0% 50%, transparent 0deg, var(--gold-glow) 30deg, transparent 60deg);
+      opacity: 0.5;
+    }
+    @keyframes radarSweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .radar-dot {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: radarBlink 2s ease-in-out infinite;
+      box-shadow: 0 0 12px rgba(200, 169, 97, 0.4);
+    }
+    .radar-dot:nth-child(7) { top: 25%; left: 35%; animation-delay: 0s; }
+    .radar-dot:nth-child(8) { top: 60%; left: 70%; animation-delay: 0.7s; }
+    .radar-dot:nth-child(9) { top: 40%; left: 55%; animation-delay: 1.4s; }
+    .radar-dot:nth-child(10) { top: 70%; left: 30%; animation-delay: 0.3s; }
+    .radar-dot:nth-child(11) { top: 20%; left: 65%; animation-delay: 1.1s; }
+    @keyframes radarBlink {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+    .radar-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: var(--gold);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(200, 169, 97, 0.5);
+    }
+
+    /* ---- TICKER ---- */
+    .ticker {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      overflow: hidden;
+    }
+    .ticker-track {
+      display: flex;
+      gap: 60px;
+      animation: ticker 20s linear infinite;
+      width: max-content;
+    }
+    .ticker-item {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-ghost);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ticker-item .dot {
+      width: 4px;
+      height: 4px;
+      background: var(--gold);
+      opacity: 0.4;
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ---- SECTION COMMON ---- */
+    section { padding: 140px 0; }
+    .s-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .s-title {
+      font-family: var(--serif);
+      font-size: clamp(32px, 4.5vw, 56px);
+      font-weight: 400;
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .s-desc {
+      font-size: 15px;
+      color: var(--text-dim);
+      max-width: 480px;
+      line-height: 1.8;
+    }
+
+    /* ---- FEATURES ---- */
+    .features {}
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin-top: 80px;
+      border: 1px solid var(--border);
+    }
+    .feat-cell {
+      padding: 48px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s;
+    }
+    .feat-cell::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gold-glow);
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .feat-cell:hover::before { opacity: 1; }
+    .feat-cell:hover { border-color: rgba(200, 169, 97, 0.15); }
+
+    .feat-num {
+      font-family: var(--serif);
+      font-size: 64px;
+      color: var(--text-ghost);
+      line-height: 1;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .feat-cell h3 {
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .feat-cell p {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.8;
+      position: relative;
+    }
+
+    /* ---- ARCHITECTURE ---- */
+    .arch {}
+    .arch-visual {
+      margin-top: 80px;
+      position: relative;
+    }
+    .arch-flow {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+    .arch-node {
+      flex: 1;
+      padding: 48px 32px;
+      border: 1px solid var(--border);
+      text-align: center;
+      position: relative;
+      transition: all 0.4s;
+    }
+    .arch-node:hover {
+      background: var(--gold-glow);
+      border-color: rgba(200, 169, 97, 0.15);
+    }
+    .arch-node .a-icon {
+      font-size: 32px;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .arch-node .a-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .arch-node .a-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .arch-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      color: var(--text-ghost);
+      font-size: 18px;
+    }
+
+    /* Terminal */
+    .term-block {
+      margin-top: 80px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .term-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .term-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+    }
+    .term-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-left: 12px;
+      letter-spacing: 1px;
+    }
+    .term-body {
+      padding: 32px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 2.2;
+      min-height: 260px;
+    }
+    .t-line {
+      opacity: 0;
+      animation: tIn 0.4s ease forwards;
+    }
+    .t-prompt { color: var(--gold); }
+    .t-cmd { color: var(--text); }
+    .t-out { color: var(--text-dim); }
+    .t-ok { color: #6bbd6b; }
+    .t-warn { color: #d4a843; }
+    .t-err { color: #c45c4c; }
+    .t-info { color: var(--gold); opacity: 0.7; }
+    @keyframes tIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .t-cursor {
+      display: inline-block;
+      width: 7px;
+      height: 14px;
+      background: var(--gold);
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+    /* ---- CHAINS ---- */
+    .chains {}
+    .chains-list {
+      margin-top: 80px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chain-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 100px 100px;
+      align-items: center;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    .chain-row:first-child {
+      border-top: 1px solid var(--border);
+    }
+    .chain-row:hover {
+      background: var(--gold-glow);
+      padding-left: 16px;
+    }
+    .chain-name {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .chain-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: var(--bg-subtle);
+      overflow: hidden;
+    }
+    .chain-name span {
+      font-family: var(--serif);
+      font-size: 20px;
+      color: var(--text);
+    }
+    .chain-status {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+    .chain-header {
+      display: grid;
+      grid-template-columns: 1fr 100px 100px 100px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+    .chain-header span {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-ghost);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .chain-header span:first-child { text-align: left; }
+
+    /* ---- INSTALL ---- */
+    .install {}
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 64px;
+    }
+    .install-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 32px;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .install-card:hover {
+      border-color: rgba(200, 169, 97, 0.2);
+    }
+    .install-card h3 {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 400;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .install-code {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--gold);
+      padding: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 4px 10px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* Config block */
+    .config-block {
+      margin-top: 64px;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .config-code {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .config-code .term-bar {
+      border-bottom: 1px solid var(--border);
+    }
+    .config-body {
+      padding: 24px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 2;
+      overflow-x: auto;
+    }
+    .c-k { color: var(--gold); }
+    .c-s { color: #6bbd6b; }
+    .c-b { color: var(--text-dim); }
+    .c-c { color: var(--text-ghost); }
+
+    /* ---- FOOTER ---- */
+    footer {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+    }
+    .foot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .foot-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .foot-brand img { width: 24px; height: 24px; }
+    .foot-brand span {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 4px;
+    }
+    .foot-copy {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-ghost);
+      letter-spacing: 1px;
+    }
+
+    /* ---- REVEAL ---- */
+    .rv {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .rv.vis {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ---- ANIMATIONS ---- */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 1024px) {
+      .wrap { padding: 0 32px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+      .hero-right { order: -1; }
+      .radar-container { width: 300px; height: 300px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .arch-flow { flex-direction: column; }
+      .arch-arrow { justify-content: center; padding: 4px 0; transform: rotate(90deg); }
+      .config-block { grid-template-columns: 1fr; }
+      .install-grid { grid-template-columns: 1fr; }
+      .chain-row { grid-template-columns: 1fr 80px 80px 80px; }
+      .chain-header { grid-template-columns: 1fr 80px 80px 80px; }
+    }
+
+    @media (max-width: 768px) {
+      .wrap { padding: 0 20px; }
+      body { cursor: auto; }
+      .cursor-dot, .cursor-ring { display: none; }
+      .nav-right { gap: 20px; }
+      .nav-right a { font-size: 10px; letter-spacing: 1px; }
+      .hero-title { font-size: 40px; }
+      .radar-container { width: 240px; height: 240px; }
+      .feat-cell { padding: 32px; }
+      .feat-num { font-size: 48px; }
+      section { padding: 80px 0; }
+      .foot-row { flex-direction: column; gap: 20px; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      .chain-row { grid-template-columns: 1fr 60px 60px 60px; }
+      .chain-header { grid-template-columns: 1fr 60px 60px 60px; }
+      .hero-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor-dot" id="dot"></div>
+  <div class="cursor-ring" id="ring"></div>
+
+  <!-- Nav -->
+  <nav>
+    <div class="wrap">
+      <a href="#" class="nav-logo">
+        <img src="assets/vigil-logo.svg" alt="">
+        <span>Vigil</span>
+      </a>
+      <div class="nav-right">
+        <a href="#features">Functions</a>
+        <a href="#arch">Architecture</a>
+        <a href="#install">Install</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="hero-left">
+          <div class="hero-label">Agent-Based MCP Security Server · Base L2</div>
+          <h1 class="hero-title">See what<br>others <em>miss.</em></h1>
+          <p class="hero-desc">An autonomous onchain security agent on Base that scans approvals, detects honeypots, and scores token contracts — before you sign.</p>
+          <div class="hero-actions">
+            <a href="#install" class="btn-gold">Install Vigil</a>
+            <a href="#arch" class="btn-outline">Read Docs</a>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="radar-container">
+            <div class="radar-bg"></div>
+            <div class="radar-ring"></div>
+            <div class="radar-ring"></div>
+            <div class="radar-ring"></div>
+            <div class="radar-cross-h"></div>
+            <div class="radar-cross-v"></div>
+            <div class="radar-sweep"></div>
+            <div class="radar-dot"></div>
+            <div class="radar-dot"></div>
+            <div class="radar-dot"></div>
+            <div class="radar-dot"></div>
+            <div class="radar-dot"></div>
+            <div class="radar-center"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ticker -->
+  <div class="ticker">
+    <div class="ticker-track">
+      <span class="ticker-item"><span class="dot"></span>Approval Scanner</span>
+      <span class="ticker-item"><span class="dot"></span>Token Analysis</span>
+      <span class="ticker-item"><span class="dot"></span>Honeypot Detection</span>
+      <span class="ticker-item"><span class="dot"></span>Safety Scoring</span>
+      <span class="ticker-item"><span class="dot"></span>Approval Revocation</span>
+      <span class="ticker-item"><span class="dot"></span>Wallet Reports</span>
+      <span class="ticker-item"><span class="dot"></span>Base L2</span>
+      <span class="ticker-item"><span class="dot"></span>Onchain Security</span>
+      <!-- duplicate for seamless loop -->
+      <span class="ticker-item"><span class="dot"></span>Approval Scanner</span>
+      <span class="ticker-item"><span class="dot"></span>Token Analysis</span>
+      <span class="ticker-item"><span class="dot"></span>Honeypot Detection</span>
+      <span class="ticker-item"><span class="dot"></span>Safety Scoring</span>
+      <span class="ticker-item"><span class="dot"></span>Approval Revocation</span>
+      <span class="ticker-item"><span class="dot"></span>Wallet Reports</span>
+      <span class="ticker-item"><span class="dot"></span>Base L2</span>
+      <span class="ticker-item"><span class="dot"></span>Onchain Security</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="wrap">
+      <div class="rv">
+        <div class="s-label">Agent Capabilities</div>
+        <h2 class="s-title">Six autonomous agents,<br>one protocol.</h2>
+        <p class="s-desc">Each tool is exposed as a standardized MCP capability, optimized for Base chain. Any AI client can invoke them — no custom integration required.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feat-cell rv">
+          <div class="feat-num">01</div>
+          <h3>Approval Scanner</h3>
+          <p>Enumerate every ERC-20 and ERC-721 approval on a wallet. Flag unlimited allowances. Identify unverified or malicious spender contracts before they drain funds.</p>
+        </div>
+        <div class="feat-cell rv">
+          <div class="feat-num">02</div>
+          <h3>Token Analyzer</h3>
+          <p>Deep contract analysis for rugpull signatures — hidden mint functions, proxy upgrade patterns, adjustable tax rates, and owner-controlled blacklists.</p>
+        </div>
+        <div class="feat-cell rv">
+          <div class="feat-num">03</div>
+          <h3>Honeypot Detector</h3>
+          <p>Simulate full buy-sell cycles on-chain. Detect tokens that block selling, apply extreme sell taxes, or trap liquidity through contract logic.</p>
+        </div>
+        <div class="feat-cell rv">
+          <div class="feat-num">04</div>
+          <h3>Safety Scoring</h3>
+          <p>A 0–100 composite rating derived from bytecode analysis, ownership status, liquidity depth, holder distribution, and contract verification state.</p>
+        </div>
+        <div class="feat-cell rv">
+          <div class="feat-num">05</div>
+          <h3>Approval Revoker</h3>
+          <p>Revoke dangerous token approvals with signed transactions through Bankr. Supports single and batch revocation by risk level.</p>
+        </div>
+        <div class="feat-cell rv">
+          <div class="feat-num">06</div>
+          <h3>Wallet Report</h3>
+          <p>Full-spectrum security posture assessment. Aggregate all findings into a single report with severity ratings and remediation steps.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section class="arch" id="arch">
+    <div class="wrap">
+      <div class="rv">
+        <div class="s-label">Protocol Architecture</div>
+        <h2 class="s-title">MCP-native by design.</h2>
+        <p class="s-desc">Vigil speaks the Model Context Protocol, purpose-built for Base L2. Any compliant AI client becomes a Base chain security expert — zero glue code.</p>
+      </div>
+      <div class="arch-visual rv">
+        <div class="arch-flow">
+          <div class="arch-node">
+            <span class="a-icon">◈</span>
+            <div class="a-title">Client</div>
+            <div class="a-desc">Claude, Cursor, or any MCP-compatible AI</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node">
+            <span class="a-icon">◇</span>
+            <div class="a-title">Transport</div>
+            <div class="a-desc">Stdio or SSE on port 3100</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node" style="border-color: rgba(200,169,97,0.2);">
+            <span class="a-icon">◆</span>
+            <div class="a-title">Vigil Agent</div>
+            <div class="a-desc">Security scanner core with 6 tools</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node">
+            <span class="a-icon">◈</span>
+            <div class="a-title">Base L2</div>
+            <div class="a-desc">RPC, ABI decoding, Base contract calls</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="term-block rv">
+        <div class="term-bar">
+          <div class="term-dot"></div>
+          <div class="term-dot"></div>
+          <div class="term-dot"></div>
+          <span class="term-title">vigil — live scan</span>
+        </div>
+        <div class="term-body" id="termBody">
+          <div class="t-line" style="animation-delay:.2s"><span class="t-prompt">▸ </span><span class="t-cmd">vigil approvals 0x742d...35F4</span></div>
+          <div class="t-line" style="animation-delay:.6s"><span class="t-out">  scanning ERC-20 approvals on </span><span class="t-info">base</span></div>
+          <div class="t-line" style="animation-delay:1s"><span class="t-out">  found </span><span class="t-warn">12</span><span class="t-out"> token approvals</span></div>
+          <div class="t-line" style="animation-delay:1.4s"><span class="t-err">  ⚠ 3 unlimited approvals detected</span></div>
+          <div class="t-line" style="animation-delay:1.8s"><span class="t-err">  ⚠ 1 approval to unverified contract</span></div>
+          <div class="t-line" style="animation-delay:2.4s"><span class="t-prompt">▸ </span><span class="t-cmd">vigil token 0x1f98...D9e8</span></div>
+          <div class="t-line" style="animation-delay:2.8s"><span class="t-out">  analyzing contract on </span><span class="t-info">base</span></div>
+          <div class="t-line" style="animation-delay:3.2s"><span class="t-ok">  ✓ no hidden mint</span></div>
+          <div class="t-line" style="animation-delay:3.5s"><span class="t-ok">  ✓ no proxy pattern</span></div>
+          <div class="t-line" style="animation-delay:3.8s"><span class="t-ok">  ✓ ownership renounced</span></div>
+          <div class="t-line" style="animation-delay:4.2s"><span class="t-out">  safety score: </span><span class="t-ok">87/100</span></div>
+          <div class="t-line" style="animation-delay:4.8s"><span class="t-prompt">▸ </span><span class="t-cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chain -->
+  <section class="chains" id="chains">
+    <div class="wrap">
+      <div class="rv">
+        <div class="s-label"><img src="assets/base-logo.svg" alt="Base" style="width:14px;height:14px;border-radius:3px;vertical-align:middle;margin-right:6px;">Built for Base</div>
+        <h2 class="s-title">One chain.<br>One agent.<br>Full coverage.</h2>
+        <p class="s-desc">Purpose-built for the Base L2 ecosystem. Every tool optimized for Base's contract patterns and RPC infrastructure.</p>
+      </div>
+      <div class="chains-list rv">
+        <div class="chain-header">
+          <span>Network</span>
+          <span>Approvals</span>
+          <span>Scan</span>
+          <span>Revoke</span>
+        </div>
+        <div class="chain-row">
+          <div class="chain-name"><div class="chain-icon"><img src="assets/base-logo.svg" alt="Base" style="width:28px;height:28px;border-radius:6px;"></div><span>Base</span></div>
+          <div class="chain-status">✓</div>
+          <div class="chain-status">✓</div>
+          <div class="chain-status">✓</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Install -->
+  <section class="install" id="install">
+    <div class="wrap">
+      <div class="rv">
+        <div class="s-label">Quick Start</div>
+        <h2 class="s-title">Plug in. Scan. Stay safe.</h2>
+        <p class="s-desc">Install Vigil as a Python package and connect it to any MCP client.</p>
+      </div>
+      <div class="install-grid">
+        <div class="install-card rv">
+          <h3>Install</h3>
+          <div class="install-code">
+            <span>pip install -e .</span>
+            <button class="copy-btn" onclick="copy(this,'pip install -e .')">Copy</button>
+          </div>
+        </div>
+        <div class="install-card rv">
+          <h3>Run (Stdio)</h3>
+          <div class="install-code">
+            <span>make run</span>
+            <button class="copy-btn" onclick="copy(this,'make run')">Copy</button>
+          </div>
+        </div>
+        <div class="install-card rv">
+          <h3>Run (SSE)</h3>
+          <div class="install-code">
+            <span>make run-sse</span>
+            <button class="copy-btn" onclick="copy(this,'make run-sse')">Copy</button>
+          </div>
+        </div>
+        <div class="install-card rv">
+          <h3>Test</h3>
+          <div class="install-code">
+            <span>make test</span>
+            <button class="copy-btn" onclick="copy(this,'make test')">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-block rv">
+        <div>
+          <div class="s-label">Client Config</div>
+          <h3 style="font-family:var(--serif);font-size:28px;font-weight:400;margin-bottom:12px;">Claude Desktop</h3>
+          <p class="s-desc">Add this to your MCP client configuration. Works with Cursor, Claude Desktop, and any compliant client.</p>
+        </div>
+        <div class="config-code">
+          <div class="term-bar">
+            <div class="term-dot"></div>
+            <div class="term-dot"></div>
+            <div class="term-dot"></div>
+            <span class="term-title">claude_desktop_config.json</span>
+          </div>
+          <div class="config-body">
+<pre><span class="c-b">{</span>
+  <span class="c-k">"mcpServers"</span><span class="c-b">: {</span>
+    <span class="c-k">"vigil"</span><span class="c-b">: {</span>
+      <span class="c-k">"command"</span><span class="c-b">: </span><span class="c-s">"python3"</span><span class="c-b">,</span>
+      <span class="c-k">"args"</span><span class="c-b">: [</span><span class="c-s">"-m"</span><span class="c-b">, </span><span class="c-s">"vigil_mcp.server"</span><span class="c-b">],</span>
+      <span class="c-k">"env"</span><span class="c-b">: {</span>
+        <span class="c-k">"BANKR_API_KEY"</span><span class="c-b">: </span><span class="c-s">"bk_..."</span>
+      <span class="c-b">}</span>
+    <span class="c-b">}</span>
+  <span class="c-b">}</span>
+<span class="c-b">}</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="wrap">
+      <div class="foot-row">
+        <div class="foot-brand">
+          <img src="assets/vigil-logo.svg" alt="">
+          <span>Vigil</span>
+        </div>
+        <div class="foot-copy">MIT License · 2026</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Custom cursor
+    const dot = document.getElementById('dot');
+    const ring = document.getElementById('ring');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX;
+      my = e.clientY;
+      dot.style.left = mx - 3 + 'px';
+      dot.style.top = my - 3 + 'px';
+    });
+
+    function animateRing() {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = rx - 18 + 'px';
+      ring.style.top = ry - 18 + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    // Grow ring on hover
+    document.querySelectorAll('a, button, .feat-cell, .arch-node, .chain-row').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        ring.style.width = '56px';
+        ring.style.height = '56px';
+        ring.style.borderColor = 'rgba(200,169,97,0.5)';
+      });
+      el.addEventListener('mouseleave', () => {
+        ring.style.width = '36px';
+        ring.style.height = '36px';
+        ring.style.borderColor = 'rgba(200,169,97,0.3)';
+      });
+    });
+
+    // Reveal on scroll
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('vis');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+    // Copy
+    function copy(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
+    }
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const t = document.querySelector(a.getAttribute('href'));
+        if (t) t.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Parallax radar
+    document.addEventListener('mousemove', e => {
+      const radar = document.querySelector('.radar-container');
+      if (!radar) return;
+      const rect = radar.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / 40;
+      const dy = (e.clientY - cy) / 40;
+      radar.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+  </script>
+</body>
+</html>

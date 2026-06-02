@@ -1,0 +1,212 @@
+"""Safety score calculator — 0-100 rating for any contract."""
+
+import os
+
+import httpx
+from pydantic import BaseModel
+
+
+class ScoreBreakdown(BaseModel):
+    category: str
+    score: int
+    note: str
+
+
+class SafetyScoreResult(BaseModel):
+    address: str
+    chain: str
+    score: int
+    risk_level: str
+    breakdown: list[ScoreBreakdown]
+    risk_factors: list[str]
+    positive_factors: list[str]
+    recommendation: str
+
+
+class SafetyScorer:
+    """Calculate safety scores for contracts."""
+
+    def __init__(self):
+        self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
+        self.api_key = os.getenv("BANKR_API_KEY", "")
+        self.rpc_urls = {
+            "base": os.getenv("BASE_RPC", "https://mainnet.base.org"),
+            "ethereum": os.getenv("ETH_RPC", "https://eth.llamarpc.com"),
+            "polygon": os.getenv("POLYGON_RPC", "https://polygon-rpc.com"),
+            "arbitrum": os.getenv("ARBITRUM_RPC", "https://arb1.arbitrum.io/rpc"),
+        }
+
+    async def score(self, address: str, chain: str) -> SafetyScoreResult:
+        """Calculate safety score."""
+        if self.api_key:
+            return await self._score_via_api(address, chain)
+        return await self._score_via_analysis(address, chain)
+
+    async def _score_via_api(self, address: str, chain: str) -> SafetyScoreResult:
+        """Score via VIGIL hosted API."""
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"{self.api_base}/score",
+                params={"address": address, "chain": chain},
+                headers={"Authorization": f"Bearer {self.api_key}"},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        return SafetyScoreResult(
+            address=address,
+            chain=chain,
+            score=data.get("score", 0),
+            risk_level=data.get("risk_level", "unknown"),
+            breakdown=[ScoreBreakdown(**b) for b in data.get("breakdown", [])],
+            risk_factors=data.get("risk_factors", []),
+            positive_factors=data.get("positive_factors", []),
+            recommendation=data.get("recommendation", "Unable to determine"),
+        )
+
+    async def _score_via_analysis(self, address: str, chain: str) -> SafetyScoreResult:
+        """Basic scoring via direct contract analysis."""
+        rpc_url = self.rpc_urls.get(chain)
+        if not rpc_url:
+            raise ValueError(f"No RPC configured for chain '{chain}'")
+
+        breakdown: list[ScoreBreakdown] = []
+        risk_factors: list[str] = []
+        positive_factors: list[str] = []
+        total_score = 0
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            # 1. Code analysis (40 points max)
+            code_resp = await client.post(
+                rpc_url,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "eth_getCode",
+                    "params": [address, "latest"],
+                },
+            )
+            code = code_resp.json().get("result", "0x")
+            code_len = (len(code) - 2) // 2  # bytes
+
+            if code in ("0x", "0x0"):
+                return SafetyScoreResult(
+                    address=address,
+                    chain=chain,
+                    score=0,
+                    risk_level="critical",
+                    breakdown=[ScoreBreakdown(category="Code", score=0, note="No contract code")],
+                    risk_factors=["No contract code at address"],
+                    positive_factors=[],
+                    recommendation="DO NOT INTERACT — No contract exists",
+                )
+
+            code_score = min(40, code_len // 10)
+            if "40c10f19" in code:  # mint
+                code_score -= 15
+                risk_factors.append("Contains mint function")
+            if "4f558e79" in code:  # blacklist
+                code_score -= 10
+                risk_factors.append("Contains blacklist function")
+            if "363d3d373d3d3d363d73" in code[:50]:
+                code_score -= 5
+                risk_factors.append("Minimal proxy pattern")
+
+            code_score = max(0, code_score)
+            total_score += code_score
+            breakdown.append(
+                ScoreBreakdown(
+                    category="Code Quality",
+                    score=code_score,
+                    note=f"Contract size: {code_len} bytes",
+                )
+            )
+
+            # 2. Age/deployment analysis (20 points max)
+            # Get deployment block (would need trace API in production)
+            await client.post(
+                rpc_url,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "eth_blockNumber",
+                },
+            )
+
+            # Placeholder: in production, find deployment block
+            age_score = 10  # Neutral default
+            breakdown.append(
+                ScoreBreakdown(
+                    category="History",
+                    score=age_score,
+                    note="Age analysis requires explorer API",
+                )
+            )
+            total_score += age_score
+
+            # 3. Bytecode uniqueness (20 points)
+            unique_score = 15  # Default positive
+            if len(code) < 100:
+                unique_score = 5
+                risk_factors.append("Very small contract — may be minimal proxy")
+            else:
+                positive_factors.append("Substantial contract code")
+            total_score += unique_score
+            breakdown.append(
+                ScoreBreakdown(
+                    category="Complexity",
+                    score=unique_score,
+                    note=f"Bytecode length: {code_len} bytes",
+                )
+            )
+
+            # 4. Basic safety patterns (20 points)
+            safety_score = 15
+            if "715018a6" in code:  # renounceOwnership
+                safety_score += 3
+                positive_factors.append("Has renounceOwnership function")
+            if "3b16aa6f" in code:  # OnlyOwner patterns
+                safety_score -= 2
+
+            total_score += min(20, safety_score)
+            breakdown.append(
+                ScoreBreakdown(
+                    category="Safety Patterns",
+                    score=min(20, safety_score),
+                    note="Basic pattern analysis",
+                )
+            )
+
+        total_score = max(0, min(100, total_score))
+        risk_level = (
+            "critical"
+            if total_score < 30
+            else "high"
+            if total_score < 50
+            else "medium"
+            if total_score < 70
+            else "low"
+            if total_score < 90
+            else "safe"
+        )
+
+        if not positive_factors:
+            positive_factors.append("Contract has deployed code")
+
+        return SafetyScoreResult(
+            address=address,
+            chain=chain,
+            score=total_score,
+            risk_level=risk_level,
+            breakdown=breakdown,
+            risk_factors=risk_factors,
+            positive_factors=positive_factors,
+            recommendation=(
+                f"Score: {total_score}/100 — "
+                + (
+                    "Run full API scan for deeper analysis"
+                    if total_score >= 50
+                    else "HIGH RISK — Exercise extreme caution"
+                )
+            ),
+        )

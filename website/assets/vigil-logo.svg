@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="warm" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+    <filter id="gl">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="gl2">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Owl face — geometric, minimal, abstract -->
+  <!-- Left ear tuft -->
+  <path d="M140,140 L175,200 L155,195" stroke="#c8a961" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl2)"/>
+  <!-- Right ear tuft -->
+  <path d="M372,140 L337,200 L357,195" stroke="#c8a961" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl2)"/>
+
+  <!-- Outer face contour — angular, owl-like -->
+  <path d="M140,140 Q160,105 256,95 Q352,105 372,140 Q400,200 395,280 Q385,360 340,390 Q300,415 256,420 Q212,415 172,390 Q127,360 117,280 Q112,200 140,140 Z" 
+        stroke="#c8a961" stroke-width="2" fill="none" opacity="0.3"/>
+
+  <!-- Left eye socket — hexagonal/angular -->
+  <path d="M175,230 L200,210 L230,210 L245,230 L230,260 L200,260 Z" 
+        stroke="#c8a961" stroke-width="2.5" fill="none" filter="url(#gl2)"/>
+  <!-- Left eye iris -->
+  <circle cx="222" cy="238" r="18" stroke="#c8a961" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <!-- Left pupil -->
+  <circle cx="222" cy="238" r="8" fill="#c8a961" opacity="0.8" filter="url(#gl)"/>
+  <circle cx="222" cy="238" r="3" fill="#e8d5a3"/>
+
+  <!-- Right eye socket — hexagonal/angular -->
+  <path d="M337,230 L312,210 L282,210 L267,230 L282,260 L312,260 Z" 
+        stroke="#c8a961" stroke-width="2.5" fill="none" filter="url(#gl2)"/>
+  <!-- Right eye iris -->
+  <circle cx="290" cy="238" r="18" stroke="#c8a961" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <!-- Right pupil -->
+  <circle cx="290" cy="238" r="8" fill="#c8a961" opacity="0.8" filter="url(#gl)"/>
+  <circle cx="290" cy="238" r="3" fill="#e8d5a3"/>
+
+  <!-- Beak / V mark -->
+  <path d="M240,290 L256,320 L272,290" stroke="#c8a961" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl2)"/>
+
+  <!-- Scan lines across eyes -->
+  <line x1="160" y1="238" x2="352" y2="238" stroke="#c8a961" stroke-width="0.5" opacity="0.15"/>
+  <line x1="170" y1="248" x2="342" y2="248" stroke="#c8a961" stroke-width="0.3" opacity="0.1"/>
+
+  <!-- Circuit traces from owl -->
+  <g stroke="#c8a961" stroke-width="1" opacity="0.2">
+    <!-- Left trace -->
+    <path d="M140,238 L100,238 L80,220" fill="none" stroke-linecap="round"/>
+    <circle cx="80" cy="220" r="3" fill="#c8a961" opacity="0.4"/>
+    <path d="M140,260 L110,260 L90,280" fill="none" stroke-linecap="round"/>
+    <circle cx="90" cy="280" r="3" fill="#c8a961" opacity="0.4"/>
+    <!-- Right trace -->
+    <path d="M372,238 L412,238 L432,220" fill="none" stroke-linecap="round"/>
+    <circle cx="432" cy="220" r="3" fill="#c8a961" opacity="0.4"/>
+    <path d="M372,260 L402,260 L422,280" fill="none" stroke-linecap="round"/>
+    <circle cx="422" cy="280" r="3" fill="#c8a961" opacity="0.4"/>
+  </g>
+
+  <!-- Subtle grid pattern inside face -->
+  <g stroke="#c8a961" stroke-width="0.3" opacity="0.06">
+    <line x1="200" y1="150" x2="312" y2="150"/>
+    <line x1="185" y1="180" x2="327" y2="180"/>
+    <line x1="170" y1="210" x2="342" y2="210"/>
+    <line x1="165" y1="300" x2="347" y2="300"/>
+    <line x1="180" y1="330" x2="332" y2="330"/>
+    <line x1="200" y1="360" x2="312" y2="360"/>
+  </g>
+
+  <!-- "VIGIL" text -->
+  <text x="256" y="480" text-anchor="middle" fill="#c8a961" font-size="32" 
+        font-family="'Courier New', monospace" font-weight="700" letter-spacing="18" filter="url(#gl2)">VIGIL</text>
+</svg>

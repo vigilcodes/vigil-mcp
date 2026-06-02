@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <linearGradient id="warm" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+    <filter id="gl">
+      <feGaussianBlur stdDeviation="12" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="gl2">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="gl3">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#080808" rx="160"/>
+
+  <!-- Subtle background glow -->
+  <circle cx="512" cy="440" r="300" fill="#c8a961" opacity="0.03"/>
+
+  <!-- Left ear tuft -->
+  <path d="M280,240 L350,360 L310,350" stroke="#c8a961" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl2)"/>
+  <!-- Right ear tuft -->
+  <path d="M744,240 L674,360 L714,350" stroke="#c8a961" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl2)"/>
+
+  <!-- Outer face contour -->
+  <path d="M280,240 Q320,170 512,150 Q704,170 744,240 Q800,360 790,520 Q770,680 680,740 Q600,790 512,800 Q424,790 344,740 Q254,680 234,520 Q224,360 280,240 Z" 
+        stroke="#c8a961" stroke-width="3" fill="none" opacity="0.2"/>
+
+  <!-- Left eye socket -->
+  <path d="M350,420 L400,380 L460,380 L490,420 L460,480 L400,480 Z" 
+        stroke="#c8a961" stroke-width="4" fill="none" filter="url(#gl2)"/>
+  <!-- Left iris -->
+  <circle cx="444" cy="440" r="36" stroke="#c8a961" stroke-width="2.5" fill="none" opacity="0.4"/>
+  <!-- Left pupil -->
+  <circle cx="444" cy="440" r="16" fill="#c8a961" opacity="0.7" filter="url(#gl)"/>
+  <circle cx="444" cy="440" r="6" fill="#e8d5a3"/>
+
+  <!-- Right eye socket -->
+  <path d="M674,420 L624,380 L564,380 L534,420 L564,480 L624,480 Z" 
+        stroke="#c8a961" stroke-width="4" fill="none" filter="url(#gl2)"/>
+  <!-- Right iris -->
+  <circle cx="580" cy="440" r="36" stroke="#c8a961" stroke-width="2.5" fill="none" opacity="0.4"/>
+  <!-- Right pupil -->
+  <circle cx="580" cy="440" r="16" fill="#c8a961" opacity="0.7" filter="url(#gl)"/>
+  <circle cx="580" cy="440" r="6" fill="#e8d5a3"/>
+
+  <!-- Beak / V mark -->
+  <path d="M480,540 L512,600 L544,540" stroke="#c8a961" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl2)"/>
+
+  <!-- Scan lines -->
+  <line x1="300" y1="440" x2="724" y2="440" stroke="#c8a961" stroke-width="0.8" opacity="0.12"/>
+  <line x1="310" y1="460" x2="714" y2="460" stroke="#c8a961" stroke-width="0.4" opacity="0.08"/>
+
+  <!-- Circuit traces -->
+  <g stroke="#c8a961" stroke-width="1.5" opacity="0.15">
+    <path d="M280,440 L200,440 L160,400" fill="none" stroke-linecap="round"/>
+    <circle cx="160" cy="400" r="5" fill="#c8a961" opacity="0.3"/>
+    <path d="M280,480 L220,480 L180,520" fill="none" stroke-linecap="round"/>
+    <circle cx="180" cy="520" r="5" fill="#c8a961" opacity="0.3"/>
+    <path d="M744,440 L824,440 L864,400" fill="none" stroke-linecap="round"/>
+    <circle cx="864" cy="400" r="5" fill="#c8a961" opacity="0.3"/>
+    <path d="M744,480 L804,480 L844,520" fill="none" stroke-linecap="round"/>
+    <circle cx="844" cy="520" r="5" fill="#c8a961" opacity="0.3"/>
+  </g>
+
+  <!-- Subtle grid inside face -->
+  <g stroke="#c8a961" stroke-width="0.4" opacity="0.04">
+    <line x1="380" y1="260" x2="644" y2="260"/>
+    <line x1="350" y1="320" x2="674" y2="320"/>
+    <line x1="330" y1="380" x2="694" y2="380"/>
+    <line x1="320" y1="560" x2="704" y2="560"/>
+    <line x1="350" y1="620" x2="674" y2="620"/>
+    <line x1="390" y1="680" x2="634" y2="680"/>
+  </g>
+
+  <!-- VIGIL text -->
+  <text x="512" y="920" text-anchor="middle" fill="#c8a961" font-size="56" 
+        font-family="'Courier New', monospace" font-weight="700" letter-spacing="36" filter="url(#gl2)">VIGIL</text>
+</svg>
