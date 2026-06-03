@@ -6,6 +6,8 @@ from typing import Optional
 import httpx
 from pydantic import BaseModel
 
+from vigil_mcp.scanners.known_contracts import lookup_known_contract
+
 
 class SimulationResult(BaseModel):
     action: str
@@ -42,6 +44,26 @@ class HoneypotDetector:
 
     async def detect(self, token: str, chain: str) -> HoneypotResult:
         """Run honeypot detection on a token."""
+        # Fast-path: known blue-chip contracts are not honeypots
+        known = lookup_known_contract(chain, token)
+        if known:
+            return HoneypotResult(
+                token=token,
+                chain=chain,
+                is_honeypot=False,
+                can_buy=True,
+                can_sell=True,
+                block_reason=None,
+                simulations=[
+                    SimulationResult(
+                        action="known_contract_lookup",
+                        success=True,
+                        error=f"{known.name} ({known.symbol}) is a verified blue-chip contract",
+                    )
+                ],
+                high_tax_warning=False,
+            )
+
         if self.api_key:
             return await self._detect_via_api(token, chain)
         return await self._detect_via_simulation(token, chain)
@@ -82,12 +104,41 @@ class HoneypotDetector:
         block_reason = None
 
         async with httpx.AsyncClient(timeout=30) as client:
-            # Check if token has a transfer function by calling balanceOf
-            # (basic existence check)
-            balance_selector = "0x70a08231"
-            # Use zero address as test
-            zero_padded = "0x" + "0" * 64
+            # First confirm the address actually has contract code.
+            # Empty / EOA addresses are flagged; valid contracts proceed.
+            code_resp = await client.post(
+                rpc_url,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                    "method": "eth_getCode",
+                    "params": [token, "latest"],
+                },
+            )
+            code = code_resp.json().get("result", "0x")
+            if code in ("0x", "0x0", None):
+                simulations.append(
+                    SimulationResult(
+                        action="contract_existence",
+                        success=False,
+                        error="Address has no contract code",
+                    )
+                )
+                return HoneypotResult(
+                    token=token,
+                    chain=chain,
+                    is_honeypot=True,
+                    can_buy=False,
+                    can_sell=False,
+                    block_reason="No contract code at address",
+                    simulations=simulations,
+                )
 
+            # balanceOf(0x0) should respond with 32-byte word for ERC-20.
+            # A response of '0x' (truly empty) means no balanceOf — non-ERC-20.
+            # Note: '0x' + 64 zeros is a VALID balanceOf return (zero balance).
+            balance_selector = "0x70a08231"
+            zero_padded = "0" * 64
             balance_resp = await client.post(
                 rpc_url,
                 json={
@@ -97,15 +148,18 @@ class HoneypotDetector:
                     "params": [
                         {
                             "to": token,
-                            "data": balance_selector + zero_padded,
+                            "data": balance_selector + "0x" + zero_padded,
                         },
                         "latest",
                     ],
                 },
             )
-            balance_result = balance_resp.json().get("result", "0x")
+            balance_result = balance_resp.json().get("result")
 
-            if balance_result in ("0x", None):
+            # Treat a real ERC-20 as one that returns at least a 32-byte word.
+            # Strip 0x prefix; any 64+ hex chars is a valid uint256 response.
+            normalized = (balance_result or "").lower().removeprefix("0x")
+            if balance_result is None or len(normalized) < 64:
                 simulations.append(
                     SimulationResult(
                         action="balanceOf_check",
@@ -123,11 +177,18 @@ class HoneypotDetector:
                     simulations=simulations,
                 )
 
-            # Simulate a transfer to zero address (should revert if valid)
-            # This tests if the contract is responsive
+            simulations.append(
+                SimulationResult(
+                    action="balanceOf_check",
+                    success=True,
+                )
+            )
+
+            # Simulate transfer(0x0, 0). For a typical ERC-20 this either succeeds
+            # (with zero amount) or reverts with insufficient-balance — both fine.
+            # We flag explicit blacklist / paused reverts as honeypot signals.
             transfer_selector = "0xa9059cbb"
             test_data = transfer_selector + zero_padded + zero_padded
-
             transfer_resp = await client.post(
                 rpc_url,
                 json={
@@ -147,46 +208,47 @@ class HoneypotDetector:
             )
             transfer_error = transfer_resp.json().get("error")
 
-            # A valid transfer should revert (insufficient balance) but not with arbitrary error
             if transfer_error:
                 error_msg = transfer_error.get("message", "")
-                if "blacklist" in error_msg.lower():
+                lower_msg = error_msg.lower()
+                if "blacklist" in lower_msg:
                     can_sell = False
                     block_reason = "Transfer function contains blacklist check"
                     simulations.append(
                         SimulationResult(
-                            action="sell_simulation",
+                            action="transfer_simulation",
                             success=False,
                             error="Blacklisted — cannot sell",
                         )
                     )
-                elif "paused" in error_msg.lower():
+                elif "paused" in lower_msg or "pausable" in lower_msg:
                     can_sell = False
                     block_reason = "Token transfers are paused"
                     simulations.append(
                         SimulationResult(
-                            action="sell_simulation",
+                            action="transfer_simulation",
                             success=False,
                             error="Transfers paused",
                         )
                     )
                 else:
+                    # Generic revert (e.g. insufficient balance) is normal.
                     simulations.append(
                         SimulationResult(
-                            action="sell_simulation",
+                            action="transfer_simulation",
                             success=True,
-                            error=f"Reverted: {error_msg[:100]}",
+                            error=f"Reverted (expected): {error_msg[:100]}",
                         )
                     )
             else:
                 simulations.append(
                     SimulationResult(
-                        action="transfer_check",
+                        action="transfer_simulation",
                         success=True,
                     )
                 )
 
-        is_honeypot = not can_sell or (not can_buy)
+        is_honeypot = (not can_sell) or (not can_buy)
 
         return HoneypotResult(
             token=token,
@@ -196,5 +258,5 @@ class HoneypotDetector:
             can_sell=can_sell,
             block_reason=block_reason,
             simulations=simulations,
-            high_tax_warning=False,  # Would need full simulation for tax calculation
+            high_tax_warning=False,
         )

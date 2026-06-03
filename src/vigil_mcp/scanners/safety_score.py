@@ -5,6 +5,8 @@ import os
 import httpx
 from pydantic import BaseModel
 
+from vigil_mcp.scanners.known_contracts import lookup_known_contract
+
 
 class ScoreBreakdown(BaseModel):
     category: str
@@ -38,6 +40,30 @@ class SafetyScorer:
 
     async def score(self, address: str, chain: str) -> SafetyScoreResult:
         """Calculate safety score."""
+        # Fast-path: blue-chip lookup
+        known = lookup_known_contract(chain, address)
+        if known:
+            return SafetyScoreResult(
+                address=address,
+                chain=chain,
+                score=known.safety_score,
+                risk_level=known.risk_level,
+                breakdown=[
+                    ScoreBreakdown(
+                        category="Verified Registry",
+                        score=known.safety_score,
+                        note=f"{known.name} ({known.symbol}) — {known.notes}",
+                    )
+                ],
+                risk_factors=[],
+                positive_factors=[
+                    f"Listed in VIGIL verified registry as {known.name}",
+                ],
+                recommendation=(
+                    f"Score: {known.safety_score}/100 — {known.name} is a known, "
+                    f"verified contract. Risk level: {known.risk_level}."
+                ),
+            )
         if self.api_key:
             return await self._score_via_api(address, chain)
         return await self._score_via_analysis(address, chain)

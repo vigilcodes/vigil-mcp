@@ -91,6 +91,34 @@ HONEYPOT_BYTECODE_PATTERNS = [
 ]
 
 
+def _has_selfdestruct(code_hex: str) -> bool:
+    """Heuristic check for SELFDESTRUCT (0xff) opcode in bytecode.
+
+    Walks bytes and skips PUSH immediates so 0xff bytes that are PUSH data
+    (very common in constants) are not flagged. False positives are still
+    possible in non-standard EVM dispatch tables, but this avoids the worst
+    of the noise from a naive substring search.
+    """
+    raw = code_hex.lower().removeprefix("0x")
+    if not raw:
+        return False
+    try:
+        data = bytes.fromhex(raw)
+    except ValueError:
+        return False
+    i = 0
+    while i < len(data):
+        op = data[i]
+        # PUSH1..PUSH32 are 0x60..0x7f and consume the next (op - 0x5f) bytes.
+        if 0x60 <= op <= 0x7F:
+            i += 1 + (op - 0x5F)
+            continue
+        if op == 0xFF:
+            return True
+        i += 1
+    return False
+
+
 class TokenScanner:
     """Analyze token contracts for safety."""
 
@@ -257,8 +285,12 @@ class TokenScanner:
                 )
                 score -= 15
 
-            # Check for selfdestruct
-            if "selfdestruct" in code or "ff" in code:
+            # Check for selfdestruct opcode (0xff). This is intentionally conservative:
+            # the literal byte 0xff is extremely common in normal bytecode constants,
+            # so we look for the SELFDESTRUCT opcode in a position that suggests it
+            # is reachable rather than embedded in PUSH data. We require the opcode
+            # to NOT be preceded by a PUSH (0x60..0x7f) in the immediately prior byte.
+            if _has_selfdestruct(code):
                 findings.append(
                     Finding(
                         severity="medium",

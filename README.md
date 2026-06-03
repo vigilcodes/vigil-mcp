@@ -1,25 +1,28 @@
 # VIGIL MCP Server
 
-Onchain security scanner for DeFi traders. Protect against rugpulls, honeypots, and dangerous token approvals.
+Onchain security scanner for DeFi traders on Base. Protect against rugpulls, honeypots, and dangerous token approvals.
 
-## Supported Chains
+Live MCP endpoint: **https://mcp.vigil.codes**
+Site: **https://vigil.codes**
 
-| Chain | Approvals | Token Scan | Revoke |
-|-------|-----------|------------|--------|
-| Base | Yes | Yes | Yes |
-| Ethereum | Yes | Yes | Yes |
-| Polygon | Yes | Yes | Yes |
-| Arbitrum | Yes | Yes | Yes |
-| Solana | Yes (SPL) | Yes | Yes |
+## Network
+
+VIGIL ships Base-first. The scanners (approvals, token, honeypot, safety score) target Base mainnet (`chainid=8453`); a small set of Ethereum stablecoins are kept in the verified registry so multichain wallets get correct labels when they show up.
+
+| Chain    | Approvals | Token Scan | Honeypot | Revoke |
+|----------|-----------|------------|----------|--------|
+| Base     | Yes       | Yes        | Yes      | Yes    |
+| Ethereum | Read-only registry lookup only | — | — | — |
 
 ## Features
 
-- **Approval Scanner** — List all ERC-20/ERC-721 approvals, flag unlimited approvals, identify risky spenders
-- **Token Scanner** — Analyze contracts for rugpull indicators: hidden mint, proxy patterns, tax manipulation, blacklist functions
-- **Honeypot Detector** — Simulate buy/sell to detect tokens that block selling
-- **Safety Score** — 0-100 rating based on code analysis, ownership, liquidity, holder distribution
-- **Approval Revoker** — Revoke dangerous approvals via Bankr transaction signing
-- **Wallet Report** — Full security posture assessment
+- **Approval Scanner** — list all ERC-20/ERC-721 approvals, flag unlimited approvals, identify risky spenders
+- **Token Scanner** — analyze contracts for rugpull indicators: hidden mint, proxy patterns, tax manipulation, blacklist functions
+- **Honeypot Detector** — simulate buy/sell to detect tokens that block selling
+- **Safety Score** — 0-100 rating based on bytecode analysis, ownership, registry match, complexity
+- **Wallet Report** — full security posture assessment
+- **Wallet Monitor** — alerts for new approvals, risky interactions, and balance changes
+- **Approval Revoker** *(separate, BANKR_API_KEY required)* — revoke dangerous approvals via Bankr transaction signing
 
 ## Install
 

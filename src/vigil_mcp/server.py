@@ -1,6 +1,5 @@
 """VIGIL MCP Server — FastMCP implementation exposing security scanning tools."""
 
-import json
 import logging
 import os
 import sys
@@ -400,18 +399,46 @@ async def get_token_info() -> str:
 # ─────────────────────────────────────────────────────────────
 
 TOOL_MAP = {
-    "vigil_scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
-    "vigil_scan_token": lambda args: vigil_scan_token(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
-    "vigil_detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
-    "vigil_safety_score": lambda args: vigil_safety_score(args.get("contract") or args.get("token", ""), args.get("chain", "base")),
-    "vigil_wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
-    "vigil_monitor_wallet": lambda args: vigil_monitor_wallet(args.get("wallet", ""), args.get("chain", "base"), int(args.get("lookback_blocks", 1000))),
-    "scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
-    "scan_token": lambda args: vigil_scan_token(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
-    "detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
-    "safety_score": lambda args: vigil_safety_score(args.get("contract") or args.get("token", ""), args.get("chain", "base")),
-    "wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
-    "monitor_wallet": lambda args: vigil_monitor_wallet(args.get("wallet", ""), args.get("chain", "base"), int(args.get("lookback_blocks", 1000))),
+    "vigil_scan_approvals": lambda args: vigil_scan_approvals(
+        args.get("wallet", ""), args.get("chain", "base")
+    ),
+    "vigil_scan_token": lambda args: vigil_scan_token(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "vigil_detect_honeypot": lambda args: vigil_detect_honeypot(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "vigil_safety_score": lambda args: vigil_safety_score(
+        args.get("contract") or args.get("token", ""), args.get("chain", "base")
+    ),
+    "vigil_wallet_report": lambda args: vigil_wallet_report(
+        args.get("wallet", ""), args.get("chain", "base")
+    ),
+    "vigil_monitor_wallet": lambda args: vigil_monitor_wallet(
+        args.get("wallet", ""),
+        args.get("chain", "base"),
+        int(args.get("lookback_blocks", 1000)),
+    ),
+    "scan_approvals": lambda args: vigil_scan_approvals(
+        args.get("wallet", ""), args.get("chain", "base")
+    ),
+    "scan_token": lambda args: vigil_scan_token(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "detect_honeypot": lambda args: vigil_detect_honeypot(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "safety_score": lambda args: vigil_safety_score(
+        args.get("contract") or args.get("token", ""), args.get("chain", "base")
+    ),
+    "wallet_report": lambda args: vigil_wallet_report(
+        args.get("wallet", ""), args.get("chain", "base")
+    ),
+    "monitor_wallet": lambda args: vigil_monitor_wallet(
+        args.get("wallet", ""),
+        args.get("chain", "base"),
+        int(args.get("lookback_blocks", 1000)),
+    ),
 }
 
 
@@ -481,13 +508,20 @@ async def tools_list(request: Request) -> JSONResponse:
         },
         {
             "name": "vigil_monitor_wallet",
-            "description": "Monitor wallet for suspicious activity. Checks recent approvals, risky interactions, and balance changes.",
+            "description": (
+                "Monitor wallet for suspicious activity. Checks recent approvals, "
+                "risky interactions, and balance changes."
+            ),
             "inputSchema": {
                 "type": "object",
                 "properties": {
                     "wallet": {"type": "string", "description": "Wallet address (0x...)"},
                     "chain": {"type": "string", "default": "base"},
-                    "lookback_blocks": {"type": "integer", "default": 1000, "description": "How many blocks to look back"},
+                    "lookback_blocks": {
+                        "type": "integer",
+                        "default": 1000,
+                        "description": "How many blocks to look back",
+                    },
                 },
                 "required": ["wallet"],
             },
@@ -555,7 +589,7 @@ def main():
         logger.info("Starting VIGIL MCP server (stdio transport)")
         mcp.run(transport="stdio")
     elif transport == "sse":
-        logger.info(f"Starting VIGIL MCP server (SSE transport)")
+        logger.info("Starting VIGIL MCP server (SSE transport)")
         mcp.run(transport="sse")
     else:
         logger.error(f"Unknown transport: {transport}")

@@ -19,25 +19,48 @@ class KnownContract:
 
 
 # Verified blue-chip contracts across chains
-# Key: (chain, address_lower)
+# Key: (chain, address_lower) — IMPORTANT: addresses MUST be lowercase
 KNOWN_GOOD: dict[tuple[str, str], KnownContract] = {
-    # Base
-    ("base", "0x833588f63916024ffc580c12724940f2b8d47b5b"): KnownContract(
+    # ─────────── Base ───────────
+    # Stablecoins
+    ("base", "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"): KnownContract(
         "USD Coin", "USDC", 92, "safe", "Circle USDC on Base — fully backed stablecoin"
     ),
-    ("base", "0x4200000000000000000000000000000000000006"): KnownContract(
-        "Wrapped Ether", "WETH", 90, "safe", "Canonical WETH on Base"
+    ("base", "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"): KnownContract(
+        "USD Base Coin", "USDbC", 88, "safe", "Bridged USDC on Base"
     ),
     ("base", "0x50c5725949a6f0c72e6c4a641f24049a917db0cb"): KnownContract(
         "Dai Stablecoin", "DAI", 90, "safe", "MakerDAO DAI on Base"
     ),
-    ("base", "0x211Cc4DD073734dA055fbF44a2B4667d5E5fE5d2"): KnownContract(
+    # WETH / wstETH / cbETH
+    ("base", "0x4200000000000000000000000000000000000006"): KnownContract(
+        "Wrapped Ether", "WETH", 90, "safe", "Canonical WETH on Base"
+    ),
+    ("base", "0x211cc4dd073734da055fbf44a2b4667d5e5fe5d2"): KnownContract(
         "Wrapped stETH", "wstETH", 88, "safe", "Lido wrapped stETH on Base"
     ),
-    ("base", "0x940181a94a35a4569e4529a3cdfb74e38fd98631"): KnownContract(
-        "AERO", "AERO", 82, "safe", "Aerodrome Finance governance token"
+    ("base", "0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22"): KnownContract(
+        "Coinbase Wrapped Staked ETH", "cbETH", 88, "safe", "Coinbase staked ETH wrapper"
     ),
-    # Ethereum
+    # Aerodrome
+    ("base", "0x940181a94a35a4569e4529a3cdfb74e38fd98631"): KnownContract(
+        "Aerodrome", "AERO", 78, "safe",
+        "Aerodrome Finance governance token — emissions via mint are by design"
+    ),
+    ("base", "0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43"): KnownContract(
+        "Aerodrome Router", "AERO-R", 82, "safe", "Aerodrome v1 Router"
+    ),
+    # Uniswap on Base
+    ("base", "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad"): KnownContract(
+        "Uniswap Universal Router", "UNI-UR", 85, "safe", "Uniswap Universal Router on Base"
+    ),
+    ("base", "0x2626664c2603336e57b271c5c0b26f421741e481"): KnownContract(
+        "Uniswap V3 Router", "UNI-V3", 85, "safe", "Uniswap V3 SwapRouter on Base"
+    ),
+    ("base", "0x6ff5693b99212da76ad316178a184ab56d299b43"): KnownContract(
+        "Uniswap Universal Router v2", "UNI-UR2", 85, "safe", "Uniswap Universal Router v1.2 on Base"
+    ),
+    # ─────────── Ethereum (kept for reference / multichain wallets) ───────────
     ("ethereum", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"): KnownContract(
         "USD Coin", "USDC", 92, "safe", "Circle USDC on Ethereum"
     ),
@@ -52,13 +75,6 @@ KNOWN_GOOD: dict[tuple[str, str], KnownContract] = {
     ),
     ("ethereum", "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"): KnownContract(
         "Wrapped BTC", "WBTC", 85, "safe", "BitGo custodied WBTC"
-    ),
-    # Uniswap on Base
-    ("base", "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"): KnownContract(
-        "Uniswap Universal Router", "UNI-UR", 80, "safe", "Uniswap Universal Router"
-    ),
-    ("base", "0x2626664c2603336e57b271c5c0b26f421741e481"): KnownContract(
-        "Uniswap V3 Router", "UNI-V3", 80, "safe", "Uniswap V3 Router on Base"
     ),
 }
 

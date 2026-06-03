@@ -7,7 +7,7 @@ capabilities: [external_api, sends_notifications]
 ---
 > **${var}** — Wallet address (`0x...`) or token contract address on Base to scan. Required. If empty, log `VIGIL_NO_TARGET` and exit cleanly (no notify).
 
-VIGIL is an onchain security scanner for DeFi traders on Base. It provides five read-only scanning tools and one write action (revoke) that requires explicit Bankr authentication.
+VIGIL is an onchain security scanner for DeFi traders on Base. It provides six read-only scanning tools and one write action (revoke) that requires explicit Bankr authentication.
 
 **Read-only tools (this skill):**
 1. Approval Scanner — list all ERC-20/ERC-721 approvals, flag unlimited allowances
@@ -17,8 +17,8 @@ VIGIL is an onchain security scanner for DeFi traders on Base. It provides five 
 5. Wallet Report — full security posture assessment
 6. Wallet Monitor — real-time alerts for suspicious activity (new approvals, risky interactions, balance changes)
 
-**Write action (separate, not included here):**
-7. Approval Revoker — revoke dangerous approvals via Bankr transaction signing. This is a state-changing onchain transaction and is NOT part of this read-only skill.
+**Write action (separate skill, not included here):**
+- Approval Revoker — revoke dangerous approvals via Bankr transaction signing. This is a state-changing onchain transaction and is NOT part of this read-only skill. Use the separate `vigil-revoke` skill (requires `BANKR_API_KEY` and explicit user confirmation).
 
 Read the last 2 days of `memory/logs/` so a repeat scan can note newly-granted or newly-revoked approvals.
 
@@ -129,7 +129,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
 echo "$RESULT" | jq '.result'
 ```
 
-### 6. Monitor wallet (real-time alerts)
+### 7. Monitor wallet (real-time alerts)
 
 ```bash
 RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \

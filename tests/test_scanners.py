@@ -238,6 +238,8 @@ class TestHoneypotDetector:
     async def test_not_honeypot(self, httpx_mock):
         detector = HoneypotDetector()
 
+        # eth_getCode returns substantial code (contract exists)
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 0, "result": "0x" + "60" * 50})
         # balanceOf returns non-zero
         httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x" + "0" * 63 + "1"})
         # transfer simulation succeeds (no error)
@@ -251,6 +253,7 @@ class TestHoneypotDetector:
     async def test_blacklist_honeypot(self, httpx_mock):
         detector = HoneypotDetector()
 
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 0, "result": "0x" + "60" * 50})
         httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x" + "0" * 63 + "1"})
         httpx_mock.add_response(
             json={
@@ -269,6 +272,7 @@ class TestHoneypotDetector:
     async def test_paused_honeypot(self, httpx_mock):
         detector = HoneypotDetector()
 
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 0, "result": "0x" + "60" * 50})
         httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x" + "0" * 63 + "1"})
         httpx_mock.add_response(
             json={
@@ -286,12 +290,38 @@ class TestHoneypotDetector:
     async def test_no_erc20(self, httpx_mock):
         detector = HoneypotDetector()
 
+        # Contract has code, but balanceOf returns empty
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 0, "result": "0x" + "60" * 50})
         httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x"})
 
         result = await detector._detect_via_simulation(TOKEN, "base")
         assert result.is_honeypot is True
         assert result.can_buy is False
         assert result.can_sell is False
+
+    @pytest.mark.asyncio
+    async def test_no_contract_code(self, httpx_mock):
+        detector = HoneypotDetector()
+
+        # eth_getCode returns 0x (no contract)
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 0, "result": "0x"})
+
+        result = await detector._detect_via_simulation(TOKEN, "base")
+        assert result.is_honeypot is True
+        assert result.block_reason == "No contract code at address"
+
+    @pytest.mark.asyncio
+    async def test_known_blue_chip_skips_simulation(self, httpx_mock):
+        detector = HoneypotDetector()
+
+        # USDC on Base — should bypass any RPC call via known-contract fast-path
+        usdc_base = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        result = await detector.detect(usdc_base, "base")
+
+        assert result.is_honeypot is False
+        assert result.can_buy is True
+        assert result.can_sell is True
+        assert any("verified" in s.error.lower() for s in result.simulations if s.error)
 
     @pytest.mark.asyncio
     async def test_unsupported_chain(self):
