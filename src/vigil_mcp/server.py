@@ -374,14 +374,14 @@ async def get_token_info() -> str:
 
 TOOL_MAP = {
     "vigil_scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
-    "vigil_scan_token": lambda args: vigil_scan_token(args.get("token", ""), args.get("chain", "base")),
-    "vigil_detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token", ""), args.get("chain", "base")),
-    "vigil_safety_score": lambda args: vigil_safety_score(args.get("contract", ""), args.get("chain", "base")),
+    "vigil_scan_token": lambda args: vigil_scan_token(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
+    "vigil_detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
+    "vigil_safety_score": lambda args: vigil_safety_score(args.get("contract") or args.get("token", ""), args.get("chain", "base")),
     "vigil_wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
     "scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
-    "scan_token": lambda args: vigil_scan_token(args.get("token", ""), args.get("chain", "base")),
-    "detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token", ""), args.get("chain", "base")),
-    "safety_score": lambda args: vigil_safety_score(args.get("contract", ""), args.get("chain", "base")),
+    "scan_token": lambda args: vigil_scan_token(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
+    "detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
+    "safety_score": lambda args: vigil_safety_score(args.get("contract") or args.get("token", ""), args.get("chain", "base")),
     "wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
 }
 
