@@ -1127,21 +1127,52 @@
         <h2 class="s-title">Fuel the agents<br>that protect <em>you.</em></h2>
         <p class="s-desc">$VIGIL is live on Base. Trading fees fund autonomous security operations.</p>
       </div>
-      <div class="chains-list rv">
-        <div class="chain-header">
-          <span>Token</span>
-          <span>Chain</span>
-          <span>Contract</span>
-          <span>Trade</span>
-        </div>
-        <div class="chain-row" onclick="window.open('https://basescan.org/token/0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3','_blank')" style="cursor:pointer;">
-          <div class="chain-name">
-            <div class="chain-icon" style="font-size:18px;font-weight:bold;color:var(--gold);">V</div>
-            <span>$VIGIL</span>
+
+      <!-- Contract Address -->
+      <div class="rv" style="margin-top:48px;">
+        <div style="background:var(--bg-elevated);border:1px solid var(--border);padding:32px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:4px;text-transform:uppercase;margin-bottom:16px;">Contract Address (Base)</div>
+          <div style="font-family:var(--mono);font-size:18px;color:var(--text);word-break:break-all;line-height:1.6;user-select:all;cursor:text;" id="ca-text">0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3</div>
+          <div style="margin-top:16px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <button class="copy-btn" onclick="copy(this,'0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3')" style="padding:8px 20px;">Copy CA</button>
+            <a href="https://basescan.org/token/0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3" target="_blank" class="btn-outline" style="padding:8px 20px;font-size:11px;">BaseScan</a>
+            <a href="https://dexscreener.com/base/0xeff23e6afadfe3cdcdac82ce87420498e9768cd01eaddd74d497826c1e0615c2" target="_blank" class="btn-outline" style="padding:8px 20px;font-size:11px;">DexScreener</a>
+            <a href="https://app.uniswap.org/swap?chain=base&outputCurrency=0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3" target="_blank" class="btn-gold" style="padding:8px 20px;font-size:11px;">Buy $VIGIL</a>
           </div>
+        </div>
+      </div>
+
+      <!-- Token Stats -->
+      <div class="chains-list rv" style="margin-top:40px;">
+        <div class="chain-header">
+          <span>Property</span>
+          <span>Value</span>
+          <span>Status</span>
+          <span>Link</span>
+        </div>
+        <div class="chain-row">
+          <div class="chain-name"><div class="chain-icon" style="font-size:16px;font-weight:bold;color:var(--gold);">$</div><span>Token</span></div>
+          <div class="chain-status">VIGIL</div>
+          <div class="chain-status" style="color:#6bbd6b;">LIVE</div>
+          <div class="chain-status"><a href="https://basescan.org/token/0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3" target="_blank" style="color:var(--gold);text-decoration:none;">BaseScan →</a></div>
+        </div>
+        <div class="chain-row">
+          <div class="chain-name"><div class="chain-icon" style="font-size:16px;">⛓</div><span>Chain</span></div>
           <div class="chain-status">Base</div>
-          <div class="chain-status" style="font-size:10px;">0xC751...7bA3</div>
-          <div class="chain-status"><a href="https://dexscreener.com/base/0xeff23e6afadfe3cdcdac82ce87420498e9768cd01eaddd74d497826c1e0615c2" target="_blank" style="color:var(--gold);text-decoration:none;">DexScreener →</a></div>
+          <div class="chain-status" style="color:#6bbd6b;">L2</div>
+          <div class="chain-status"><a href="https://basescan.org" target="_blank" style="color:var(--gold);text-decoration:none;">Explorer →</a></div>
+        </div>
+        <div class="chain-row">
+          <div class="chain-name"><div class="chain-icon" style="font-size:16px;">🦄</div><span>DEX</span></div>
+          <div class="chain-status">Uniswap V4</div>
+          <div class="chain-status" style="color:#6bbd6b;">Active</div>
+          <div class="chain-status"><a href="https://dexscreener.com/base/0xeff23e6afadfe3cdcdac82ce87420498e9768cd01eaddd74d497826c1e0615c2" target="_blank" style="color:var(--gold);text-decoration:none;">Trade →</a></div>
+        </div>
+        <div class="chain-row">
+          <div class="chain-name"><div class="chain-icon" style="font-size:16px;">💰</div><span>Creator Fees</span></div>
+          <div class="chain-status">57%</div>
+          <div class="chain-status" style="color:#6bbd6b;">Active</div>
+          <div class="chain-status"><span style="color:var(--text-dim);font-size:11px;">Auto-accrue</span></div>
         </div>
       </div>
     </div>
