@@ -4,8 +4,9 @@
 
 | Contract | Address | Status |
 |----------|---------|--------|
-| $VIGIL Token (ERC-20) | `0xPENDING_DEPLOYMENT` | Not deployed |
-| VIGIL Staking | `0xPENDING_DEPLOYMENT` | Not deployed |
+| $VIGIL Token (ERC-20) | [`0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3`](https://basescan.org/token/0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3) | ✅ Live on Base |
+| Fee Recipient | [`0x9f6697155bbfc4c87fe9499ceb233a3dda4ce708`](https://basescan.org/address/0x9f6697155bbfc4c87fe9499ceb233a3dda4ce708) | ✅ Active |
+| VIGIL Staking | `0xPENDING` | Planned |
 | VIGIL Governance | TBD | Planned |
 | VIGIL Treasury (Multi-sig) | TBD | Planned |
 
