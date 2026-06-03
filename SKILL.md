@@ -15,9 +15,10 @@ VIGIL is an onchain security scanner for DeFi traders on Base. It provides five 
 3. Honeypot Detector — simulate buy/sell to detect trap tokens
 4. Safety Score — 0-100 composite rating based on code, ownership, liquidity, holders
 5. Wallet Report — full security posture assessment
+6. Wallet Monitor — real-time alerts for suspicious activity (new approvals, risky interactions, balance changes)
 
 **Write action (separate, not included here):**
-6. Approval Revoker — revoke dangerous approvals via Bankr transaction signing. This is a state-changing onchain transaction and is NOT part of this read-only skill.
+7. Approval Revoker — revoke dangerous approvals via Bankr transaction signing. This is a state-changing onchain transaction and is NOT part of this read-only skill.
 
 Read the last 2 days of `memory/logs/` so a repeat scan can note newly-granted or newly-revoked approvals.
 
@@ -123,6 +124,23 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "params": {
       "name": "wallet_report",
       "arguments": {"wallet": "'"$TARGET"'", "chain": "base"}
+    }
+  }')
+echo "$RESULT" | jq '.result'
+```
+
+### 6. Monitor wallet (real-time alerts)
+
+```bash
+RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "monitor_wallet",
+      "arguments": {"wallet": "'"$TARGET"'", "chain": "base", "lookback_blocks": 1000}
     }
   }')
 echo "$RESULT" | jq '.result'

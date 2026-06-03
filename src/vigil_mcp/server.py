@@ -11,6 +11,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from vigil_mcp.bridge.base_mcp import BaseMCPBridge
+from vigil_mcp.monitors.wallet_monitor import WalletMonitor
 from vigil_mcp.revoker.engine import RevocationEngine
 from vigil_mcp.scanners.approvals import ApprovalScanner
 from vigil_mcp.scanners.honeypot import HoneypotDetector
@@ -40,6 +41,7 @@ honeypot_detector = HoneypotDetector()
 safety_scorer = SafetyScorer()
 revocation_engine = RevocationEngine()
 base_bridge = BaseMCPBridge()
+wallet_monitor = WalletMonitor()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -199,6 +201,31 @@ async def vigil_wallet_report(wallet: str, chain: str = "base") -> dict[str, Any
         ][:5],
         "recommendations": recommendations,
     }
+
+
+# ─────────────────────────────────────────────────────────────
+# MONITOR TOOLS (real-time alerts)
+# ─────────────────────────────────────────────────────────────
+
+
+@mcp.tool()
+async def vigil_monitor_wallet(
+    wallet: str, chain: str = "base", lookback_blocks: int = 1000
+) -> dict[str, Any]:
+    """Monitor wallet for suspicious activity in recent blocks.
+
+    Checks for: new approvals, unlimited allowances, interactions
+    with unknown contracts, and balance changes.
+
+    Args:
+        wallet: Wallet address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+        lookback_blocks: How many blocks to look back (default: 1000)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Monitoring wallet {wallet} on {chain} (last {lookback_blocks} blocks)")
+    result = await wallet_monitor.monitor(wallet, chain, lookback_blocks)
+    return result.model_dump()
 
 
 # ─────────────────────────────────────────────────────────────
@@ -378,11 +405,13 @@ TOOL_MAP = {
     "vigil_detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
     "vigil_safety_score": lambda args: vigil_safety_score(args.get("contract") or args.get("token", ""), args.get("chain", "base")),
     "vigil_wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
+    "vigil_monitor_wallet": lambda args: vigil_monitor_wallet(args.get("wallet", ""), args.get("chain", "base"), int(args.get("lookback_blocks", 1000))),
     "scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
     "scan_token": lambda args: vigil_scan_token(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
     "detect_honeypot": lambda args: vigil_detect_honeypot(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
     "safety_score": lambda args: vigil_safety_score(args.get("contract") or args.get("token", ""), args.get("chain", "base")),
     "wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
+    "monitor_wallet": lambda args: vigil_monitor_wallet(args.get("wallet", ""), args.get("chain", "base"), int(args.get("lookback_blocks", 1000))),
 }
 
 
@@ -446,6 +475,19 @@ async def tools_list(request: Request) -> JSONResponse:
                 "properties": {
                     "wallet": {"type": "string", "description": "Wallet address (0x...)"},
                     "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["wallet"],
+            },
+        },
+        {
+            "name": "vigil_monitor_wallet",
+            "description": "Monitor wallet for suspicious activity. Checks recent approvals, risky interactions, and balance changes.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "wallet": {"type": "string", "description": "Wallet address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                    "lookback_blocks": {"type": "integer", "default": 1000, "description": "How many blocks to look back"},
                 },
                 "required": ["wallet"],
             },
