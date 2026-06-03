@@ -6,6 +6,8 @@ from typing import Any, Optional
 import httpx
 from pydantic import BaseModel
 
+from vigil_mcp.scanners.known_contracts import lookup_known_contract
+
 
 class Finding(BaseModel):
     severity: str  # critical, high, medium, low
@@ -96,7 +98,7 @@ class TokenScanner:
         self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
         self.api_key = os.getenv("BANKR_API_KEY", "")
         self.rpc_urls = {
-            "base": os.getenv("BASE_RPC", "https://mainnet.base.org"),
+            "base": os.getenv("BASE_RPC", "https://base.publicnode.com"),
             "ethereum": os.getenv("ETH_RPC", "https://eth.llamarpc.com"),
             "polygon": os.getenv("POLYGON_RPC", "https://polygon-rpc.com"),
             "arbitrum": os.getenv("ARBITRUM_RPC", "https://arb1.arbitrum.io/rpc"),
@@ -104,6 +106,21 @@ class TokenScanner:
 
     async def scan(self, token: str, chain: str) -> TokenScanResult:
         """Full token safety scan."""
+        known = lookup_known_contract(chain, token)
+        if known:
+            return TokenScanResult(
+                token_name=known.name,
+                token_symbol=known.symbol,
+                safety_score=known.safety_score,
+                risk_level=known.risk_level,
+                findings=[],
+                contract=ContractInfo(verified=True, ownership_renounced=True),
+                liquidity=LiquidityInfo(),
+                holders=HolderInfo(),
+                tax=TaxInfo(),
+                honeypot=HoneypotInfo(detected=False),
+                recommendation=f"Score: {known.safety_score}/100 — {known.name} is a known, verified contract",
+            )
         if self.api_key:
             return await self._scan_via_api(token, chain)
         return await self._scan_via_rpc(token, chain)

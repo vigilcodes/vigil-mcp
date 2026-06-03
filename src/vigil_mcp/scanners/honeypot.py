@@ -34,7 +34,7 @@ class HoneypotDetector:
         self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
         self.api_key = os.getenv("BANKR_API_KEY", "")
         self.rpc_urls = {
-            "base": os.getenv("BASE_RPC", "https://mainnet.base.org"),
+            "base": os.getenv("BASE_RPC", "https://base.publicnode.com"),
             "ethereum": os.getenv("ETH_RPC", "https://eth.llamarpc.com"),
             "polygon": os.getenv("POLYGON_RPC", "https://polygon-rpc.com"),
             "arbitrum": os.getenv("ARBITRUM_RPC", "https://arb1.arbitrum.io/rpc"),

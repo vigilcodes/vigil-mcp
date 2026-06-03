@@ -30,8 +30,8 @@ class WalletMonitor:
     def __init__(self):
         self.rpc_urls = {
             "base": [
-                "https://base.llamarpc.com",
-                "https://mainnet.base.org",
+                "https://base.publicnode.com",
+                "https://base.publicnode.com",
                 "https://base.publicnode.com",
             ],
             "ethereum": [
