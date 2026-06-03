@@ -127,7 +127,7 @@ Target: Reach 50% supply reduction (50M remaining) within 5 years.
 
 | Contract | Address | Status |
 |----------|---------|--------|
-| $VIGIL Token | `0xPENDING` | Not deployed |
-| Staking | `0xPENDING` | Not deployed |
+| $VIGIL Token | [`0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3`](https://basescan.org/token/0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3) | ✅ Live on Base |
+| Fee Recipient | `0x9f6697155bbfc4c87fe9499ceb233a3dda4ce708` | ✅ Active |
+| Staking | `0xPENDING` | Planned |
 | Governance | `0xPENDING` | Planned |
-| Treasury | `0xPENDING` | Planned |
