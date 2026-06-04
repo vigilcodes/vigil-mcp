@@ -6,6 +6,7 @@ from typing import Any, Optional
 import httpx
 from pydantic import BaseModel
 
+from vigil_mcp.scanners.goplus import GoPlusScanner
 from vigil_mcp.scanners.known_contracts import lookup_known_contract
 
 
@@ -125,6 +126,7 @@ class TokenScanner:
     def __init__(self):
         self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
         self.api_key = os.getenv("BANKR_API_KEY", "")
+        self.goplus = GoPlusScanner()
         self.rpc_urls = {
             "base": os.getenv("BASE_RPC", "https://base.publicnode.com"),
             "ethereum": os.getenv("ETH_RPC", "https://eth.llamarpc.com"),
@@ -186,6 +188,9 @@ class TokenScanner:
 
         findings: list[Finding] = []
         score = 50  # Start neutral
+
+        # GoPlus security signals (keyless) — enriches tax/holders/contract.
+        gp = await self.goplus.token_security(token, chain)
 
         async with httpx.AsyncClient(timeout=30) as client:
             # Check if contract has code
@@ -300,6 +305,46 @@ class TokenScanner:
                 )
                 score -= 10
 
+        # GoPlus-derived findings + structured fields (when available).
+        gp_tax = TaxInfo()
+        gp_holders = HolderInfo()
+        gp_honeypot = HoneypotInfo()
+        gp_name = "Unknown"
+        gp_symbol = "???"
+        gp_verified = False
+        if gp.available:
+            gp_name = gp.token_name or gp_name
+            gp_symbol = gp.token_symbol or gp_symbol
+            gp_verified = bool(gp.is_open_source)
+            gp_tax = TaxInfo(buy=gp.buy_tax, sell=gp.sell_tax)
+            if gp.holder_count is not None:
+                gp_holders = HolderInfo(total=gp.holder_count)
+            if gp.is_honeypot:
+                gp_honeypot = HoneypotInfo(detected=True, reason="GoPlus flags as honeypot")
+                findings.append(
+                    Finding(severity="critical", category="honeypot",
+                            message="GoPlus flags this token as a honeypot"))
+                score -= 30
+            if (gp.sell_tax or 0) > 0.10:
+                findings.append(
+                    Finding(severity="high", category="tax",
+                            message=f"High sell tax: {round((gp.sell_tax or 0) * 100)}%"))
+                score -= 10
+            if gp.hidden_owner:
+                findings.append(
+                    Finding(severity="high", category="ownership",
+                            message="Hidden owner detected (GoPlus)"))
+                score -= 10
+            if gp.can_take_back_ownership:
+                findings.append(
+                    Finding(severity="medium", category="ownership",
+                            message="Owner can reclaim ownership (GoPlus)"))
+                score -= 5
+            if gp.is_open_source:
+                findings.append(
+                    Finding(severity="low", category="general",
+                            message="Source code is open / verified (GoPlus)"))
+
         if not findings:
             findings.append(
                 Finding(
@@ -323,23 +368,23 @@ class TokenScanner:
         )
 
         return TokenScanResult(
-            token_name="Unknown",
-            token_symbol="???",
+            token_name=gp_name,
+            token_symbol=gp_symbol,
             safety_score=score,
             risk_level=risk_level,
             findings=findings,
             contract=ContractInfo(
                 is_proxy=is_proxy or has_implementation,
-                verified=False,  # Would need explorer API
+                verified=gp_verified,
             ),
             liquidity=LiquidityInfo(),
-            holders=HolderInfo(),
-            tax=TaxInfo(),
-            honeypot=HoneypotInfo(),
+            holders=gp_holders,
+            tax=gp_tax,
+            honeypot=gp_honeypot,
             recommendation=(
                 f"Score: {score}/100 — "
                 + (
-                    "Run full scan via API for deeper analysis"
+                    "Looks reasonable; always verify liquidity before trading"
                     if score >= 50
                     else "HIGH RISK — Proceed with extreme caution"
                 )

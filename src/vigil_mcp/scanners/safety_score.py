@@ -5,6 +5,7 @@ import os
 import httpx
 from pydantic import BaseModel
 
+from vigil_mcp.scanners.goplus import GoPlusScanner
 from vigil_mcp.scanners.known_contracts import lookup_known_contract
 
 
@@ -31,6 +32,7 @@ class SafetyScorer:
     def __init__(self):
         self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
         self.api_key = os.getenv("BANKR_API_KEY", "")
+        self.goplus = GoPlusScanner()
         self.rpc_urls = {
             "base": os.getenv("BASE_RPC", "https://base.publicnode.com"),
             "ethereum": os.getenv("ETH_RPC", "https://eth.llamarpc.com"),
@@ -101,6 +103,10 @@ class SafetyScorer:
         positive_factors: list[str] = []
         total_score = 0
 
+        # Pull GoPlus security signals up front (keyless). Used to replace the
+        # old placeholder "age" heuristic with real reputation data.
+        gp = await self.goplus.token_security(address, chain)
+
         async with httpx.AsyncClient(timeout=30) as client:
             # 1. Code analysis (40 points max)
             code_resp = await client.post(
@@ -148,26 +154,56 @@ class SafetyScorer:
                 )
             )
 
-            # 2. Age/deployment analysis (20 points max)
-            # Get deployment block (would need trace API in production)
+            # 2. Reputation / security signals (20 points) — GoPlus-backed.
+            # Replaces the old placeholder age heuristic with real data when
+            # available; falls back to a neutral score otherwise.
             await client.post(
                 rpc_url,
-                json={
-                    "jsonrpc": "2.0",
-                    "id": 2,
-                    "method": "eth_blockNumber",
-                },
+                json={"jsonrpc": "2.0", "id": 2, "method": "eth_blockNumber"},
             )
 
-            # Placeholder: in production, find deployment block
-            age_score = 10  # Neutral default
-            breakdown.append(
-                ScoreBreakdown(
-                    category="History",
-                    score=age_score,
-                    note="Age analysis requires explorer API",
+            if gp.available:
+                rep_score = 20
+                rep_notes = []
+                if gp.is_open_source is True:
+                    rep_notes.append("verified/open-source")
+                    positive_factors.append("Source code is open / verified")
+                elif gp.is_open_source is False:
+                    rep_score -= 8
+                    risk_factors.append("Source code not verified")
+                if gp.is_honeypot is True:
+                    rep_score -= 20
+                    risk_factors.append("GoPlus flags token as honeypot")
+                if gp.is_mintable is True:
+                    rep_score -= 6
+                    risk_factors.append("Token is mintable")
+                if gp.can_take_back_ownership is True:
+                    rep_score -= 6
+                    risk_factors.append("Owner can reclaim ownership")
+                if gp.hidden_owner is True:
+                    rep_score -= 6
+                    risk_factors.append("Hidden owner detected")
+                if gp.holder_count is not None:
+                    rep_notes.append(f"{gp.holder_count} holders")
+                    if gp.holder_count >= 500:
+                        positive_factors.append(f"Broad holder base ({gp.holder_count})")
+                age_score = max(0, min(20, rep_score))
+                breakdown.append(
+                    ScoreBreakdown(
+                        category="Reputation",
+                        score=age_score,
+                        note="GoPlus: " + (", ".join(rep_notes) if rep_notes else "analyzed"),
+                    )
                 )
-            )
+            else:
+                age_score = 10  # Neutral default when GoPlus has no data
+                breakdown.append(
+                    ScoreBreakdown(
+                        category="Reputation",
+                        score=age_score,
+                        note="No external reputation data available",
+                    )
+                )
             total_score += age_score
 
             # 3. Bytecode uniqueness (20 points)

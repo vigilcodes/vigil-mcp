@@ -179,6 +179,18 @@ class TestApprovalScannerRPC:
 class TestTokenScannerRPC:
     """Test TokenScanner._scan_via_rpc."""
 
+    @pytest.fixture(autouse=True)
+    def _stub_goplus(self, monkeypatch):
+        # Keep these tests focused on RPC bytecode analysis; GoPlus is exercised
+        # in its own tests. Make it report "unavailable" so no extra HTTP call
+        # consumes the mocked RPC responses.
+        from vigil_mcp.scanners.goplus import GoPlusResult, GoPlusScanner
+
+        async def _unavailable(self, token, chain):
+            return GoPlusResult(available=False, note="stubbed")
+
+        monkeypatch.setattr(GoPlusScanner, "token_security", _unavailable)
+
     @pytest.mark.asyncio
     async def test_no_code(self, httpx_mock):
         scanner = TokenScanner()
@@ -380,6 +392,15 @@ class TestHoneypotDetector:
 
 class TestSafetyScorer:
     """Test SafetyScorer._score_via_analysis."""
+
+    @pytest.fixture(autouse=True)
+    def _stub_goplus(self, monkeypatch):
+        from vigil_mcp.scanners.goplus import GoPlusResult, GoPlusScanner
+
+        async def _unavailable(self, token, chain):
+            return GoPlusResult(available=False, note="stubbed")
+
+        monkeypatch.setattr(GoPlusScanner, "token_security", _unavailable)
 
     @pytest.mark.asyncio
     async def test_no_code(self, httpx_mock):
@@ -704,3 +725,61 @@ class TestHoneypotGoPlusPath:
         result = await detector.detect(TOKEN, "base")
         assert result.is_honeypot is False
         assert result.can_sell is True
+
+
+# ─── GoPlus enrichment of token scan + safety score ────────
+
+
+class TestGoPlusEnrichment:
+    """GoPlus data should flow into token scan and safety score results."""
+
+    @pytest.mark.asyncio
+    async def test_token_scan_uses_goplus_fields(self, httpx_mock, monkeypatch):
+        from vigil_mcp.scanners.goplus import GoPlusResult, GoPlusScanner
+
+        async def _gp(self, token, chain):
+            return GoPlusResult(
+                available=True,
+                token_name="DemoToken",
+                token_symbol="DEMO",
+                is_honeypot=False,
+                buy_tax=0.0,
+                sell_tax=0.15,
+                is_open_source=True,
+                holder_count=1200,
+            )
+
+        monkeypatch.setattr(GoPlusScanner, "token_security", _gp)
+        scanner = TokenScanner()
+        # clean bytecode + non-proxy storage slot
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x" + "00" * 100})
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 2, "result": "0x" + "0" * 64})
+
+        result = await scanner._scan_via_rpc(TOKEN, "base")
+        assert result.token_symbol == "DEMO"
+        assert result.holders.total == 1200
+        assert result.tax.sell == 0.15
+        assert result.contract.verified is True
+        # high sell tax should produce a finding
+        assert any("sell tax" in f.message.lower() for f in result.findings)
+
+    @pytest.mark.asyncio
+    async def test_safety_score_reputation_from_goplus(self, httpx_mock, monkeypatch):
+        from vigil_mcp.scanners.goplus import GoPlusResult, GoPlusScanner
+
+        async def _gp(self, token, chain):
+            return GoPlusResult(
+                available=True,
+                is_open_source=True,
+                is_honeypot=False,
+                holder_count=800,
+            )
+
+        monkeypatch.setattr(GoPlusScanner, "token_security", _gp)
+        scorer = SafetyScorer()
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x" + "00" * 100})
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 2, "result": "0x100"})
+
+        result = await scorer._score_via_analysis(TOKEN, "base")
+        assert any(b.category == "Reputation" for b in result.breakdown)
+        assert any("open" in p.lower() or "holder" in p.lower() for p in result.positive_factors)
