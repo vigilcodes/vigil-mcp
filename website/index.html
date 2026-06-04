@@ -1267,6 +1267,54 @@
           </div>
         </div>
       </div>
+
+      <!-- Live Example -->
+      <div class="config-block rv" style="margin-top:64px;">
+        <div>
+          <div class="s-label">Live Example</div>
+          <h3 style="font-family:var(--serif);font-size:28px;font-weight:400;margin-bottom:12px;">Scan $VIGIL in one call</h3>
+          <p class="s-desc">No install, no API key. Hit the live endpoint and get a verified security verdict back. These are the actual responses for the $VIGIL token on Base — honeypot check and a 0–100 safety score.</p>
+        </div>
+        <div class="config-code">
+          <div class="term-bar">
+            <div class="term-dot"></div>
+            <div class="term-dot"></div>
+            <div class="term-dot"></div>
+            <span class="term-title">curl — vigil_detect_honeypot</span>
+          </div>
+          <div class="config-body">
+<pre><span class="c-b">curl -X POST</span> <span class="c-s">https://mcp.vigil.codes/tools/call</span> <span class="c-b">\</span>
+  <span class="c-b">-H</span> <span class="c-s">"Content-Type: application/json"</span> <span class="c-b">\</span>
+  <span class="c-b">-d</span> <span class="c-s">'{"jsonrpc":"2.0","id":1,"method":"tools/call",</span>
+<span class="c-s">      "params":{"name":"vigil_detect_honeypot",</span>
+<span class="c-s">      "arguments":{"token":"0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3",</span>
+<span class="c-s">      "chain":"base"}}}'</span>
+
+<span class="c-k">// response</span>
+<span class="c-b">{</span>
+  <span class="c-k">"is_honeypot"</span><span class="c-b">: </span><span class="c-s">false</span><span class="c-b">,</span>
+  <span class="c-k">"can_buy"</span><span class="c-b">: </span><span class="c-s">true</span><span class="c-b">,</span>  <span class="c-k">"can_sell"</span><span class="c-b">: </span><span class="c-s">true</span><span class="c-b">,</span>
+  <span class="c-k">"buy_tax"</span><span class="c-b">: </span><span class="c-s">0</span><span class="c-b">,</span>  <span class="c-k">"sell_tax"</span><span class="c-b">: </span><span class="c-s">0</span><span class="c-b">,</span>
+  <span class="c-k">"source"</span><span class="c-b">: </span><span class="c-s">"goplus_token_security"</span>
+<span class="c-b">}</span></pre>
+          </div>
+          <div class="term-bar" style="margin-top:24px;">
+            <div class="term-dot"></div>
+            <div class="term-dot"></div>
+            <div class="term-dot"></div>
+            <span class="term-title">curl — vigil_safety_score</span>
+          </div>
+          <div class="config-body">
+<pre><span class="c-b">curl -X POST</span> <span class="c-s">https://mcp.vigil.codes/tools/call</span> <span class="c-b">\</span>
+  <span class="c-b">-d</span> <span class="c-s">'{"jsonrpc":"2.0","id":1,"method":"tools/call",</span>
+<span class="c-s">      "params":{"name":"vigil_safety_score",</span>
+<span class="c-s">      "arguments":{"contract":"0xC751...7bA3","chain":"base"}}}'</span>
+
+<span class="c-k">// response</span>
+<span class="c-b">{</span> <span class="c-k">"score"</span><span class="c-b">: </span><span class="c-s">83</span><span class="c-b">,</span> <span class="c-k">"risk_level"</span><span class="c-b">: </span><span class="c-s">"low"</span> <span class="c-b">}</span></pre>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
