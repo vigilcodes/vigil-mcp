@@ -9,6 +9,7 @@ from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from vigil_mcp.autonomous.sentinel import Sentinel, SentinelStore
 from vigil_mcp.bridge.base_mcp import BaseMCPBridge
 from vigil_mcp.monitors.wallet_monitor import WalletMonitor
 from vigil_mcp.revoker.engine import RevocationEngine
@@ -47,6 +48,8 @@ wallet_monitor = WalletMonitor()
 market_scanner = MarketScanner()
 deployer_scanner = DeployerScanner()
 scam_db = ScamDatabase()
+sentinel_store = SentinelStore()
+sentinel = Sentinel(store=sentinel_store)
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -438,6 +441,65 @@ async def vigil_check_scam(token: str, chain: str = "base") -> dict[str, Any]:
 
 
 # ─────────────────────────────────────────────────────────────
+# AUTONOMOUS SENTINEL (watchlist-driven monitoring loop)
+# ─────────────────────────────────────────────────────────────
+
+
+@mcp.tool()
+async def vigil_sentinel_watch(
+    wallet: str, chain: str = "base", label: str = ""
+) -> dict[str, Any]:
+    """Add a wallet to the autonomous Sentinel watchlist.
+
+    The Sentinel loop scans watched wallets on a schedule and surfaces only
+    new security alerts (no repeats). Use vigil_sentinel_status to inspect.
+
+    Args:
+        wallet: Wallet address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+        label: Optional human-friendly label for the wallet
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Sentinel watch added: {wallet} on {chain}")
+    return sentinel_store.add(wallet, chain, label or None)
+
+
+@mcp.tool()
+async def vigil_sentinel_unwatch(wallet: str, chain: str = "base") -> dict[str, Any]:
+    """Remove a wallet from the autonomous Sentinel watchlist.
+
+    Args:
+        wallet: Wallet address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Sentinel watch removed: {wallet} on {chain}")
+    return sentinel_store.remove(wallet, chain)
+
+
+@mcp.tool()
+async def vigil_sentinel_status() -> dict[str, Any]:
+    """List the Sentinel watchlist and loop configuration."""
+    return {
+        "watchlist": sentinel_store.list(),
+        "interval_seconds": sentinel.interval,
+        "min_severity": sentinel.min_severity,
+        "lookback_blocks": sentinel.lookback,
+    }
+
+
+@mcp.tool()
+async def vigil_sentinel_run() -> dict[str, Any]:
+    """Trigger one Sentinel scan cycle now over all watched wallets.
+
+    Returns per-wallet counts of new alerts found. New alerts are deduped
+    against prior runs so repeated findings are not re-reported.
+    """
+    logger.info("Sentinel manual cycle triggered")
+    return await sentinel.run_once()
+
+
+# ─────────────────────────────────────────────────────────────
 # BASE MCP BRIDGE TOOLS
 # ─────────────────────────────────────────────────────────────
 
@@ -545,6 +607,7 @@ TOOL_MAP = {
     "vigil_check_scam": lambda args: vigil_check_scam(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
+    "vigil_sentinel_status": lambda args: vigil_sentinel_status(),
     "scan_approvals": lambda args: vigil_scan_approvals(
         args.get("wallet", ""), args.get("chain", "base")
     ),
@@ -577,6 +640,7 @@ TOOL_MAP = {
     "check_scam": lambda args: vigil_check_scam(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
+    "sentinel_status": lambda args: vigil_sentinel_status(),
 }
 
 
@@ -721,6 +785,14 @@ async def tools_list(request: Request) -> JSONResponse:
                 },
                 "required": ["token"],
             },
+        },
+        {
+            "name": "vigil_sentinel_status",
+            "description": (
+                "List the autonomous Sentinel watchlist and loop configuration "
+                "(interval, severity threshold, lookback)."
+            ),
+            "inputSchema": {"type": "object", "properties": {}},
         },
     ]
     return JSONResponse({"jsonrpc": "2.0", "id": None, "result": {"tools": tools}})

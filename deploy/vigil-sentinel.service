@@ -1,0 +1,19 @@
+# /etc/systemd/system/vigil-sentinel.service
+[Unit]
+Description=VIGIL Sentinel — autonomous wallet monitoring loop
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/vigil
+EnvironmentFile=-/root/vigil/.env
+Environment=VIGIL_SENTINEL_INTERVAL=3600
+Environment=VIGIL_SENTINEL_MIN_SEVERITY=high
+Environment=VIGIL_SENTINEL_LOOKBACK_BLOCKS=5000
+ExecStart=/usr/bin/python3 -m vigil_mcp.autonomous.sentinel
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

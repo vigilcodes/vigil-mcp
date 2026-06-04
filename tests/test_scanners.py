@@ -783,3 +783,74 @@ class TestGoPlusEnrichment:
         result = await scorer._score_via_analysis(TOKEN, "base")
         assert any(b.category == "Reputation" for b in result.breakdown)
         assert any("open" in p.lower() or "holder" in p.lower() for p in result.positive_factors)
+
+
+# ─── Sentinel (autonomous loop) ────────────────────────────
+
+
+class TestSentinelStore:
+    """Test the Sentinel watchlist + alert dedup store."""
+
+    def _store(self, tmp_path):
+        from vigil_mcp.autonomous.sentinel import SentinelStore
+
+        return SentinelStore(db_path=str(tmp_path / "sentinel.db"))
+
+    def test_add_and_list(self, tmp_path):
+        store = self._store(tmp_path)
+        store.add(WALLET, "base", "my wallet")
+        wl = store.list()
+        assert len(wl) == 1
+        assert wl[0]["wallet"] == WALLET.lower()
+        assert wl[0]["label"] == "my wallet"
+
+    def test_remove(self, tmp_path):
+        store = self._store(tmp_path)
+        store.add(WALLET, "base")
+        assert store.remove(WALLET, "base")["removed"] is True
+        assert store.list() == []
+
+    def test_filter_new_dedups(self, tmp_path):
+        store = self._store(tmp_path)
+        alerts = [
+            {"severity": "high", "category": "approval", "message": "unlimited",
+             "details": {"spender": "0xabc"}},
+        ]
+        first = store.filter_new(WALLET, "base", alerts)
+        assert len(first) == 1  # new the first time
+        second = store.filter_new(WALLET, "base", alerts)
+        assert len(second) == 0  # deduped on repeat
+
+
+class TestSentinelLoop:
+    """Test the Sentinel run_once cycle with a stubbed monitor."""
+
+    @pytest.mark.asyncio
+    async def test_run_once_surfaces_new_alerts(self, tmp_path, monkeypatch):
+        from vigil_mcp.autonomous.sentinel import Sentinel, SentinelStore
+        from vigil_mcp.monitors.wallet_monitor import Alert, MonitorResult
+
+        store = SentinelStore(db_path=str(tmp_path / "sentinel.db"))
+        store.add(WALLET, "base", "test")
+
+        async def _fake_monitor(self, wallet, chain, lookback):
+            return MonitorResult(
+                wallet=wallet, chain=chain, monitored_at=0.0,
+                alerts=[Alert(severity="critical", category="approval",
+                              message="unlimited approval", details={"spender": "0xbad"})],
+                summary={}, recommendations=[],
+            )
+
+        from vigil_mcp.monitors.wallet_monitor import WalletMonitor
+
+        monkeypatch.setattr(WalletMonitor, "monitor", _fake_monitor)
+        monkeypatch.delenv("VIGIL_SENTINEL_WEBHOOK", raising=False)
+
+        sentinel = Sentinel(store=store)
+        summary = await sentinel.run_once()
+        assert summary["scanned"] == 1
+        assert summary["results"][0]["new_alerts"] == 1
+
+        # Second cycle: same alert is deduped, so 0 new.
+        summary2 = await sentinel.run_once()
+        assert summary2["results"][0]["new_alerts"] == 0
