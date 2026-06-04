@@ -148,7 +148,7 @@ class HoneypotDetector:
                     "params": [
                         {
                             "to": token,
-                            "data": balance_selector + "0x" + zero_padded,
+                            "data": balance_selector + zero_padded,
                         },
                         "latest",
                     ],

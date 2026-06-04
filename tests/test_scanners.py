@@ -311,6 +311,33 @@ class TestHoneypotDetector:
         assert result.block_reason == "No contract code at address"
 
     @pytest.mark.asyncio
+    async def test_zero_balance_valid_erc20_not_flagged(self, httpx_mock):
+        """A valid ERC-20 returning a zero balance (0x + 64 zeros) is NOT a honeypot.
+
+        Regression: malformed balanceOf calldata (double 0x) made RPCs return
+        null, wrongly flagging real tokens like $VIGIL as non-ERC-20.
+        """
+        detector = HoneypotDetector()
+
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 0, "result": "0x" + "60" * 50})
+        # balanceOf returns a valid zero-balance word (64 zeros)
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x" + "0" * 64})
+        # transfer simulation succeeds
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 2, "result": "0x1"})
+
+        result = await detector._detect_via_simulation(TOKEN, "base")
+        assert result.is_honeypot is False
+        assert result.can_sell is True
+
+        # The balanceOf request must use well-formed calldata (no double 0x).
+        balance_req = httpx_mock.get_requests()[1]
+        import json as _json
+
+        data = _json.loads(balance_req.content)["params"][0]["data"]
+        assert data.startswith("0x70a08231")
+        assert "0x" not in data[2:]  # no stray 0x in the encoded args
+
+    @pytest.mark.asyncio
     async def test_known_blue_chip_skips_simulation(self, httpx_mock):
         detector = HoneypotDetector()
 
