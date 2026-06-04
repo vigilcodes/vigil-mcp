@@ -7,7 +7,9 @@ honeypot detection and contract scanning, falling back to on-chain RPC
 heuristics when GoPlus has no data for a token.
 """
 
+import hashlib
 import os
+import time
 from typing import Any, Optional
 
 import httpx
@@ -60,12 +62,46 @@ class GoPlusResult(BaseModel):
 
 
 class GoPlusScanner:
-    """Keyless GoPlus token-security client."""
+    """Keyless GoPlus token-security client.
+
+    Works anonymously, but if GOPLUS_APP_KEY/GOPLUS_APP_SECRET are set it
+    authenticates for higher rate limits. The access token is cached and
+    refreshed automatically; auth failures fall back to anonymous access.
+    """
 
     def __init__(self) -> None:
         self.base = GOPLUS_BASE
-        # Optional key raises rate limits but is NOT required.
         self.app_key = os.getenv("GOPLUS_APP_KEY", "")
+        self.app_secret = os.getenv("GOPLUS_APP_SECRET", "")
+        self._token: Optional[str] = None
+        self._token_exp: float = 0.0
+
+    async def _get_token(self, client: httpx.AsyncClient) -> Optional[str]:
+        """Fetch (and cache) a GoPlus access token. Returns None if unavailable."""
+        if not (self.app_key and self.app_secret):
+            return None
+        # Reuse cached token until ~5 min before expiry.
+        if self._token and time.time() < self._token_exp - 300:
+            return self._token
+        try:
+            t = str(int(time.time()))
+            sign = hashlib.sha1(f"{self.app_key}{t}{self.app_secret}".encode()).hexdigest()
+            resp = await client.post(
+                f"{self.base}/token",
+                json={"app_key": self.app_key, "time": int(t), "sign": sign},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("code") == 1:
+                res = data.get("result") or {}
+                self._token = res.get("access_token")
+                # expires_in is a TTL in seconds (GoPlus returns 7200 = 2h).
+                ttl = float(res.get("expires_in") or 3600)
+                self._token_exp = time.time() + ttl
+                return self._token
+        except Exception:  # noqa: BLE001 — auth is optional, fall back to anonymous
+            return None
+        return None
 
     async def token_security(self, token: str, chain: str) -> GoPlusResult:
         chain_id = _CHAIN_IDS.get(chain.lower())
@@ -77,7 +113,13 @@ class GoPlusScanner:
         url = f"{self.base}/token_security/{chain_id}"
         try:
             async with httpx.AsyncClient(timeout=20) as client:
-                resp = await client.get(url, params={"contract_addresses": token})
+                headers = {}
+                access = await self._get_token(client)
+                if access:
+                    headers["Authorization"] = access
+                resp = await client.get(
+                    url, params={"contract_addresses": token}, headers=headers
+                )
                 resp.raise_for_status()
                 data = resp.json()
         except Exception as e:  # noqa: BLE001 — best-effort enrichment
