@@ -854,3 +854,53 @@ class TestSentinelLoop:
         # Second cycle: same alert is deduped, so 0 new.
         summary2 = await sentinel.run_once()
         assert summary2["results"][0]["new_alerts"] == 0
+
+
+# ─── x402 pay-per-call ─────────────────────────────────────
+
+
+class TestX402:
+    """Test the opt-in x402 payment helper."""
+
+    def test_disabled_by_default(self, monkeypatch):
+        monkeypatch.delenv("VIGIL_X402_ENABLED", raising=False)
+        from vigil_mcp.payments import x402
+
+        assert x402.is_enabled() is False
+
+    def test_enabled_flag(self, monkeypatch):
+        monkeypatch.setenv("VIGIL_X402_ENABLED", "1")
+        from vigil_mcp.payments import x402
+
+        assert x402.is_enabled() is True
+
+    def test_price_for_known_tool(self, monkeypatch):
+        monkeypatch.setenv("VIGIL_X402_PRICE_USD", "0.001")
+        from vigil_mcp.payments import x402
+
+        assert x402.price_for("vigil_detect_honeypot") == 0.001
+        # batch scan is priced higher
+        assert x402.price_for("vigil_batch_scan") > x402.price_for("vigil_detect_honeypot")
+        # free tools return None
+        assert x402.price_for("vigil_check_scam") is None
+
+    def test_payment_requirements_shape(self, monkeypatch):
+        monkeypatch.setenv("VIGIL_X402_PAY_TO", "0x" + "1" * 40)
+        from vigil_mcp.payments import x402
+
+        req = x402.payment_requirements("vigil_safety_score", 0.001)
+        assert req["x402Version"] == 1
+        accept = req["accepts"][0]
+        assert accept["scheme"] == "exact"
+        assert accept["network"] == "base"
+        # $0.001 in USDC 6-decimals == 1000 base units
+        assert accept["maxAmountRequired"] == "1000"
+        assert accept["asset"].lower() == x402.USDC_BASE
+
+    @pytest.mark.asyncio
+    async def test_verify_fails_closed_without_facilitator(self, monkeypatch):
+        monkeypatch.delenv("VIGIL_X402_FACILITATOR", raising=False)
+        from vigil_mcp.payments import x402
+
+        ok = await x402.verify_payment("somepayload", "vigil_safety_score", 0.001)
+        assert ok is False

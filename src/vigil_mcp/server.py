@@ -12,6 +12,7 @@ from starlette.responses import JSONResponse
 from vigil_mcp.autonomous.sentinel import Sentinel, SentinelStore
 from vigil_mcp.bridge.base_mcp import BaseMCPBridge
 from vigil_mcp.monitors.wallet_monitor import WalletMonitor
+from vigil_mcp.payments import x402
 from vigil_mcp.revoker.engine import RevocationEngine
 from vigil_mcp.scanners.approvals import ApprovalScanner
 from vigil_mcp.scanners.deployer import DeployerScanner
@@ -826,6 +827,18 @@ async def tools_call(request: Request) -> JSONResponse:
             {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": f"Unknown tool: {tool_name}"}},
             status_code=404,
         )
+
+    # Optional x402 pay-per-call gate (disabled unless VIGIL_X402_ENABLED=1).
+    if x402.is_enabled():
+        price = x402.price_for(tool_name)
+        if price:
+            payment_hdr = request.headers.get("X-PAYMENT", "")
+            paid = await x402.verify_payment(payment_hdr, tool_name, price)
+            if not paid:
+                return JSONResponse(
+                    x402.payment_requirements(tool_name, price),
+                    status_code=402,
+                )
 
     try:
         result = await handler(arguments)
