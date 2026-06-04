@@ -18,9 +18,21 @@ SPENDER = "0x2222222222222222222222222222222222222222"
 class TestApprovalScannerRPC:
     """Test ApprovalScanner._scan_via_rpc."""
 
+    @pytest.fixture(autouse=True)
+    def _bound_lookback(self, monkeypatch):
+        # Keep the scan to a single small chunk so one getLogs mock suffices.
+        monkeypatch.setenv("VIGIL_APPROVAL_LOOKBACK_BLOCKS", "100")
+        monkeypatch.setenv("VIGIL_APPROVAL_LOG_CHUNK", "100")
+
+    @staticmethod
+    def _mock_head(httpx_mock, block=1000):
+        # First call in the flow is eth_blockNumber.
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": hex(block)})
+
     @pytest.mark.asyncio
     async def test_scan_empty_logs(self, httpx_mock):
         scanner = ApprovalScanner()
+        self._mock_head(httpx_mock)
         httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": []})
 
         result = await scanner._scan_via_rpc(WALLET, "base", None)
@@ -30,6 +42,7 @@ class TestApprovalScannerRPC:
     @pytest.mark.asyncio
     async def test_scan_unlimited_approval(self, httpx_mock):
         scanner = ApprovalScanner()
+        self._mock_head(httpx_mock)
         log = {
             "address": TOKEN,
             "topics": [
@@ -49,6 +62,7 @@ class TestApprovalScannerRPC:
     @pytest.mark.asyncio
     async def test_scan_safe_spender(self, httpx_mock):
         scanner = ApprovalScanner()
+        self._mock_head(httpx_mock)
         safe = list(SAFE_SPENDERS)[0]
         log = {
             "address": TOKEN,
@@ -68,6 +82,7 @@ class TestApprovalScannerRPC:
     @pytest.mark.asyncio
     async def test_scan_unlimited_safe_spender(self, httpx_mock):
         scanner = ApprovalScanner()
+        self._mock_head(httpx_mock)
         safe = list(SAFE_SPENDERS)[0]
         log = {
             "address": TOKEN,
@@ -87,6 +102,7 @@ class TestApprovalScannerRPC:
     @pytest.mark.asyncio
     async def test_scan_deduplicates(self, httpx_mock):
         scanner = ApprovalScanner()
+        self._mock_head(httpx_mock)
         log = {
             "address": TOKEN,
             "topics": [
@@ -104,6 +120,7 @@ class TestApprovalScannerRPC:
     @pytest.mark.asyncio
     async def test_scan_skips_revoked(self, httpx_mock):
         scanner = ApprovalScanner()
+        self._mock_head(httpx_mock)
         log = {
             "address": TOKEN,
             "topics": [
@@ -121,6 +138,7 @@ class TestApprovalScannerRPC:
     @pytest.mark.asyncio
     async def test_scan_risk_filter(self, httpx_mock):
         scanner = ApprovalScanner()
+        self._mock_head(httpx_mock)
         safe = list(SAFE_SPENDERS)[0]
         unlimited_log = {
             "address": TOKEN,

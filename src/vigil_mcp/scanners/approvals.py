@@ -1,5 +1,6 @@
 """Token approval scanner — list and flag risky ERC-20/ERC-721 approvals."""
 
+import asyncio
 import os
 from typing import Optional
 
@@ -118,24 +119,57 @@ class ApprovalScanner:
         wallet_padded = "0x" + wallet[2:].lower().zfill(64)
 
         async with httpx.AsyncClient(timeout=30) as client:
-            # Get Approval events where wallet is the owner
-            resp = await client.post(
+            # Determine the current head so we can scan a BOUNDED recent window.
+            # An unbounded fromBlock=0x1..latest query is rejected by most RPC
+            # providers (QuickNode returns HTTP 413 "Request Entity Too Large").
+            head_resp = await client.post(
                 rpc_url,
-                json={
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "eth_getLogs",
-                    "params": [
-                        {
-                            "topics": [approval_topic, wallet_padded],
-                            "fromBlock": "0x1",  # Would use indexed blocks in production
-                            "toBlock": "latest",
-                        }
-                    ],
-                },
+                json={"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber"},
             )
-            resp.raise_for_status()
-            logs = resp.json().get("result", [])
+            head_resp.raise_for_status()
+            head_hex = head_resp.json().get("result", "0x0")
+            head = int(head_hex, 16) if head_hex not in (None, "0x") else 0
+
+            # Scan the most recent ~lookback blocks in fixed-size chunks. Base
+            # produces ~2s blocks (~43k/day), so the default ~200k window covers
+            # several days of recent activity while staying fast and within the
+            # provider's per-request log limits. Chunks run concurrently.
+            lookback = int(os.getenv("VIGIL_APPROVAL_LOOKBACK_BLOCKS", "200000"))
+            chunk = int(os.getenv("VIGIL_APPROVAL_LOG_CHUNK", "9000"))
+            start = max(0, head - lookback)
+
+            ranges: list[tuple[int, int]] = []
+            frm = start
+            while frm <= head:
+                to = min(frm + chunk, head)
+                ranges.append((frm, to))
+                frm = to + 1
+
+            async def _fetch(frm_to: tuple[int, int]) -> list[dict]:
+                lo, hi = frm_to
+                r = await client.post(
+                    rpc_url,
+                    json={
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "eth_getLogs",
+                        "params": [
+                            {
+                                "topics": [approval_topic, wallet_padded],
+                                "fromBlock": hex(lo),
+                                "toBlock": hex(hi),
+                            }
+                        ],
+                    },
+                )
+                if r.status_code == 200:
+                    out = r.json().get("result")
+                    if isinstance(out, list):
+                        return out
+                return []
+
+            chunk_results = await asyncio.gather(*(_fetch(rg) for rg in ranges))
+            logs: list[dict] = [log for sub in chunk_results for log in sub]
 
         approvals = []
         seen = set()
