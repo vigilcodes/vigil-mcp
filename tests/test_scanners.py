@@ -593,3 +593,96 @@ class TestScamDatabase:
         db.report(TOKEN.upper(), "scam", "desc", "base")
         check = db.check(TOKEN.lower(), "base")
         assert check["report_count"] == 1
+
+
+# ─── GoPlus + honeypot integration ─────────────────────────
+
+
+class TestGoPlusScanner:
+    """Test the keyless GoPlus token-security client."""
+
+    @pytest.mark.asyncio
+    async def test_parses_clean_token(self, httpx_mock):
+        from vigil_mcp.scanners.goplus import GoPlusScanner
+
+        httpx_mock.add_response(
+            json={
+                "code": 1,
+                "message": "OK",
+                "result": {
+                    TOKEN.lower(): {
+                        "token_name": "Vigil",
+                        "token_symbol": "VIGIL",
+                        "is_honeypot": "0",
+                        "buy_tax": "0",
+                        "sell_tax": "0",
+                        "is_mintable": "0",
+                        "is_open_source": "1",
+                        "holder_count": "160",
+                    }
+                },
+            }
+        )
+        g = await GoPlusScanner().token_security(TOKEN, "base")
+        assert g.available is True
+        assert g.is_honeypot is False
+        assert g.holder_count == 160
+        assert g.is_open_source is True
+
+    @pytest.mark.asyncio
+    async def test_unsupported_chain(self):
+        from vigil_mcp.scanners.goplus import GoPlusScanner
+
+        g = await GoPlusScanner().token_security(TOKEN, "solana")
+        assert g.available is False
+
+    @pytest.mark.asyncio
+    async def test_no_data_code(self, httpx_mock):
+        from vigil_mcp.scanners.goplus import GoPlusScanner
+
+        httpx_mock.add_response(json={"code": 0, "message": "no data", "result": {}})
+        g = await GoPlusScanner().token_security(TOKEN, "base")
+        assert g.available is False
+
+
+class TestHoneypotGoPlusPath:
+    """HoneypotDetector.detect should use GoPlus as the primary signal."""
+
+    @pytest.mark.asyncio
+    async def test_goplus_honeypot_flag(self, httpx_mock):
+        detector = HoneypotDetector()
+        httpx_mock.add_response(
+            json={
+                "code": 1,
+                "result": {
+                    TOKEN.lower(): {
+                        "is_honeypot": "1",
+                        "buy_tax": "0",
+                        "sell_tax": "0.5",
+                    }
+                },
+            }
+        )
+        result = await detector.detect(TOKEN, "base")
+        assert result.is_honeypot is True
+        assert result.can_sell is False
+        assert "honeypot" in (result.block_reason or "").lower()
+
+    @pytest.mark.asyncio
+    async def test_goplus_clean_token(self, httpx_mock):
+        detector = HoneypotDetector()
+        httpx_mock.add_response(
+            json={
+                "code": 1,
+                "result": {
+                    TOKEN.lower(): {
+                        "is_honeypot": "0",
+                        "buy_tax": "0",
+                        "sell_tax": "0",
+                    }
+                },
+            }
+        )
+        result = await detector.detect(TOKEN, "base")
+        assert result.is_honeypot is False
+        assert result.can_sell is True

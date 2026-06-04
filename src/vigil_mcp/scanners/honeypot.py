@@ -6,6 +6,7 @@ from typing import Optional
 import httpx
 from pydantic import BaseModel
 
+from vigil_mcp.scanners.goplus import GoPlusScanner
 from vigil_mcp.scanners.known_contracts import lookup_known_contract
 
 
@@ -35,6 +36,7 @@ class HoneypotDetector:
     def __init__(self):
         self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
         self.api_key = os.getenv("BANKR_API_KEY", "")
+        self.goplus = GoPlusScanner()
         self.rpc_urls = {
             "base": os.getenv("BASE_RPC", "https://base.publicnode.com"),
             "ethereum": os.getenv("ETH_RPC", "https://eth.llamarpc.com"),
@@ -64,9 +66,60 @@ class HoneypotDetector:
                 high_tax_warning=False,
             )
 
+        # Primary signal: GoPlus Security (keyless, richer than raw simulation).
+        goplus_result = await self._detect_via_goplus(token, chain)
+        if goplus_result is not None:
+            return goplus_result
+
         if self.api_key:
             return await self._detect_via_api(token, chain)
         return await self._detect_via_simulation(token, chain)
+
+    async def _detect_via_goplus(self, token: str, chain: str) -> Optional[HoneypotResult]:
+        """Use GoPlus token-security data when available. Returns None to fall back."""
+        g = await self.goplus.token_security(token, chain)
+        if not g.available or g.is_honeypot is None:
+            return None
+
+        buy_tax = g.buy_tax
+        sell_tax = g.sell_tax
+        # High tax (>10% either side) is a soft honeypot signal worth flagging.
+        high_tax = bool((buy_tax and buy_tax > 0.10) or (sell_tax and sell_tax > 0.10))
+        cannot_sell = bool(g.cannot_sell_all) or bool(g.is_honeypot)
+        is_honeypot = bool(g.is_honeypot) or bool(g.cannot_sell_all)
+
+        block_reason = None
+        if g.is_honeypot:
+            block_reason = "GoPlus flagged token as honeypot"
+        elif g.cannot_sell_all:
+            block_reason = "GoPlus: cannot sell entire balance"
+        elif g.transfer_pausable:
+            block_reason = "Transfers are pausable by owner"
+
+        sims = [
+            SimulationResult(
+                action="goplus_token_security",
+                success=not is_honeypot,
+                error=(
+                    f"GoPlus: honeypot={g.is_honeypot}, buy_tax={buy_tax}, "
+                    f"sell_tax={sell_tax}, mintable={g.is_mintable}, "
+                    f"open_source={g.is_open_source}, holders={g.holder_count}"
+                ),
+            )
+        ]
+
+        return HoneypotResult(
+            token=token,
+            chain=chain,
+            is_honeypot=is_honeypot,
+            can_buy=True,
+            can_sell=not cannot_sell,
+            buy_tax=buy_tax,
+            sell_tax=sell_tax,
+            block_reason=block_reason,
+            simulations=sims,
+            high_tax_warning=high_tax,
+        )
 
     async def _detect_via_api(self, token: str, chain: str) -> HoneypotResult:
         """Detect via VIGIL hosted API."""
