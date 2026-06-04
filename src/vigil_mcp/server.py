@@ -3,7 +3,7 @@
 import logging
 import os
 import sys
-from typing import Any
+from typing import Any, Optional
 
 from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
@@ -152,7 +152,41 @@ async def vigil_wallet_report(wallet: str, chain: str = "base") -> dict[str, Any
     high = sum(1 for a in approvals.approvals if a.risk == "high")
     unlimited = sum(1 for a in approvals.approvals if a.amount == "unlimited")
 
+    # Cross-check each risky approval against the local community scam DB.
+    # If the spender or token is already flagged, that's a strong signal we
+    # should surface in the report.
+    flagged_via_scam_db: list[dict[str, Any]] = []
+    seen_addrs: set[str] = set()
+    for a in approvals.approvals:
+        if a.risk not in ("critical", "high"):
+            continue
+        for addr in (a.token_address, a.spender_address):
+            addr_l = addr.lower()
+            if addr_l in seen_addrs:
+                continue
+            seen_addrs.add(addr_l)
+            try:
+                check = scam_db.check(addr_l, chain)
+            except Exception:  # noqa: BLE001 — DB lookup is best-effort
+                continue
+            if check.get("reported"):
+                flagged_via_scam_db.append(
+                    {
+                        "address": addr_l,
+                        "role": "token" if addr_l == a.token_address.lower() else "spender",
+                        "report_count": check.get("report_count"),
+                        "evidence_types": check.get("evidence_types", []),
+                    }
+                )
+
+    # Native balance gives the report concrete weight (e.g. "$5K wallet with
+    # 3 unlimited approvals" hits harder than just an approval count).
+    native_balance_eth = await _get_native_balance_eth(wallet, chain)
+
     overall_score = max(0, 100 - (critical * 20) - (high * 10) - (unlimited * 5))
+    # Each scam-DB hit drags the score down too — those are real, not heuristic.
+    overall_score = max(0, overall_score - 15 * len(flagged_via_scam_db))
+
     risk_level = (
         "critical"
         if overall_score < 30
@@ -166,6 +200,17 @@ async def vigil_wallet_report(wallet: str, chain: str = "base") -> dict[str, Any
     )
 
     recommendations = []
+    if flagged_via_scam_db:
+        recommendations.append(
+            {
+                "priority": "critical",
+                "action": (
+                    f"Revoke approvals tied to {len(flagged_via_scam_db)} "
+                    "address(es) flagged in the community scam database"
+                ),
+                "detail": "These are not heuristic flags — others have reported them.",
+            }
+        )
     if critical > 0:
         recommendations.append(
             {
@@ -198,18 +243,50 @@ async def vigil_wallet_report(wallet: str, chain: str = "base") -> dict[str, Any
         "chain": chain,
         "overall_score": overall_score,
         "risk_level": risk_level,
+        "native_balance_eth": native_balance_eth,
         "approvals": {
             "total": len(approvals.approvals),
             "critical": critical,
             "high": high,
             "unlimited": unlimited,
         },
+        "scam_db_hits": flagged_via_scam_db,
         "scam_interactions": scam_history,
         "top_risks": [
             a.model_dump() for a in approvals.approvals if a.risk in ("critical", "high")
         ][:5],
         "recommendations": recommendations,
     }
+
+
+async def _get_native_balance_eth(wallet: str, chain: str) -> Optional[float]:
+    """Fetch native (ETH/MATIC/etc) balance via the configured RPC.
+
+    Returns balance as a float in whole units, or None if the lookup fails.
+    Best-effort enrichment for the wallet report.
+    """
+    rpc_url = approval_scanner.rpc_urls.get(chain)
+    if not rpc_url:
+        return None
+    try:
+        import httpx as _httpx
+
+        async with _httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                rpc_url,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "eth_getBalance",
+                    "params": [wallet, "latest"],
+                },
+            )
+            r.raise_for_status()
+            hex_bal = r.json().get("result", "0x0")
+            wei = int(hex_bal, 16) if hex_bal not in (None, "0x") else 0
+            return round(wei / 1e18, 6)
+    except Exception:  # noqa: BLE001 — best-effort enrichment
+        return None
 
 
 # ─────────────────────────────────────────────────────────────
