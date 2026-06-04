@@ -13,8 +13,11 @@ from vigil_mcp.bridge.base_mcp import BaseMCPBridge
 from vigil_mcp.monitors.wallet_monitor import WalletMonitor
 from vigil_mcp.revoker.engine import RevocationEngine
 from vigil_mcp.scanners.approvals import ApprovalScanner
+from vigil_mcp.scanners.deployer import DeployerScanner
 from vigil_mcp.scanners.honeypot import HoneypotDetector
+from vigil_mcp.scanners.market import MarketScanner
 from vigil_mcp.scanners.safety_score import SafetyScorer
+from vigil_mcp.scanners.scam_db import ScamDatabase
 from vigil_mcp.scanners.token_scanner import TokenScanner
 
 logging.basicConfig(
@@ -41,6 +44,9 @@ safety_scorer = SafetyScorer()
 revocation_engine = RevocationEngine()
 base_bridge = BaseMCPBridge()
 wallet_monitor = WalletMonitor()
+market_scanner = MarketScanner()
+deployer_scanner = DeployerScanner()
+scam_db = ScamDatabase()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -228,6 +234,86 @@ async def vigil_monitor_wallet(
 
 
 # ─────────────────────────────────────────────────────────────
+# MARKET + REPUTATION TOOLS (read-only, enriches verdicts)
+# ─────────────────────────────────────────────────────────────
+
+
+@mcp.tool()
+async def vigil_token_market(token: str, chain: str = "base") -> dict[str, Any]:
+    """Get market context for a token: price, liquidity, volume, and pool age.
+
+    Uses DexScreener (no API key). Thin liquidity or a brand-new pool is a strong
+    rug signal that pure bytecode analysis cannot see.
+
+    Args:
+        token: Token contract address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Fetching market context for {token} on {chain}")
+    result = await market_scanner.get_market(token, chain)
+    return result.model_dump()
+
+
+@mcp.tool()
+async def vigil_deployer_check(contract: str, chain: str = "base") -> dict[str, Any]:
+    """Check a contract's deployer reputation, verification status, and age.
+
+    Uses the Basescan API. Requires BASESCAN_API_KEY; without it the tool returns
+    available=false instead of failing.
+
+    Args:
+        contract: Contract address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Checking deployer reputation for {contract} on {chain}")
+    result = await deployer_scanner.check(contract, chain)
+    return result.model_dump()
+
+
+@mcp.tool()
+async def vigil_batch_scan(tokens: list[str], chain: str = "base") -> dict[str, Any]:
+    """Scan multiple tokens for safety in one call.
+
+    Returns a per-token safety score and risk level. Useful for checking an
+    entire wallet's holdings at once.
+
+    Args:
+        tokens: List of token contract addresses (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Batch scanning {len(tokens)} tokens on {chain}")
+
+    results = []
+    for token in tokens[:25]:  # cap to keep calls bounded
+        try:
+            score = await safety_scorer.score(token, chain)
+            results.append(
+                {
+                    "token": token,
+                    "score": score.score,
+                    "risk_level": score.risk_level,
+                    "recommendation": score.recommendation,
+                }
+            )
+        except Exception as e:  # noqa: BLE001 — one bad token shouldn't fail the batch
+            results.append({"token": token, "error": str(e)})
+
+    ranked = sorted(
+        [r for r in results if "score" in r],
+        key=lambda r: r["score"],
+    )
+    return {
+        "chain": chain,
+        "total": len(results),
+        "results": results,
+        "riskiest": ranked[:5],
+    }
+
+
+# ─────────────────────────────────────────────────────────────
 # WRITE TOOLS (Bankr auth required)
 # ─────────────────────────────────────────────────────────────
 
@@ -319,8 +405,36 @@ async def vigil_report_scam(
         raise ValueError(f"Invalid evidence_type. Use: {', '.join(valid_types)}")
 
     logger.info(f"Submitting scam report for {token} ({evidence_type})")
-    result = await revocation_engine.report_scam(token, evidence_type, description, chain)
+
+    # Always persist to the local community DB so the report is durable and
+    # immediately queryable via vigil_check_scam — no API key required.
+    result = scam_db.report(token, evidence_type, description, chain)
+
+    # If Bankr is configured, also forward to the hosted bounty database.
+    try:
+        if revocation_engine.api_key:
+            remote = await revocation_engine.report_scam(token, evidence_type, description, chain)
+            result["remote_report_id"] = remote.get("report_id", "")
+            result["remote_status"] = remote.get("status", "")
+    except Exception as e:  # noqa: BLE001 — remote sync is best-effort
+        result["remote_status"] = f"sync_failed: {e}"
+
     return result
+
+
+@mcp.tool()
+async def vigil_check_scam(token: str, chain: str = "base") -> dict[str, Any]:
+    """Check whether a token has community scam reports.
+
+    Queries the local VIGIL scam database. No API key required.
+
+    Args:
+        token: Token contract address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Checking scam reports for {token} on {chain}")
+    return scam_db.check(token, chain)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -419,6 +533,18 @@ TOOL_MAP = {
         args.get("chain", "base"),
         int(args.get("lookback_blocks", 1000)),
     ),
+    "vigil_token_market": lambda args: vigil_token_market(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "vigil_deployer_check": lambda args: vigil_deployer_check(
+        args.get("contract") or args.get("token", ""), args.get("chain", "base")
+    ),
+    "vigil_batch_scan": lambda args: vigil_batch_scan(
+        args.get("tokens", []), args.get("chain", "base")
+    ),
+    "vigil_check_scam": lambda args: vigil_check_scam(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
     "scan_approvals": lambda args: vigil_scan_approvals(
         args.get("wallet", ""), args.get("chain", "base")
     ),
@@ -438,6 +564,18 @@ TOOL_MAP = {
         args.get("wallet", ""),
         args.get("chain", "base"),
         int(args.get("lookback_blocks", 1000)),
+    ),
+    "token_market": lambda args: vigil_token_market(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "deployer_check": lambda args: vigil_deployer_check(
+        args.get("contract") or args.get("token", ""), args.get("chain", "base")
+    ),
+    "batch_scan": lambda args: vigil_batch_scan(
+        args.get("tokens", []), args.get("chain", "base")
+    ),
+    "check_scam": lambda args: vigil_check_scam(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
 }
 
@@ -524,6 +662,64 @@ async def tools_list(request: Request) -> JSONResponse:
                     },
                 },
                 "required": ["wallet"],
+            },
+        },
+        {
+            "name": "vigil_token_market",
+            "description": (
+                "Get market context for a token: price, liquidity, 24h volume, and "
+                "pool age via DexScreener. No API key required."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
+            },
+        },
+        {
+            "name": "vigil_deployer_check",
+            "description": (
+                "Check a contract's deployer reputation, verification status, and age "
+                "via Basescan. Requires BASESCAN_API_KEY."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "contract": {"type": "string", "description": "Contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["contract"],
+            },
+        },
+        {
+            "name": "vigil_batch_scan",
+            "description": "Scan multiple tokens for safety in one call; returns per-token scores.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "tokens": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of token contract addresses",
+                    },
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["tokens"],
+            },
+        },
+        {
+            "name": "vigil_check_scam",
+            "description": "Check whether a token has community scam reports (local VIGIL database).",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
             },
         },
     ]

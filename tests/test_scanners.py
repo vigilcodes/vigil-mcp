@@ -402,3 +402,167 @@ class TestRiskAssessment:
         safe = list(SAFE_SPENDERS)[0]
         risk = scanner._assess_risk(TOKEN, safe, is_unlimited=False)
         assert risk == "safe"
+
+
+# ─── MarketScanner ─────────────────────────────────────────
+
+
+class TestMarketScanner:
+    """Test MarketScanner.get_market with mocked DexScreener responses."""
+
+    @pytest.mark.asyncio
+    async def test_no_pairs(self, httpx_mock):
+        from vigil_mcp.scanners.market import MarketScanner
+
+        httpx_mock.add_response(json={"pairs": []})
+        result = await MarketScanner().get_market(TOKEN, "base")
+        assert result.found is False
+
+    @pytest.mark.asyncio
+    async def test_picks_base_token_price(self, httpx_mock):
+        from vigil_mcp.scanners.market import MarketScanner
+
+        # Our token is the BASE token here; priceUsd should be trusted.
+        httpx_mock.add_response(
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "baseToken": {"address": TOKEN},
+                        "quoteToken": {"address": SPENDER},
+                        "priceUsd": "1.0",
+                        "liquidity": {"usd": 250000},
+                        "volume": {"h24": 50000},
+                        "pairAddress": "0xpair",
+                        "dexId": "uniswap",
+                    }
+                ]
+            }
+        )
+        result = await MarketScanner().get_market(TOKEN, "base")
+        assert result.found is True
+        assert result.price_usd == 1.0
+        assert result.liquidity_usd == 250000
+        assert result.liquidity_risk == "low"
+
+    @pytest.mark.asyncio
+    async def test_thin_liquidity_is_critical(self, httpx_mock):
+        from vigil_mcp.scanners.market import MarketScanner
+
+        httpx_mock.add_response(
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "baseToken": {"address": TOKEN},
+                        "priceUsd": "0.001",
+                        "liquidity": {"usd": 500},
+                        "volume": {"h24": 10},
+                        "pairAddress": "0xpair",
+                        "dexId": "uniswap",
+                    }
+                ]
+            }
+        )
+        result = await MarketScanner().get_market(TOKEN, "base")
+        assert result.liquidity_risk == "critical"
+        assert any("thin liquidity" in n.lower() for n in result.notes)
+
+    @pytest.mark.asyncio
+    async def test_ignores_price_when_token_is_quote(self, httpx_mock):
+        from vigil_mcp.scanners.market import MarketScanner
+
+        # Our token is the QUOTE token; priceUsd refers to the base asset, so
+        # we must NOT report it as our token's price.
+        httpx_mock.add_response(
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "baseToken": {"address": SPENDER},
+                        "quoteToken": {"address": TOKEN},
+                        "priceUsd": "3500.0",
+                        "liquidity": {"usd": 100000},
+                        "pairAddress": "0xpair",
+                        "dexId": "uniswap",
+                    }
+                ]
+            }
+        )
+        result = await MarketScanner().get_market(TOKEN, "base")
+        assert result.price_usd is None
+        assert result.liquidity_usd == 100000
+
+
+# ─── DeployerScanner ───────────────────────────────────────
+
+
+class TestDeployerScanner:
+    """Test DeployerScanner.check fallback and parsing."""
+
+    @pytest.mark.asyncio
+    async def test_no_api_key_is_unavailable(self, monkeypatch):
+        monkeypatch.delenv("BASESCAN_API_KEY", raising=False)
+        monkeypatch.delenv("ETHERSCAN_API_KEY", raising=False)
+        from vigil_mcp.scanners.deployer import DeployerScanner
+
+        result = await DeployerScanner().check(TOKEN, "base")
+        assert result.available is False
+        assert "api_key" in result.note.lower() or "api key" in result.note.lower()
+
+    @pytest.mark.asyncio
+    async def test_unsupported_chain(self, monkeypatch):
+        monkeypatch.setenv("BASESCAN_API_KEY", "testkey")
+        from vigil_mcp.scanners.deployer import DeployerScanner
+
+        result = await DeployerScanner().check(TOKEN, "solana")
+        assert result.available is False
+        assert "unsupported" in result.note.lower()
+
+
+# ─── ScamDatabase ──────────────────────────────────────────
+
+
+class TestScamDatabase:
+    """Test the local SQLite scam report store."""
+
+    def _db(self, tmp_path):
+        from vigil_mcp.scanners.scam_db import ScamDatabase
+
+        return ScamDatabase(db_path=str(tmp_path / "scam.db"))
+
+    def test_report_and_check(self, tmp_path):
+        db = self._db(tmp_path)
+        out = db.report(TOKEN, "honeypot", "blocks selling", "base")
+        assert out["status"] == "stored"
+        assert out["total_reports_for_token"] == 1
+
+        check = db.check(TOKEN, "base")
+        assert check["reported"] is True
+        assert check["report_count"] == 1
+        assert "honeypot" in check["evidence_types"]
+
+    def test_check_unreported_token(self, tmp_path):
+        db = self._db(tmp_path)
+        check = db.check(TOKEN, "base")
+        assert check["reported"] is False
+        assert check["report_count"] == 0
+
+    def test_invalid_evidence_type(self, tmp_path):
+        db = self._db(tmp_path)
+        with pytest.raises(ValueError, match="Invalid evidence_type"):
+            db.report(TOKEN, "not_a_type", "desc", "base")
+
+    def test_multiple_reports_aggregate(self, tmp_path):
+        db = self._db(tmp_path)
+        db.report(TOKEN, "honeypot", "first", "base")
+        db.report(TOKEN, "rugpull", "second", "base")
+        check = db.check(TOKEN, "base")
+        assert check["report_count"] == 2
+        assert set(check["evidence_types"]) == {"honeypot", "rugpull"}
+
+    def test_address_case_insensitive(self, tmp_path):
+        db = self._db(tmp_path)
+        db.report(TOKEN.upper(), "scam", "desc", "base")
+        check = db.check(TOKEN.lower(), "base")
+        assert check["report_count"] == 1

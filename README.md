@@ -22,6 +22,9 @@ VIGIL ships Base-first. The scanners (approvals, token, honeypot, safety score) 
 - **Safety Score** — 0-100 rating based on bytecode analysis, ownership, registry match, complexity
 - **Wallet Report** — full security posture assessment
 - **Wallet Monitor** — alerts for new approvals, risky interactions, and balance changes
+- **Token Market** — price, liquidity, 24h volume, and pool age via DexScreener (no API key)
+- **Deployer Check** — contract verification, name, and deployer reputation via Basescan
+- **Batch Scan** — score multiple tokens in one call, ranked by risk
 - **Approval Revoker** *(separate, BANKR_API_KEY required)* — revoke dangerous approvals via Bankr transaction signing
 
 ## Install
