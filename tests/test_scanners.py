@@ -886,13 +886,17 @@ class TestX402:
         assert x402.is_enabled() is True
 
     def test_price_for_known_tool(self, monkeypatch):
-        monkeypatch.setenv("VIGIL_X402_PRICE_USD", "0.001")
+        monkeypatch.setenv("VIGIL_X402_PRICE_USD", "0.005")
         from vigil_mcp.payments import x402
 
-        assert x402.price_for("vigil_detect_honeypot") == 0.001
+        # Premium tools are priced
+        assert x402.price_for("vigil_scan_token") == 0.005
         # batch scan is priced higher
-        assert x402.price_for("vigil_batch_scan") > x402.price_for("vigil_detect_honeypot")
-        # free tools return None
+        assert x402.price_for("vigil_batch_scan") > x402.price_for("vigil_scan_token")
+        # Core pre-trade checks are FREE (None = not priced)
+        assert x402.price_for("vigil_detect_honeypot") is None
+        assert x402.price_for("vigil_safety_score") is None
+        # Defensive tools also free
         assert x402.price_for("vigil_check_scam") is None
 
     def test_payment_requirements_shape(self, monkeypatch):
@@ -914,8 +918,8 @@ class TestX402:
         monkeypatch.delenv("VIGIL_X402_PRICE_USD", raising=False)
         from vigil_mcp.payments import x402
 
-        # Default scan price should leave margin even after the $0.001 fee.
-        assert x402.price_for("vigil_detect_honeypot") > 0.001
+        # scan_token is a paid tool — should leave margin.
+        assert x402.price_for("vigil_scan_token") > 0.001
 
     def test_caip2_resolution(self, monkeypatch):
         """Internal chain names map to CAIP-2 IDs the facilitator expects."""

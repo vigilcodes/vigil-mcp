@@ -59,19 +59,20 @@ def _default_prices() -> dict[str, float]:
     """Per-tool USD price. Tools not listed here stay free even when x402 is on.
 
     Defaults are tuned so that after the CDP facilitator's $0.001/tx fee
-    (post-quota), there's still margin. check_scam and scan_approvals stay
-    free on purpose — defensive tools should not have a paywall.
+    (post-quota), there's still margin. Defensive tools AND core pre-trade
+    checks stay free on purpose — adoption > micro-revenue on the tools that
+    make agents want to use VIGIL in the first place.
     """
     base = float(os.getenv("VIGIL_X402_PRICE_USD", "0.005"))
     return {
         "vigil_scan_token": base,
-        "vigil_detect_honeypot": base,
-        "vigil_safety_score": base,
         "vigil_token_market": base * 0.6,    # lighter call (DexScreener)
         "vigil_deployer_check": base,
         "vigil_batch_scan": base * 5,        # heavy: scans many tokens
         "vigil_wallet_report": base * 2,     # aggregates several scans
         # Intentionally NOT priced (stay free):
+        # vigil_detect_honeypot — core pre-trade check, must be barrier-free
+        # vigil_safety_score   — core pre-trade check, must be barrier-free
         # vigil_scan_approvals, vigil_check_scam, vigil_monitor_wallet,
         # vigil_sentinel_status
     }
