@@ -897,16 +897,38 @@ class TestX402:
 
     def test_payment_requirements_shape(self, monkeypatch):
         monkeypatch.setenv("VIGIL_X402_PAY_TO", "0x" + "1" * 40)
+        monkeypatch.delenv("VIGIL_X402_NETWORK", raising=False)
         from vigil_mcp.payments import x402
 
         req = x402.payment_requirements("vigil_safety_score", 0.001)
         assert req["x402Version"] == 1
         accept = req["accepts"][0]
-        assert accept["scheme"] == "exact"
-        assert accept["network"] == "base"
+        # CDP facilitator requires CAIP-2 network identifiers.
+        assert accept["network"] == "eip155:8453"
         # $0.001 in USDC 6-decimals == 1000 base units
         assert accept["maxAmountRequired"] == "1000"
         assert accept["asset"].lower() == x402.USDC_BASE
+
+    def test_default_price_above_facilitator_fee(self, monkeypatch):
+        """Default price must exceed the CDP facilitator's $0.001/tx post-quota fee."""
+        monkeypatch.delenv("VIGIL_X402_PRICE_USD", raising=False)
+        from vigil_mcp.payments import x402
+
+        # Default scan price should leave margin even after the $0.001 fee.
+        assert x402.price_for("vigil_detect_honeypot") > 0.001
+
+    def test_caip2_resolution(self, monkeypatch):
+        """Internal chain names map to CAIP-2 IDs the facilitator expects."""
+        from vigil_mcp.payments import x402
+
+        for plain, caip2 in [
+            ("base", "eip155:8453"),
+            ("polygon", "eip155:137"),
+            ("arbitrum", "eip155:42161"),
+        ]:
+            monkeypatch.setenv("VIGIL_X402_NETWORK", plain)
+            req = x402.payment_requirements("vigil_safety_score", 0.005)
+            assert req["accepts"][0]["network"] == caip2
 
     @pytest.mark.asyncio
     async def test_verify_fails_closed_without_facilitator(self, monkeypatch):
