@@ -1,5 +1,6 @@
 """Wallet monitor — real-time alerts for suspicious wallet activity."""
 
+import os
 import time
 from typing import Optional
 
@@ -28,24 +29,40 @@ class WalletMonitor:
     """Monitor wallet for suspicious activity."""
 
     def __init__(self):
+        # Per-chain RPC list. The configured env URL (e.g. BASE_RPC pointing to
+        # QuickNode) goes first, with public nodes as fallback. We dedupe so
+        # the same URL never appears twice if env happens to match a default.
+        def _list(env_key: str, *fallbacks: str) -> list[str]:
+            primary = os.getenv(env_key, "")
+            seen: set[str] = set()
+            out: list[str] = []
+            for u in [primary, *fallbacks]:
+                if u and u not in seen:
+                    seen.add(u)
+                    out.append(u)
+            return out
+
         self.rpc_urls = {
-            "base": [
+            "base": _list(
+                "BASE_RPC",
                 "https://base.publicnode.com",
-                "https://base.publicnode.com",
-                "https://base.publicnode.com",
-            ],
-            "ethereum": [
+                "https://mainnet.base.org",
+            ),
+            "ethereum": _list(
+                "ETH_RPC",
                 "https://eth.llamarpc.com",
                 "https://ethereum.publicnode.com",
-            ],
-            "polygon": [
+            ),
+            "polygon": _list(
+                "POLYGON_RPC",
                 "https://polygon.llamarpc.com",
                 "https://polygon-rpc.com",
-            ],
-            "arbitrum": [
+            ),
+            "arbitrum": _list(
+                "ARBITRUM_RPC",
                 "https://arbitrum.llamarpc.com",
                 "https://arb1.arbitrum.io/rpc",
-            ],
+            ),
         }
         # Known safe spender patterns
         self.known_safe_spenders = {
@@ -61,6 +78,26 @@ class WalletMonitor:
                 "0x1111111254fb6c44bac0bed2854e76f90643097d": "1inch Router",
             },
         }
+
+    async def _rpc_post(
+        self, client: httpx.AsyncClient, rpc_list: list[str], payload: dict
+    ) -> dict:
+        """POST a JSON-RPC payload, falling back through rpc_list on failure.
+
+        Tries the first RPC (typically the configured QuickNode); if it errors
+        or returns non-200, walks the remaining public-node fallbacks.
+        """
+        last_err: Optional[Exception] = None
+        for url in rpc_list:
+            try:
+                resp = await client.post(url, json=payload)
+                if resp.status_code == 200:
+                    return resp.json()
+            except Exception as e:  # noqa: BLE001 — try the next URL
+                last_err = e
+        if last_err:
+            raise last_err
+        return {}
 
     async def monitor(self, wallet: str, chain: str, lookback_blocks: int = 1000) -> MonitorResult:
         """Monitor wallet for recent suspicious activity."""
@@ -150,20 +187,20 @@ class WalletMonitor:
         alerts = []
         try:
             # Get current block
-            block_resp = await client.post(
-                rpc_list[0],
-                json={"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []},
+            block_resp = await self._rpc_post(
+                client, rpc_list,
+                {"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []},
             )
-            current_block = int(block_resp.json().get("result", "0x0"), 16)
+            current_block = int(block_resp.get("result", "0x0"), 16)
             from_block = hex(max(0, current_block - lookback))
 
             # Approval event signature: Approval(address,address,uint256)
             approval_topic = "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
 
             # Get logs for this wallet
-            logs_resp = await client.post(
-                rpc_list[0],
-                json={
+            logs_resp = await self._rpc_post(
+                client, rpc_list,
+                {
                     "jsonrpc": "2.0",
                     "id": 2,
                     "method": "eth_getLogs",
@@ -177,7 +214,7 @@ class WalletMonitor:
                     }],
                 },
             )
-            logs = logs_resp.json().get("result", [])
+            logs = logs_resp.get("result", [])
 
             for log in logs:
                 spender = "0x" + log.get("topics", [b"", b""])[1][-40:] if len(log.get("topics", [])) > 1 else "unknown"
@@ -228,17 +265,17 @@ class WalletMonitor:
         """Check for interactions with known risky patterns."""
         alerts = []
         try:
-            block_resp = await client.post(
-                rpc_list[0],
-                json={"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []},
+            block_resp = await self._rpc_post(
+                client, rpc_list,
+                {"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []},
             )
-            current_block = int(block_resp.json().get("result", "0x0"), 16)
+            current_block = int(block_resp.get("result", "0x0"), 16)
             from_block = hex(max(0, current_block - lookback))
 
             # Get normal transactions
-            tx_resp = await client.post(
-                rpc_list[0],
-                json={
+            tx_resp = await self._rpc_post(
+                client, rpc_list,
+                {
                     "jsonrpc": "2.0",
                     "id": 3,
                     "method": "eth_getLogs",
@@ -252,7 +289,7 @@ class WalletMonitor:
                     }],
                 },
             )
-            logs = tx_resp.json().get("result", [])
+            logs = tx_resp.get("result", [])
 
             # Track unique contracts interacted with
             contracts = set()
@@ -263,16 +300,16 @@ class WalletMonitor:
             for contract in contracts:
                 if contract and contract not in self.known_safe_spenders.get(chain, {}):
                     # Check if contract has code
-                    code_resp = await client.post(
-                        rpc_list[0],
-                        json={
+                    code_resp = await self._rpc_post(
+                        client, rpc_list,
+                        {
                             "jsonrpc": "2.0",
                             "id": 4,
                             "method": "eth_getCode",
                             "params": [contract, "latest"],
                         },
                     )
-                    code = code_resp.json().get("result", "0x")
+                    code = code_resp.get("result", "0x")
                     if code in ("0x", "0x0"):
                         alerts.append(Alert(
                             severity="medium",
@@ -293,16 +330,16 @@ class WalletMonitor:
         alerts = []
         try:
             # Get current ETH balance
-            bal_resp = await client.post(
-                rpc_list[0],
-                json={
+            bal_resp = await self._rpc_post(
+                client, rpc_list,
+                {
                     "jsonrpc": "2.0",
                     "id": 5,
                     "method": "eth_getBalance",
                     "params": [wallet, "latest"],
                 },
             )
-            balance_hex = bal_resp.json().get("result", "0x0")
+            balance_hex = bal_resp.get("result", "0x0")
             balance = int(balance_hex, 16)
             balance_eth = balance / 1e18
 
