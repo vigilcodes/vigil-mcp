@@ -130,15 +130,23 @@ class SentinelStore:
 
 
 async def _notify(payload: dict) -> None:
-    """Send a notification to a webhook if VIGIL_SENTINEL_WEBHOOK is set."""
+    """Send a notification via webhook AND/OR Telegram (both optional)."""
+    # Webhook (legacy / custom integrations)
     url = os.getenv("VIGIL_SENTINEL_WEBHOOK", "")
-    if not url:
-        return
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            await client.post(url, json=payload)
-    except Exception as e:  # noqa: BLE001 — notification is best-effort
-        logger.warning("Sentinel webhook failed: %s", e)
+    if url:
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                await client.post(url, json=payload)
+        except Exception as e:  # noqa: BLE001 — notification is best-effort
+            logger.warning("Sentinel webhook failed: %s", e)
+
+    # Telegram (user-facing alerts)
+    from vigil_mcp.autonomous.telegram import is_configured, send_alert
+
+    if is_configured():
+        ok = await send_alert(payload)
+        if not ok:
+            logger.warning("Sentinel Telegram alert failed")
 
 
 class Sentinel:
