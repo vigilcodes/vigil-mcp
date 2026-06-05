@@ -24,6 +24,17 @@ class TestApprovalScannerRPC:
         monkeypatch.setenv("VIGIL_APPROVAL_LOOKBACK_BLOCKS", "100")
         monkeypatch.setenv("VIGIL_APPROVAL_LOG_CHUNK", "100")
 
+    @pytest.fixture(autouse=True)
+    def _stub_goplus(self, monkeypatch):
+        # Approval enrichment now does a GoPlus lookup per unresolved token.
+        # Stub it so these tests stay focused on the RPC log-parsing logic.
+        from vigil_mcp.scanners.goplus import GoPlusResult, GoPlusScanner
+
+        async def _unavailable(self, token, chain):
+            return GoPlusResult(available=False, note="stubbed")
+
+        monkeypatch.setattr(GoPlusScanner, "token_security", _unavailable)
+
     @staticmethod
     def _mock_head(httpx_mock, block=1000):
         # First call in the flow is eth_blockNumber.
@@ -904,3 +915,82 @@ class TestX402:
 
         ok = await x402.verify_payment("somepayload", "vigil_safety_score", 0.001)
         assert ok is False
+
+
+# ─── Approvals enrichment (token_symbol, spender_name) ─────
+
+
+class TestApprovalEnrichment:
+    """token_symbol/spender_name should come from the registry + GoPlus."""
+
+    @pytest.fixture(autouse=True)
+    def _bound_lookback(self, monkeypatch):
+        monkeypatch.setenv("VIGIL_APPROVAL_LOOKBACK_BLOCKS", "100")
+        monkeypatch.setenv("VIGIL_APPROVAL_LOG_CHUNK", "100")
+
+    @pytest.mark.asyncio
+    async def test_blue_chip_token_uses_registry_symbol(self, httpx_mock, monkeypatch):
+        """USDC on Base should be labelled 'USDC' / 'USD Coin', not '0xabc...'."""
+        from vigil_mcp.scanners.goplus import GoPlusResult, GoPlusScanner
+
+        async def _unavailable(self, token, chain):
+            return GoPlusResult(available=False, note="stubbed")
+
+        monkeypatch.setattr(GoPlusScanner, "token_security", _unavailable)
+
+        scanner = ApprovalScanner()
+        usdc = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        # head + getLogs
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x100"})
+        log = {
+            "address": usdc,
+            "topics": [
+                "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+                "0x" + WALLET[2:].lower().zfill(64),
+                "0x" + list(SAFE_SPENDERS)[0][2:].lower().zfill(64),
+            ],
+            "data": "0x" + hex(10**18)[2:].zfill(64),
+        }
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": [log]})
+
+        result = await scanner._scan_via_rpc(WALLET, "base", None)
+        assert result.total == 1
+        a = result.approvals[0]
+        # Registry resolves the token.
+        assert a.token_symbol == "USDC"
+        assert a.token_name == "USD Coin"
+        # Spender label from SAFE_SPENDER_NAMES (the first SAFE_SPENDERS entry).
+        assert a.spender_name is not None
+        assert "Uniswap" in a.spender_name or "1inch" in a.spender_name or "0x" in a.spender_name
+
+    @pytest.mark.asyncio
+    async def test_unknown_token_uses_goplus_symbol(self, httpx_mock, monkeypatch):
+        """A non-blue-chip token gets its symbol from GoPlus."""
+        from vigil_mcp.scanners.goplus import GoPlusResult, GoPlusScanner
+
+        async def _gp(self, token, chain):
+            return GoPlusResult(
+                available=True,
+                token_name="DemoToken",
+                token_symbol="DEMO",
+            )
+
+        monkeypatch.setattr(GoPlusScanner, "token_security", _gp)
+
+        scanner = ApprovalScanner()
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x100"})
+        log = {
+            "address": TOKEN,
+            "topics": [
+                "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+                "0x" + WALLET[2:].lower().zfill(64),
+                "0x" + SPENDER[2:].lower().zfill(64),
+            ],
+            "data": "0x" + hex(10**18)[2:].zfill(64),
+        }
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": [log]})
+
+        result = await scanner._scan_via_rpc(WALLET, "base", None)
+        assert result.total == 1
+        assert result.approvals[0].token_symbol == "DEMO"
+        assert result.approvals[0].token_name == "DemoToken"

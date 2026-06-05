@@ -7,6 +7,9 @@ from typing import Optional
 import httpx
 from pydantic import BaseModel
 
+from vigil_mcp.scanners.goplus import GoPlusScanner
+from vigil_mcp.scanners.known_contracts import lookup_known_contract
+
 
 class Approval(BaseModel):
     token_address: str
@@ -55,6 +58,17 @@ SAFE_SPENDERS = {
     "0x1111111254EEB25477B68fb85Ed929f73A960582".lower(),  # 1inch V5 Router
 }
 
+# Human-readable labels for safe spenders (used to populate spender_name).
+# Lookup is lowercase-keyed to match SAFE_SPENDERS.
+SAFE_SPENDER_NAMES: dict[str, str] = {
+    "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad": "Uniswap Universal Router",
+    "0x2626664c2603336e57b271c5c0b26f421741e481": "Uniswap V3 Router (Base)",
+    "0xe592427a0aece92de3edee1f18e0157c05861564": "Uniswap V3 Router",
+    "0xdef1c0ded9bec7f1a1670819833240f027b25eff": "0x Exchange Proxy",
+    "0x1111111254fb6c44bac0bed2854e76f90643097d": "1inch Router",
+    "0x1111111254eeb25477b68fb85ed929f73a960582": "1inch V5 Router",
+}
+
 
 class ApprovalScanner:
     """Scan wallet token approvals via VIGIL API or direct RPC."""
@@ -62,6 +76,7 @@ class ApprovalScanner:
     def __init__(self):
         self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
         self.api_key = os.getenv("BANKR_API_KEY", "")
+        self.goplus = GoPlusScanner()
         self.rpc_urls = {
             "base": os.getenv("BASE_RPC", "https://base.publicnode.com"),
             "ethereum": os.getenv("ETH_RPC", "https://eth.llamarpc.com"),
@@ -204,6 +219,10 @@ class ApprovalScanner:
                 )
             )
 
+        # Enrich token_symbol/token_name and spender_name with real labels:
+        # blue-chip registry first (instant, accurate), then GoPlus (concurrent).
+        await self._enrich_approvals(approvals, chain)
+
         # Filter by risk level if specified
         if risk_filter:
             risk_order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "safe": 4}
@@ -221,6 +240,60 @@ class ApprovalScanner:
             total=len(approvals),
             summary=summary,
         )
+
+    async def _enrich_approvals(self, approvals: list, chain: str) -> None:
+        """Fill in token_symbol / token_name and spender_name on each approval.
+
+        Strategy: try the blue-chip registry first (free, instant). For tokens
+        not in the registry, fan out concurrent GoPlus lookups. Spenders get
+        labels from the SAFE_SPENDER_NAMES dict and the registry as well.
+        """
+        # Spender labels first — cheap, sync.
+        for a in approvals:
+            sp_lower = a.spender_address.lower()
+            label = SAFE_SPENDER_NAMES.get(sp_lower)
+            if not label:
+                known = lookup_known_contract(chain, sp_lower)
+                if known:
+                    label = known.name
+            if label:
+                a.spender_name = label
+
+        # Token labels — registry pass first, then GoPlus for the rest.
+        unresolved: list = []
+        for a in approvals:
+            known = lookup_known_contract(chain, a.token_address)
+            if known:
+                a.token_symbol = known.symbol
+                a.token_name = known.name
+            else:
+                unresolved.append(a)
+
+        if not unresolved:
+            return
+
+        # GoPlus is keyless and rate-limited; one lookup per unique address.
+        unique_addrs: dict[str, list] = {}
+        for a in unresolved:
+            unique_addrs.setdefault(a.token_address, []).append(a)
+
+        async def _one(addr: str):
+            try:
+                return addr, await self.goplus.token_security(addr, chain)
+            except Exception:  # noqa: BLE001 — best-effort enrichment
+                return addr, None
+
+        results = await asyncio.gather(*(_one(addr) for addr in unique_addrs))
+        for addr, gp in results:
+            if not gp or not gp.available:
+                continue
+            symbol = gp.token_symbol or None
+            name = gp.token_name or None
+            for a in unique_addrs[addr]:
+                if symbol:
+                    a.token_symbol = symbol
+                if name:
+                    a.token_name = name
 
     def _assess_risk(self, token: str, spender: str, is_unlimited: bool) -> str:
         """Assess risk level for an approval."""
