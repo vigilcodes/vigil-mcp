@@ -24,7 +24,27 @@ VIGIL_X402_PAY_TO=0xYourReceiverWalletOnBase
 ```
 
 
-## 2. Coinbase CDP facilitator credentials
+## 2. Facilitator (verify + settle)
+
+You have two options. Both supported by the code automatically — no code change
+needed when switching.
+
+### Option A: OpenX402 (recommended if CDP signup is blocked)
+
+OpenX402 is a permissionless public facilitator: **no signup, no API keys,
+free**. Supports Base mainnet + CAIP-2. Used as the default fallback in code
+when no CDP keys are set.
+
+URL (auto-used): `https://facilitator.openx402.ai`
+
+To use it, just leave `CDP_API_KEY_ID` / `CDP_API_KEY_SECRET` unset. That's it.
+
+Trade-off: it's run by a third party (not Coinbase). For a security tool this
+is fine for launch — the facilitator never custodies funds and only verifies
+signatures + broadcasts pre-signed transactions. You can switch to CDP later
+without redeploying.
+
+### Option B: Coinbase CDP facilitator (longer-term recommended)
 
 Per Coinbase's official docs, the CDP facilitator runs at:
 
@@ -34,8 +54,8 @@ https://api.cdp.coinbase.com/platform/v2/x402
 
 It supports Base, Polygon, Arbitrum, World, Solana. **1,000 transactions per
 month free**, then $0.001/tx. Includes KYT (Know-Your-Transaction) compliance
-screening — it will decline payments from sanctioned addresses, which is good
-for VIGIL's brand as a security tool.
+screening — declines payments from sanctioned addresses, which is good for
+VIGIL's brand as a security tool.
 
 To use it, you need CDP API keys (NOT just a URL):
 
@@ -50,8 +70,8 @@ CDP_API_KEY_ID=your-cdp-api-key-id
 CDP_API_KEY_SECRET=your-cdp-api-key-secret
 ```
 
-The code auto-detects these and uses the CDP facilitator. No need to set
-`VIGIL_X402_FACILITATOR` unless you want to override (e.g. a self-hosted one).
+The code auto-detects these and uses CDP. Need to override (e.g. self-hosted)?
+Set `VIGIL_X402_FACILITATOR=https://your.facilitator` — that wins over both.
 
 
 ## 3. Pricing (defaults already tuned)
@@ -85,11 +105,16 @@ Add to `/root/vigil/.env`:
 ```
 VIGIL_X402_ENABLED=1
 VIGIL_X402_PAY_TO=0xYourReceiverWalletOnBase
-CDP_API_KEY_ID=...
-CDP_API_KEY_SECRET=...
-# optional — already defaults to $0.005:
+# Optional — only set these when you're on the CDP facilitator:
+# CDP_API_KEY_ID=...
+# CDP_API_KEY_SECRET=...
+# Optional — already defaults to $0.005:
 # VIGIL_X402_PRICE_USD=0.005
 ```
+
+If both `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` are set, the code uses the
+CDP facilitator. Otherwise it falls back to the OpenX402 public facilitator —
+no signup needed.
 
 Then:
 

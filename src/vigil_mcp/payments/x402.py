@@ -39,6 +39,11 @@ CAIP2_NETWORKS = {
 # $0.001/tx. Includes KYT compliance screening for sanctioned addresses.
 CDP_FACILITATOR_URL = "https://api.cdp.coinbase.com/platform/v2/x402"
 
+# OpenX402 — permissionless public facilitator. No signup, no API keys, free.
+# Supports Base mainnet + CAIP-2. Ideal fallback when CDP signup is blocked.
+# Docs: https://docs.openx402.ai/
+OPENX402_FACILITATOR_URL = "https://facilitator.openx402.ai"
+
 
 def is_enabled() -> bool:
     """Master gate. Off by default — endpoint stays free until flipped on."""
@@ -114,13 +119,19 @@ def payment_requirements(tool: str, price_usd: float) -> dict[str, Any]:
 
 
 def _facilitator_url() -> str:
-    """Active facilitator URL — CDP if API keys are set, else the env override."""
+    """Active facilitator URL.
+
+    Resolution order:
+    1. VIGIL_X402_FACILITATOR (explicit override)
+    2. CDP if CDP_API_KEY_ID/SECRET are set (recommended for production)
+    3. OpenX402 public facilitator (no signup, free, supports Base mainnet)
+    """
     override = os.getenv("VIGIL_X402_FACILITATOR", "").strip()
     if override:
         return override
     if os.getenv("CDP_API_KEY_ID") and os.getenv("CDP_API_KEY_SECRET"):
         return CDP_FACILITATOR_URL
-    return ""
+    return OPENX402_FACILITATOR_URL
 
 
 def _facilitator_headers() -> dict[str, str]:

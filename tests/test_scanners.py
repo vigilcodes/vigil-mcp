@@ -931,12 +931,41 @@ class TestX402:
             assert req["accepts"][0]["network"] == caip2
 
     @pytest.mark.asyncio
-    async def test_verify_fails_closed_without_facilitator(self, monkeypatch):
+    async def test_verify_fails_closed_with_empty_payload(self, monkeypatch):
+        """Even with a default facilitator (OpenX402), an empty payment
+        header must fail verification."""
         monkeypatch.delenv("VIGIL_X402_FACILITATOR", raising=False)
+        monkeypatch.delenv("CDP_API_KEY_ID", raising=False)
+        monkeypatch.delenv("CDP_API_KEY_SECRET", raising=False)
         from vigil_mcp.payments import x402
 
-        ok = await x402.verify_payment("somepayload", "vigil_safety_score", 0.001)
+        ok = await x402.verify_payment("", "vigil_safety_score", 0.001)
         assert ok is False
+
+    def test_facilitator_falls_back_to_openx402(self, monkeypatch):
+        """Without CDP keys or override, default to OpenX402 (no signup)."""
+        monkeypatch.delenv("VIGIL_X402_FACILITATOR", raising=False)
+        monkeypatch.delenv("CDP_API_KEY_ID", raising=False)
+        monkeypatch.delenv("CDP_API_KEY_SECRET", raising=False)
+        from vigil_mcp.payments import x402
+
+        assert x402._facilitator_url() == x402.OPENX402_FACILITATOR_URL
+
+    def test_facilitator_prefers_cdp_when_keys_set(self, monkeypatch):
+        monkeypatch.delenv("VIGIL_X402_FACILITATOR", raising=False)
+        monkeypatch.setenv("CDP_API_KEY_ID", "kid")
+        monkeypatch.setenv("CDP_API_KEY_SECRET", "sec")
+        from vigil_mcp.payments import x402
+
+        assert x402._facilitator_url() == x402.CDP_FACILITATOR_URL
+
+    def test_facilitator_explicit_override_wins(self, monkeypatch):
+        monkeypatch.setenv("VIGIL_X402_FACILITATOR", "https://my.facilitator.example")
+        monkeypatch.setenv("CDP_API_KEY_ID", "kid")
+        monkeypatch.setenv("CDP_API_KEY_SECRET", "sec")
+        from vigil_mcp.payments import x402
+
+        assert x402._facilitator_url() == "https://my.facilitator.example"
 
 
 # ─── Approvals enrichment (token_symbol, spender_name) ─────
