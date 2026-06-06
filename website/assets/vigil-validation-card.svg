@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <text x="80" y="68" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . INPUT VALIDATION</text>
+  <text x="80" y="120" fill="#d4d0c8" font-family="Georgia, serif" font-size="44">A scanner you can trust</text>
+  <text x="80" y="158" fill="#6b6860" font-family="Georgia, serif" font-size="20" font-style="italic">bad input should fail loud — not return a confident wrong answer.</text>
+  <line x1="80" y1="180" x2="360" y2="180" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+
+  <!-- BEFORE card -->
+  <g transform="translate(80, 215)">
+    <rect width="510" height="300" rx="10" fill="#1a0e0e"/>
+    <rect width="510" height="300" rx="10" fill="none" stroke="#bd6b6b" stroke-width="1" opacity="0.4"/>
+    <text x="30" y="46" fill="#bd6b6b" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">BEFORE</text>
+    <text x="480" y="46" text-anchor="end" fill="#bd6b6b" font-family="'Courier New', monospace" font-size="16" opacity="0.7">✕ false signal</text>
+    <line x1="30" y1="64" x2="480" y2="64" stroke="#bd6b6b" stroke-width="1" opacity="0.2"/>
+
+    <text x="30" y="108" fill="#6b6860" font-family="'Courier New', monospace" font-size="14">input:</text>
+    <text x="30" y="138" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="17">0xNOTANADDRESS</text>
+
+    <text x="30" y="196" fill="#6b6860" font-family="'Courier New', monospace" font-size="14">output:</text>
+    <circle cx="44" cy="220" r="11" fill="#bd6b6b"/>
+    <text x="68" y="232" fill="#bd6b6b" font-family="Georgia, serif" font-size="40">CRITICAL</text>
+    <text x="30" y="270" fill="#6b6860" font-family="'Courier New', monospace" font-size="14">score 0/100 — fabricated verdict</text>
+  </g>
+
+  <!-- AFTER card -->
+  <g transform="translate(610, 215)">
+    <rect width="510" height="300" rx="10" fill="#0e1a0e"/>
+    <rect width="510" height="300" rx="10" fill="none" stroke="#6bbd6b" stroke-width="1" opacity="0.4"/>
+    <text x="30" y="46" fill="#6bbd6b" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">AFTER</text>
+    <text x="480" y="46" text-anchor="end" fill="#6bbd6b" font-family="'Courier New', monospace" font-size="16" opacity="0.7">✓ rejected</text>
+    <line x1="30" y1="64" x2="480" y2="64" stroke="#6bbd6b" stroke-width="1" opacity="0.2"/>
+
+    <text x="30" y="108" fill="#6b6860" font-family="'Courier New', monospace" font-size="14">input:</text>
+    <text x="30" y="138" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="17">0xNOTANADDRESS</text>
+
+    <text x="30" y="196" fill="#6b6860" font-family="'Courier New', monospace" font-size="14">output:</text>
+    <text x="30" y="230" fill="#6bbd6b" font-family="Georgia, serif" font-size="30">error -32602</text>
+    <text x="30" y="266" fill="#6b6860" font-family="'Courier New', monospace" font-size="14">invalid address — no verdict given</text>
+  </g>
+
+  <line x1="80" y1="555" x2="1120" y2="555" stroke="#1e1e1c" stroke-width="1"/>
+  <text x="80" y="592" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">11 read-only tools . strict 0x validation . MCP on Base</text>
+  <text x="1120" y="592" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes</text>
+</svg>
