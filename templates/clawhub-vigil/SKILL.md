@@ -36,17 +36,21 @@ Read the last 2 days of `memory/logs/` so a repeat scan can note newly-granted o
 
 ## Steps
 
-### 1. Determine target type
+### 1. Validate target
+
+Strict allowlist before any network call. The target must be `0x` + exactly 40
+hex characters — this rejects quotes, spaces, and any shell/JSON metacharacter,
+so the value is safe to interpolate into the curl payloads below.
 
 ```bash
 TARGET="${var}"
-if [ ${#TARGET} -eq 42 ] && [[ "$TARGET" == 0x* ]]; then
-  # Could be wallet or token — try wallet scan first
-  TARGET_TYPE="wallet"
-else
-  echo "Invalid address: $TARGET"
+if ! printf '%s' "$TARGET" | grep -qiE '^0x[0-9a-f]{40}$'; then
+  echo "VIGIL_INVALID_TARGET: not a valid 0x address"
   exit 0
 fi
+# Normalize to lowercase. An address can be a wallet or a token; each tool
+# below reports its own result, so no up-front type guess is needed.
+TARGET="$(printf '%s' "$TARGET" | tr '[:upper:]' '[:lower:]')"
 ```
 
 ### 2. Scan approvals (wallet)
@@ -59,7 +63,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "scan_approvals",
+      "name": "vigil_scan_approvals",
       "arguments": {"wallet": "'"$TARGET"'", "chain": "base"}
     }
   }')
@@ -76,7 +80,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "scan_token",
+      "name": "vigil_scan_token",
       "arguments": {"token": "'"$TARGET"'", "chain": "base"}
     }
   }')
@@ -93,7 +97,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "detect_honeypot",
+      "name": "vigil_detect_honeypot",
       "arguments": {"token": "'"$TARGET"'", "chain": "base"}
     }
   }')
@@ -110,7 +114,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "safety_score",
+      "name": "vigil_safety_score",
       "arguments": {"contract": "'"$TARGET"'", "chain": "base"}
     }
   }')
@@ -127,7 +131,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "wallet_report",
+      "name": "vigil_wallet_report",
       "arguments": {"wallet": "'"$TARGET"'", "chain": "base"}
     }
   }')
@@ -144,7 +148,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "monitor_wallet",
+      "name": "vigil_monitor_wallet",
       "arguments": {"wallet": "'"$TARGET"'", "chain": "base", "lookback_blocks": 1000}
     }
   }')
@@ -161,7 +165,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "token_market",
+      "name": "vigil_token_market",
       "arguments": {"token": "'"$TARGET"'", "chain": "base"}
     }
   }')
@@ -178,7 +182,7 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "deployer_check",
+      "name": "vigil_deployer_check",
       "arguments": {"contract": "'"$TARGET"'", "chain": "base"}
     }
   }')
@@ -195,8 +199,8 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "batch_scan",
-      "arguments": {"tokens": ["0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"], "chain": "base"}
+      "name": "vigil_batch_scan",
+      "arguments": {"tokens": ["'"$TARGET"'"], "chain": "base"}
     }
   }')
 echo "$RESULT" | jq '.result'
