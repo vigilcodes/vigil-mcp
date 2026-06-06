@@ -894,6 +894,7 @@
         <a href="#pricing">Pricing</a>
         <a href="#token">$VIGIL</a>
         <a href="#install">Install</a>
+        <a href="https://clawhub.ai/vigilcodes/vigil-security-scanner" target="_blank">ClawHub</a>
         <a href="https://github.com/vigilcodes/vigil-mcp" target="_blank">GitHub</a>
         <a href="https://x.com/vigilcodes" target="_blank">X</a>
       </div>
@@ -1153,7 +1154,7 @@
       <div class="rv">
         <div class="s-label">Ecosystem</div>
         <h2 class="s-title">Integrated with<br>the agents that <em>matter.</em></h2>
-        <p class="s-desc">Vigil is live in the Aeon ecosystem — autonomous AI agents using VIGIL to secure onchain actions before execution.</p>
+        <p class="s-desc">Vigil is live in the Aeon ecosystem and published on ClawHub — autonomous AI agents using VIGIL to secure onchain actions before execution.</p>
       </div>
       <div class="chains-list rv">
         <div class="chain-header">
@@ -1170,6 +1171,15 @@
           <div class="chain-status" style="color:#6bbd6b;">LIVE</div>
           <div class="chain-status">Autonomous Agent</div>
           <div class="chain-status"><a href="https://github.com/aaronjmars/aeon" target="_blank" style="color:var(--gold);text-decoration:none;">GitHub →</a></div>
+        </div>
+        <div class="chain-row" onclick="window.open('https://clawhub.ai/vigilcodes/vigil-security-scanner','_blank')" style="cursor:pointer;">
+          <div class="chain-name">
+            <div class="chain-icon" style="font-size:16px;">🦞</div>
+            <span>ClawHub</span>
+          </div>
+          <div class="chain-status" style="color:#6bbd6b;">LIVE</div>
+          <div class="chain-status">Skill Registry</div>
+          <div class="chain-status"><a href="https://clawhub.ai/vigilcodes/vigil-security-scanner" target="_blank" style="color:var(--gold);text-decoration:none;">ClawHub →</a></div>
         </div>
       </div>
     </div>
@@ -1301,9 +1311,16 @@
       <div class="rv">
         <div class="s-label">Quick Start</div>
         <h2 class="s-title">Plug in. Scan. Stay safe.</h2>
-        <p class="s-desc">Install Vigil as a Python package and connect it to any MCP client.</p>
+        <p class="s-desc">Install Vigil on any OpenClaw agent in one command, or run it as a Python MCP server for any client.</p>
       </div>
       <div class="install-grid">
+        <div class="install-card rv">
+          <h3>ClawHub (OpenClaw)</h3>
+          <div class="install-code">
+            <span>openclaw skills install vigil-security-scanner</span>
+            <button class="copy-btn" onclick="copy(this,'openclaw skills install vigil-security-scanner')">Copy</button>
+          </div>
+        </div>
         <div class="install-card rv">
           <h3>Install</h3>
           <div class="install-code">
@@ -1422,9 +1439,10 @@
           <span>Vigil</span>
         </div>
         <div style="display:flex;gap:24px;align-items:center;">
+          <a href="https://clawhub.ai/vigilcodes/vigil-security-scanner" target="_blank" style="color:var(--text-dim);text-decoration:none;font-family:var(--mono);font-size:12px;transition:color 0.3s;">ClawHub</a>
           <a href="https://github.com/vigilcodes/vigil-mcp" target="_blank" style="color:var(--text-dim);text-decoration:none;font-family:var(--mono);font-size:12px;transition:color 0.3s;">GitHub</a>
           <a href="https://x.com/vigilcodes" target="_blank" style="color:var(--text-dim);text-decoration:none;font-family:var(--mono);font-size:12px;transition:color 0.3s;">X</a>
-          <a href="https://vigil-web-theta.vercel.app" style="color:var(--text-dim);text-decoration:none;font-family:var(--mono);font-size:12px;transition:color 0.3s;">vigil.codes</a>
+          <a href="https://vigil.codes" style="color:var(--text-dim);text-decoration:none;font-family:var(--mono);font-size:12px;transition:color 0.3s;">vigil.codes</a>
         </div>
         <div class="foot-copy">MIT License · 2026</div>
       </div>
