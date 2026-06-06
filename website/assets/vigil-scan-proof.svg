@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <text x="80" y="70" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . LIVE SCAN . NO API KEY</text>
+  <text x="80" y="122" fill="#d4d0c8" font-family="Georgia, serif" font-size="42">Real verdicts, not vibes</text>
+  <line x1="80" y1="146" x2="320" y2="146" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+
+  <!-- terminal -->
+  <g transform="translate(80, 180)">
+    <rect width="1040" height="370" rx="12" fill="#0c0c0c"/>
+    <rect width="1040" height="370" rx="12" fill="none" stroke="#c8a961" stroke-width="1" opacity="0.22"/>
+    <circle cx="34" cy="34" r="6" fill="#bd6b6b"/>
+    <circle cx="58" cy="34" r="6" fill="#c8a961"/>
+    <circle cx="82" cy="34" r="6" fill="#6bbd6b"/>
+    <text x="520" y="39" text-anchor="middle" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">curl — mcp.vigil.codes/tools/call</text>
+    <line x1="0" y1="58" x2="1040" y2="58" stroke="#1e1e1c" stroke-width="1"/>
+
+    <g font-family="'Courier New', monospace" font-size="16">
+      <text x="34" y="100" fill="#6b6860">$ POST vigil_safety_score</text>
+      <text x="34" y="128" fill="#6b6860">  { "contract": "0x8335...02913" }</text>
+
+      <text x="34" y="178" fill="#c8a961">→ score: <tspan fill="#d4d0c8" font-size="22">92 / 100</tspan></text>
+      <text x="34" y="212" fill="#c8a961">→ risk:  <tspan fill="#6bbd6b" font-size="20">SAFE</tspan></text>
+      <text x="34" y="246" fill="#c8a961">→ note:  <tspan fill="#d4d0c8">verified registry — USD Coin on Base</tspan></text>
+
+      <line x1="34" y1="272" x2="1006" y2="272" stroke="#1e1e1c" stroke-width="1"/>
+
+      <text x="34" y="312" fill="#6b6860">$ POST vigil_safety_score</text>
+      <text x="34" y="340" fill="#6b6860">  { "contract": "0xNOTANADDRESS" }</text>
+      <text x="600" y="332" fill="#bd6b6b">→ error -32602 . rejected</text>
+    </g>
+  </g>
+
+  <line x1="80" y1="572" x2="1120" y2="572" stroke="#1e1e1c" stroke-width="1"/>
+  <text x="80" y="606" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">good input scored . bad input rejected . that's the whole job</text>
+  <text x="1120" y="606" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes</text>
+</svg>
