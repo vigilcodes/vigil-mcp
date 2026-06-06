@@ -931,7 +931,11 @@ async def tools_call(request: Request) -> JSONResponse:
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request: Request) -> JSONResponse:
     """Health check endpoint."""
-    return JSONResponse({"status": "ok", "service": "vigil-mcp", "tools": len(TOOL_MAP)})
+    # Count only the canonical, advertised tools (vigil_* prefixed). TOOL_MAP
+    # also holds unprefixed aliases for backwards compatibility, so counting
+    # every key would double the number and disagree with /tools/list.
+    public_tools = sum(1 for name in TOOL_MAP if name.startswith("vigil_"))
+    return JSONResponse({"status": "ok", "service": "vigil-mcp", "tools": public_tools})
 
 
 # ─────────────────────────────────────────────────────────────
