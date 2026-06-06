@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 import sys
 from typing import Any, Optional
 
@@ -60,6 +61,47 @@ def _validate_chain(chain: str) -> str:
     if chain not in SUPPORTED_CHAINS:
         raise ValueError(f"Unsupported chain '{chain}'. Use: {', '.join(SUPPORTED_CHAINS)}")
     return chain
+
+
+# Strict EVM address allowlist: 0x + exactly 40 hex chars. Mirrors the skill
+# scripts' validation so the server never produces a verdict for malformed
+# input — a bad address must return an error, not a fake "0/critical" score.
+_ADDR_RE = re.compile(r"^0x[0-9a-fA-F]{40}$")
+
+# Which argument keys carry an address, per tool. Used to validate before a
+# handler runs so a typo or junk input is rejected instead of silently scored.
+_ADDRESS_ARG_KEYS = ("wallet", "token", "contract")
+
+
+class InvalidAddressError(ValueError):
+    """Raised when an address argument is not a well-formed 0x EVM address."""
+
+
+def _validate_address(addr: str, field: str) -> str:
+    if not isinstance(addr, str) or not _ADDR_RE.match(addr):
+        raise InvalidAddressError(
+            f"Invalid {field}: expected a 0x-prefixed 40-hex-char address, got '{addr}'"
+        )
+    return addr.lower()
+
+
+def _validate_tool_arguments(arguments: dict) -> None:
+    """Validate address-bearing arguments before dispatch.
+
+    Checks single-address keys (wallet/token/contract) and the batch_scan
+    `tokens` array. Raises InvalidAddressError on the first bad value.
+    """
+    if not isinstance(arguments, dict):
+        return
+    for key in _ADDRESS_ARG_KEYS:
+        if key in arguments and arguments.get(key) not in (None, ""):
+            _validate_address(arguments[key], key)
+    if "tokens" in arguments:
+        tokens = arguments.get("tokens")
+        if not isinstance(tokens, list) or not tokens:
+            raise InvalidAddressError("Invalid tokens: expected a non-empty array of 0x addresses")
+        for t in tokens:
+            _validate_address(t, "token")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -903,6 +945,18 @@ async def tools_call(request: Request) -> JSONResponse:
         return JSONResponse(
             {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": f"Unknown tool: {tool_name}"}},
             status_code=404,
+        )
+
+    # Validate address-bearing arguments up front. A malformed address must
+    # return an error, never a fabricated "0/critical" verdict — accuracy is
+    # the whole point of a security scanner. Done before the x402 gate so a
+    # bad request isn't asked to pay first.
+    try:
+        _validate_tool_arguments(arguments)
+    except InvalidAddressError as e:
+        return JSONResponse(
+            {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32602, "message": str(e)}},
+            status_code=400,
         )
 
     # Optional x402 pay-per-call gate (disabled unless VIGIL_X402_ENABLED=1).
