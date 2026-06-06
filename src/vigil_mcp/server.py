@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse
 
 from vigil_mcp.autonomous.sentinel import Sentinel, SentinelStore
 from vigil_mcp.bridge.base_mcp import BaseMCPBridge
@@ -980,6 +980,66 @@ async def tools_call(request: Request) -> JSONResponse:
             {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32000, "message": str(e)}},
             status_code=500,
         )
+
+
+@mcp.custom_route("/", methods=["GET"])
+async def index(request: Request) -> HTMLResponse:
+    """Human-friendly landing page.
+
+    mcp.vigil.codes is a JSON-RPC API endpoint, not a website — but people
+    paste it into a browser. Return a helpful page instead of a bare 404 so
+    visitors know where to go (the site) and how to call it (the API).
+    """
+    html = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIGIL MCP — API Endpoint</title>
+<style>
+  body { margin:0; background:#080808; color:#d4d0c8;
+         font-family:'Courier New',monospace; line-height:1.6;
+         display:flex; min-height:100vh; align-items:center; justify-content:center; }
+  .wrap { max-width:680px; padding:40px 28px; }
+  .label { color:#c8a961; font-size:11px; letter-spacing:4px; opacity:.6; }
+  h1 { font-family:Georgia,serif; font-size:40px; font-weight:400; margin:14px 0 6px; }
+  p { color:#9a968e; }
+  a { color:#c8a961; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .card { border:1px solid #1e1e1c; border-radius:10px; padding:20px 22px; margin-top:24px;
+          background:#0c0c0c; overflow-x:auto; }
+  .ok { color:#6bbd6b; }
+  .links { margin-top:28px; display:flex; gap:22px; flex-wrap:wrap; }
+  pre { margin:0; white-space:pre-wrap; word-break:break-word; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="label">VIGIL . ONCHAIN SECURITY MCP . BASE</div>
+    <h1>This is an API endpoint, not a website.</h1>
+    <p>You've reached the VIGIL MCP server. It speaks JSON-RPC 2.0 over HTTP &mdash;
+       there's no page to browse here. Looking for the project? Head to
+       <a href="https://vigil.codes">vigil.codes</a>.</p>
+
+    <div class="card">
+      <div class="label">TRY A LIVE SCAN (no API key)</div>
+      <pre>curl -X POST https://mcp.vigil.codes/tools/call \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call",
+       "params":{"name":"vigil_safety_score",
+                 "arguments":{"contract":"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913","chain":"base"}}}'</pre>
+    </div>
+
+    <div class="links">
+      <a href="https://vigil.codes">&rarr; Website</a>
+      <a href="/tools/list">&rarr; List tools</a>
+      <a href="/health">&rarr; Health</a>
+      <a href="https://github.com/vigilcodes/vigil-mcp">&rarr; GitHub</a>
+    </div>
+  </div>
+</body>
+</html>"""
+    return HTMLResponse(html)
 
 
 @mcp.custom_route("/health", methods=["GET"])
