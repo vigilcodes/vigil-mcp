@@ -16,6 +16,7 @@ from vigil_mcp.monitors.wallet_monitor import WalletMonitor
 from vigil_mcp.payments import x402
 from vigil_mcp.revoker.engine import RevocationEngine
 from vigil_mcp.scanners.approvals import ApprovalScanner
+from vigil_mcp.scanners.consensus import ConsensusEngine
 from vigil_mcp.scanners.deployer import DeployerScanner
 from vigil_mcp.scanners.honeypot import HoneypotDetector
 from vigil_mcp.scanners.market import MarketScanner
@@ -52,6 +53,7 @@ deployer_scanner = DeployerScanner()
 scam_db = ScamDatabase()
 sentinel_store = SentinelStore()
 sentinel = Sentinel(store=sentinel_store)
+consensus_engine = ConsensusEngine()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -396,6 +398,26 @@ async def vigil_deployer_check(contract: str, chain: str = "base") -> dict[str, 
 
 
 @mcp.tool()
+async def vigil_consensus(token: str, chain: str = "base") -> dict[str, Any]:
+    """Multi-source consensus verdict for a token.
+
+    Queries five independent signals (GoPlus, onchain score, market liquidity,
+    deployer verification, community scam DB), lets each vote independently, and
+    returns a verdict driven by how many sources AGREE. A single source can't
+    push past "medium" — this is VIGIL's false-positive guard: risk is only
+    "high"/"critical" when multiple independent sources concur.
+
+    Args:
+        token: Token contract address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Computing multi-source consensus for {token} on {chain}")
+    result = await consensus_engine.evaluate(token, chain)
+    return result.model_dump()
+
+
+@mcp.tool()
 async def vigil_batch_scan(tokens: list[str], chain: str = "base") -> dict[str, Any]:
     """Scan multiple tokens for safety in one call.
 
@@ -728,6 +750,9 @@ TOOL_MAP = {
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
     "vigil_sentinel_status": lambda args: vigil_sentinel_status(),
+    "vigil_consensus": lambda args: vigil_consensus(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
     "scan_approvals": lambda args: vigil_scan_approvals(
         args.get("wallet", ""), args.get("chain", "base")
     ),
@@ -761,6 +786,9 @@ TOOL_MAP = {
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
     "sentinel_status": lambda args: vigil_sentinel_status(),
+    "consensus": lambda args: vigil_consensus(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
 }
 
 
@@ -913,6 +941,24 @@ async def tools_list(request: Request) -> JSONResponse:
                 "(interval, severity threshold, lookback)."
             ),
             "inputSchema": {"type": "object", "properties": {}},
+        },
+        {
+            "name": "vigil_consensus",
+            "description": (
+                "Multi-source consensus verdict for a token. Aggregates five "
+                "independent signals (GoPlus, onchain score, market liquidity, "
+                "deployer verification, community scam DB) and returns a verdict "
+                "driven by how many sources agree — risk is only high/critical "
+                "when multiple independent sources concur (false-positive guard)."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
+            },
         },
     ]
     return JSONResponse({"jsonrpc": "2.0", "id": None, "result": {"tools": tools}})
