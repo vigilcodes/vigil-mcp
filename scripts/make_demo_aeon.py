@@ -41,18 +41,18 @@ LINES = [
     ("agent proceeds. no human in the loop.", DIM),
 ]
 
-# (lines_visible, hold_frames)
+# (lines_visible, hold_frames) — paced for comfortable reading on autoplay
 SCHEDULE = [
-    (1, 20),
-    (2, 16),
-    (4, 18),
-    (5, 9),
-    (6, 9),
-    (7, 9),
-    (8, 9),
-    (9, 9),
-    (11, 26),
-    (12, 70),
+    (1, 34),    # aeon agent running
+    (2, 30),    # next action: approve unlimited
+    (4, 32),    # vigil intercepts
+    (5, 13),    # goplus
+    (6, 13),    # onchain
+    (7, 13),    # market
+    (8, 13),    # deployer
+    (9, 16),    # scam db
+    (11, 46),   # consensus -> SAFE (hold)
+    (12, 95),   # agent proceeds (long hold before loop)
 ]
 
 CHAR_W = 13.2
