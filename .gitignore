@@ -9,3 +9,5 @@ build/
 .ruff_cache/
 .venv/
 website/node_modules/
+
+.vscode/
