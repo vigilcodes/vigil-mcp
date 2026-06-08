@@ -5,6 +5,25 @@ Onchain security scanner for DeFi traders on Base. Protect against rugpulls, hon
 Live MCP endpoint: **https://mcp.vigil.codes**
 Site: **https://vigil.codes**
 
+## Quick test (no install, no API key)
+
+Verify VIGIL is live and returns a real verdict in one call:
+
+```bash
+curl -s https://mcp.vigil.codes/health
+# -> {"status":"ok","service":"vigil-mcp","tools":12}
+
+curl -s -X POST https://mcp.vigil.codes/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call",
+       "params":{"name":"vigil_safety_score",
+                 "arguments":{"contract":"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913","chain":"base"}}}'
+# -> {"jsonrpc":"2.0","id":1,"result":{"score":92,"risk_level":"safe",...}}
+```
+
+Read-only scans need no API key. Calls go to `POST /tools/call` (JSON-RPC 2.0);
+`GET /tools/list` enumerates all tools. There is no REST API — use these.
+
 ## Network
 
 VIGIL ships Base-first. The scanners (approvals, token, honeypot, safety score) target Base mainnet (`chainid=8453`); a small set of Ethereum stablecoins are kept in the verified registry so multichain wallets get correct labels when they show up.
@@ -25,6 +44,7 @@ VIGIL ships Base-first. The scanners (approvals, token, honeypot, safety score) 
 - **Token Market** — price, liquidity, 24h volume, and pool age via DexScreener (no API key)
 - **Deployer Check** — contract verification, name, and deployer reputation via Basescan
 - **Batch Scan** — score multiple tokens in one call, ranked by risk
+- **Consensus** — multi-source verdict: 5 independent signals vote; risk only escalates to high/critical when multiple sources agree (false-positive guard)
 - **Approval Revoker** *(separate, BANKR_API_KEY required)* — revoke dangerous approvals via Bankr transaction signing
 
 ## Install
