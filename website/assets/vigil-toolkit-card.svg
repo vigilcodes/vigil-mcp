@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <text x="80" y="68" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . ONCHAIN SECURITY TOOLKIT . BASE</text>
+  <text x="80" y="120" fill="#d4d0c8" font-family="Georgia, serif" font-size="44">12 tools. One endpoint.</text>
+  <line x1="80" y1="142" x2="340" y2="142" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+
+  <!-- tool grid: 3 cols x 4 rows -->
+  <g font-family="'Courier New', monospace" font-size="15">
+    <!-- row 1 -->
+    <g transform="translate(80, 180)">
+      <text x="0" y="0" fill="#c8a961">01</text><text x="38" y="0" fill="#d4d0c8">Approval Scanner</text>
+    </g>
+    <g transform="translate(450, 180)">
+      <text x="0" y="0" fill="#c8a961">05</text><text x="38" y="0" fill="#d4d0c8">Wallet Report</text>
+    </g>
+    <g transform="translate(820, 180)">
+      <text x="0" y="0" fill="#c8a961">09</text><text x="38" y="0" fill="#d4d0c8">Batch Scan</text>
+    </g>
+    <!-- row 2 -->
+    <g transform="translate(80, 240)">
+      <text x="0" y="0" fill="#c8a961">02</text><text x="38" y="0" fill="#d4d0c8">Token Scanner</text>
+    </g>
+    <g transform="translate(450, 240)">
+      <text x="0" y="0" fill="#c8a961">06</text><text x="38" y="0" fill="#d4d0c8">Wallet Monitor</text>
+    </g>
+    <g transform="translate(820, 240)">
+      <text x="0" y="0" fill="#c8a961">10</text><text x="38" y="0" fill="#d4d0c8">Scam Check</text>
+    </g>
+    <!-- row 3 -->
+    <g transform="translate(80, 300)">
+      <text x="0" y="0" fill="#c8a961">03</text><text x="38" y="0" fill="#d4d0c8">Honeypot Detector</text>
+    </g>
+    <g transform="translate(450, 300)">
+      <text x="0" y="0" fill="#c8a961">07</text><text x="38" y="0" fill="#d4d0c8">Token Market</text>
+    </g>
+    <g transform="translate(820, 300)">
+      <text x="0" y="0" fill="#c8a961">11</text><text x="38" y="0" fill="#d4d0c8">Sentinel Status</text>
+    </g>
+    <!-- row 4 -->
+    <g transform="translate(80, 360)">
+      <text x="0" y="0" fill="#c8a961">04</text><text x="38" y="0" fill="#d4d0c8">Safety Score</text>
+    </g>
+    <g transform="translate(450, 360)">
+      <text x="0" y="0" fill="#c8a961">08</text><text x="38" y="0" fill="#d4d0c8">Deployer Check</text>
+    </g>
+    <g transform="translate(820, 360)">
+      <text x="0" y="0" fill="url(#gold)">12</text><text x="38" y="0" fill="url(#gold)">Consensus ★</text>
+    </g>
+  </g>
+
+  <!-- consensus highlight strip -->
+  <g transform="translate(80, 410)">
+    <rect width="1040" height="92" rx="10" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.3"/>
+    <text x="30" y="40" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">★ THE DIFFERENTIATOR</text>
+    <text x="30" y="70" fill="#d4d0c8" font-family="Georgia, serif" font-size="20">Consensus: 5 sources vote — one noisy flag can't trigger a false positive.</text>
+  </g>
+
+  <line x1="80" y1="545" x2="1120" y2="545" stroke="#1e1e1c" stroke-width="1"/>
+  <text x="80" y="582" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">read-only . no API key . any agent can scan before it signs</text>
+  <text x="1120" y="582" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">mcp.vigil.codes</text>
+</svg>
