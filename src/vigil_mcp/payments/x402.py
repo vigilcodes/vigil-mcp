@@ -70,6 +70,7 @@ def _default_prices() -> dict[str, float]:
         "vigil_deployer_check": base,
         "vigil_batch_scan": base * 5,        # heavy: scans many tokens
         "vigil_wallet_report": base * 2,     # aggregates several scans
+        "vigil_consensus": base * 1.5,       # aggregates 5 independent sources
         # Intentionally NOT priced (stay free):
         # vigil_detect_honeypot — core pre-trade check, must be barrier-free
         # vigil_safety_score   — core pre-trade check, must be barrier-free

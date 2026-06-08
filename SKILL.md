@@ -7,7 +7,7 @@ capabilities: [external_api, sends_notifications]
 ---
 > **${var}** — Wallet address (`0x...`) or token contract address on Base to scan. Required. If empty, log `VIGIL_NO_TARGET` and exit cleanly (no notify).
 
-VIGIL is an onchain security scanner for DeFi traders on Base. It provides eleven read-only scanning tools and one write action (revoke) that requires explicit Bankr authentication.
+VIGIL is an onchain security scanner for DeFi traders on Base. It provides twelve read-only scanning tools and one write action (revoke) that requires explicit Bankr authentication.
 
 **Read-only tools (this skill):**
 1. Approval Scanner — list all ERC-20/ERC-721 approvals, flag unlimited allowances
@@ -21,6 +21,7 @@ VIGIL is an onchain security scanner for DeFi traders on Base. It provides eleve
 9. Batch Scan — score multiple tokens in one call, ranked by risk
 10. Scam Check — check whether a token has community scam reports (local VIGIL database)
 11. Sentinel Status — list the autonomous Sentinel watchlist and loop configuration
+12. Consensus — multi-source agreement verdict. Aggregates 5 independent signals (GoPlus, onchain score, market liquidity, deployer verification, scam DB); risk only escalates to high/critical when multiple sources concur. Built as a false-positive guard.
 
 **Write action (separate skill, not included here):**
 - Approval Revoker — revoke dangerous approvals via Bankr transaction signing. This is a state-changing onchain transaction and is NOT part of this read-only skill. Use the separate `vigil-revoke` skill (requires `BANKR_API_KEY` and explicit user confirmation).
@@ -204,6 +205,26 @@ RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
     }
   }')
 echo "$RESULT" | jq '.result'
+```
+
+### 11. Multi-source consensus verdict
+
+```bash
+RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "vigil_consensus",
+      "arguments": {"token": "'"$TARGET"'", "chain": "base"}
+    }
+  }')
+echo "$RESULT" | jq '.result'
+# Returns: verdict, confidence, risk_sources/safe_sources counts, and each
+# source's independent vote. Risk only reaches high/critical when multiple
+# independent sources agree — a single source caps at "medium".
 ```
 
 ## Output Format
