@@ -55,6 +55,11 @@ class HoneypotDetector:
                 is_honeypot=False,
                 can_buy=True,
                 can_sell=True,
+                # Verified blue-chips (USDC, WETH, AERO, ...) are standard
+                # zero-tax tokens. Report 0.0 rather than null so the output is
+                # complete and unambiguous instead of "unknown".
+                buy_tax=0.0,
+                sell_tax=0.0,
                 block_reason=None,
                 simulations=[
                     SimulationResult(
