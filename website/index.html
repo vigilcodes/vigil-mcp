@@ -82,19 +82,24 @@
       left: 0;
       right: 0;
       z-index: 100;
-      padding: 20px 0;
-      mix-blend-mode: difference;
+      padding: 16px 0;
+      background: rgba(8, 8, 8, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(200, 169, 97, 0.08);
     }
     nav .wrap {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 24px;
     }
     .nav-logo {
       display: flex;
       align-items: center;
       gap: 14px;
       text-decoration: none;
+      flex-shrink: 0;
     }
     .nav-logo img { width: 32px; height: 32px; }
     .nav-logo span {
@@ -108,16 +113,17 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 40px;
+      gap: 24px;
     }
     .nav-right a {
       font-family: var(--mono);
       font-size: 12px;
       color: var(--text-dim);
       text-decoration: none;
-      letter-spacing: 2px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
       transition: color 0.3s;
+      white-space: nowrap;
     }
     .nav-right a:hover { color: var(--gold); }
 
@@ -749,6 +755,13 @@
       .install-grid { grid-template-columns: 1fr; }
       .chain-row { grid-template-columns: 1fr 80px 80px 80px; }
       .chain-header { grid-template-columns: 1fr 80px 80px 80px; }
+    }
+
+    /* Mid-size screens: keep all nav links on one line without crowding */
+    @media (min-width: 769px) and (max-width: 1100px) {
+      .nav-right { gap: 16px; }
+      .nav-right a { font-size: 11px; letter-spacing: 1px; }
+      .nav-logo span { letter-spacing: 4px; }
     }
 
     @media (max-width: 768px) {
