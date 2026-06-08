@@ -30,7 +30,7 @@ class RevocationEngine:
     """Build and submit revocation transactions."""
 
     def __init__(self):
-        self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
+        self.api_base = os.getenv("VIGIL_API", "")
         self.api_key = os.getenv("BANKR_API_KEY", "")
         self.rpc_urls = {
             "base": os.getenv("BASE_RPC", "https://base.publicnode.com"),

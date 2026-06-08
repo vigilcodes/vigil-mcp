@@ -1,5 +1,35 @@
 # VIGIL API Reference
 
+VIGIL is an MCP server. The live, supported way to call it over HTTP is a
+single JSON-RPC 2.0 endpoint — no API key required for read-only scans.
+
+**Endpoint:** `POST https://mcp.vigil.codes/tools/call`
+**List tools:** `GET https://mcp.vigil.codes/tools/list`
+**Health:** `GET https://mcp.vigil.codes/health`
+
+**Example (keyless):**
+```bash
+curl -X POST https://mcp.vigil.codes/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call",
+       "params":{"name":"vigil_safety_score",
+                 "arguments":{"contract":"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913","chain":"base"}}}'
+```
+
+Premium tools (scan_token, deployer_check, token_market, batch_scan,
+wallet_report, consensus) are pay-per-call via x402 (USDC on Base). Core checks
+(safety_score, detect_honeypot, check_scam, scan_approvals, monitor_wallet,
+sentinel_status) are free. The `vigil-revoke` write action is gated separately
+and signed through Bankr.
+
+---
+
+> The REST-style routes below describe a legacy hosted API shape and are NOT
+> the live transport. Use the JSON-RPC `/tools/call` endpoint above. Kept for
+> historical reference only.
+
+## Legacy REST shape (not live)
+
 Base URL: `https://api.bankr.bot/vigil`
 
 Authentication: `Authorization: Bearer <BANKR_API_KEY>` (for write operations)

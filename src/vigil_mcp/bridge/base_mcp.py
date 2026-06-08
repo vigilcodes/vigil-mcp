@@ -24,7 +24,7 @@ class BaseMCPBridge:
     """Bridge between VIGIL security scanning and Base MCP agent workflows."""
 
     def __init__(self):
-        self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
+        self.api_base = os.getenv("VIGIL_API", "")
         self.api_key = os.getenv("BANKR_API_KEY", "")
 
     async def security_check(self, wallet: str) -> SecurityCheckResult:

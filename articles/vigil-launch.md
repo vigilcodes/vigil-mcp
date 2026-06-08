@@ -125,15 +125,12 @@ pip install -e .
 # Run MCP server
 make run-sse
 
-# Or connect directly
-# Claude Desktop config:
-{
-  "mcpServers": {
-    "vigil": {
-      "url": "https://mcp.vigil.codes/sse"
-    }
-  }
-}
+# Or call the hosted endpoint directly (no install, no API key):
+# POST https://mcp.vigil.codes/tools/call
+#   {"jsonrpc":"2.0","id":1,"method":"tools/call",
+#    "params":{"name":"vigil_safety_score",
+#              "arguments":{"contract":"0x...","chain":"base"}}}
+# List tools: GET https://mcp.vigil.codes/tools/list
 ```
 
 ## Acknowledgments

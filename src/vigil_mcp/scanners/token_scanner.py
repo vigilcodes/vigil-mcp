@@ -124,7 +124,7 @@ class TokenScanner:
     """Analyze token contracts for safety."""
 
     def __init__(self):
-        self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
+        self.api_base = os.getenv("VIGIL_API", "")
         self.api_key = os.getenv("BANKR_API_KEY", "")
         self.goplus = GoPlusScanner()
         self.rpc_urls = {
@@ -151,7 +151,7 @@ class TokenScanner:
                 honeypot=HoneypotInfo(detected=False),
                 recommendation=f"Score: {known.safety_score}/100 — {known.name} is a known, verified contract",
             )
-        if self.api_key:
+        if self.api_base and self.api_key:
             return await self._scan_via_api(token, chain)
         return await self._scan_via_rpc(token, chain)
 

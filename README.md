@@ -51,8 +51,7 @@ make run-sse
 Set environment variables:
 
 ```bash
-export BANKR_API_KEY=bk_your_key_here   # Required for revocations
-export VIGIL_API=https://api.bankr.bot/vigil  # API endpoint
+export BANKR_API_KEY=bk_your_key_here   # Optional — only for revoke (write) actions
 export BASE_RPC=https://mainnet.base.org       # Custom RPC (optional)
 ```
 

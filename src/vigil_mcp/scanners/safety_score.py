@@ -30,7 +30,11 @@ class SafetyScorer:
     """Calculate safety scores for contracts."""
 
     def __init__(self):
-        self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
+        # Hosted API is opt-in only. The old api.bankr.bot/vigil endpoint never
+        # shipped, so we default to empty and fall back to keyless analysis
+        # (GoPlus + RPC). Setting BANKR_API_KEY alone must NOT route to a dead
+        # endpoint — that was causing 404s in other agents' setups.
+        self.api_base = os.getenv("VIGIL_API", "")
         self.api_key = os.getenv("BANKR_API_KEY", "")
         self.goplus = GoPlusScanner()
         self.rpc_urls = {
@@ -66,7 +70,7 @@ class SafetyScorer:
                     f"verified contract. Risk level: {known.risk_level}."
                 ),
             )
-        if self.api_key:
+        if self.api_base and self.api_key:
             return await self._score_via_api(address, chain)
         return await self._score_via_analysis(address, chain)
 

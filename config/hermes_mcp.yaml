@@ -1,14 +1,29 @@
 # VIGIL MCP — Hermes Agent Integration
-# Add to ~/.hermes/config.yaml under mcp_servers:
-
+# Add to ~/.hermes/config.yaml under mcp_servers.
+#
+# Two ways to use VIGIL:
+#
+# 1) Run the MCP server locally (recommended — full read-only toolset, keyless):
 mcp_servers:
   vigil:
     command: "python3"
     args: ["-m", "vigil_mcp.server"]
-    cwd: "/root/vigil-mcp/src"
+    cwd: "/path/to/vigil-mcp/src"
     env:
-      BANKR_API_KEY: "bk_YOUR_KEY_HERE"
-      VIGIL_API: "https://api.bankr.bot/vigil"
       VIGIL_LOG_LEVEL: "INFO"
+      # Optional: only needed for revoke (write) actions, signed via Bankr.
+      # BANKR_API_KEY: "bk_your_key_here"
     timeout: 120
     connect_timeout: 30
+
+# 2) Or call the hosted endpoint directly over HTTP JSON-RPC (no install, no key):
+#
+#    POST https://mcp.vigil.codes/tools/call
+#    Content-Type: application/json
+#    {"jsonrpc":"2.0","id":1,"method":"tools/call",
+#     "params":{"name":"vigil_safety_score",
+#               "arguments":{"contract":"0x...","chain":"base"}}}
+#
+#    List tools:  GET https://mcp.vigil.codes/tools/list
+#    Health:      GET https://mcp.vigil.codes/health
+#    Read-only scans need no API key. Premium tools use x402 (USDC on Base).

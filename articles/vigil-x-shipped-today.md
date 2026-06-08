@@ -3,25 +3,7 @@ VIGIL: the onchain security agent that's actually right
 
 What is VIGIL?
 
-VIGIL is an onchain security agent on Base, built as an MCP server. Plug it into any AI client — Claude, Cursor, @aeonframework, or any MCP-compatible agent — and it becomes a blockchain security expert.
 
-It does the checks most people skip before they sign:
-
-Approval Scanner lists every ERC-20/721 approval on your wallet and flags unlimited allowances.
-
-Token Analyzer scans contracts for rugpull signatures: hidden mint, proxy patterns, adjustable tax, and blacklists.
-
-Honeypot Detector simulates buy and sell so you catch tokens that trap you before you ape.
-
-Safety Score rates any contract 0 to 100 from bytecode, ownership, liquidity, and holders.
-
-Approval Revoker kills dangerous approvals through @BankrBot transaction signing.
-
-Wallet Report gives you full security posture in one call.
-
-Wallet Monitor sends real-time alerts for new approvals, risky interactions, and balance changes.
-
-Detection through @BankrBot, autonomous scheduled scans through @aeonframework. Detection plus action, no babysitting.
 
 
 Why it matters

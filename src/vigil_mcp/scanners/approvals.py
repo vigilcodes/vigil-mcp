@@ -74,7 +74,7 @@ class ApprovalScanner:
     """Scan wallet token approvals via VIGIL API or direct RPC."""
 
     def __init__(self):
-        self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
+        self.api_base = os.getenv("VIGIL_API", "")
         self.api_key = os.getenv("BANKR_API_KEY", "")
         self.goplus = GoPlusScanner()
         self.rpc_urls = {
@@ -89,7 +89,7 @@ class ApprovalScanner:
     ) -> ApprovalScanResult:
         """Scan all approvals for a wallet."""
         # Try API first, fallback to direct RPC
-        if self.api_key:
+        if self.api_base and self.api_key:
             return await self._scan_via_api(wallet, chain, risk_filter)
         return await self._scan_via_rpc(wallet, chain, risk_filter)
 

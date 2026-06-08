@@ -34,7 +34,7 @@ class HoneypotDetector:
     """Detect honeypot tokens via transaction simulation."""
 
     def __init__(self):
-        self.api_base = os.getenv("VIGIL_API", "https://api.bankr.bot/vigil")
+        self.api_base = os.getenv("VIGIL_API", "")
         self.api_key = os.getenv("BANKR_API_KEY", "")
         self.goplus = GoPlusScanner()
         self.rpc_urls = {
@@ -76,7 +76,7 @@ class HoneypotDetector:
         if goplus_result is not None:
             return goplus_result
 
-        if self.api_key:
+        if self.api_base and self.api_key:
             return await self._detect_via_api(token, chain)
         return await self._detect_via_simulation(token, chain)
 
