@@ -792,6 +792,23 @@ TOOL_MAP = {
 }
 
 
+# CORS headers so a browser (e.g. the vigil.codes demo page) can call the API
+# cross-origin. Read-only scans are public, so a permissive allow-origin is fine.
+_CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-PAYMENT",
+    "Access-Control-Max-Age": "86400",
+}
+
+
+@mcp.custom_route("/tools/call", methods=["OPTIONS"])
+@mcp.custom_route("/tools/list", methods=["OPTIONS"])
+async def cors_preflight(request: Request) -> JSONResponse:
+    """Answer CORS preflight requests from browsers."""
+    return JSONResponse({}, headers=_CORS_HEADERS)
+
+
 @mcp.custom_route("/tools/list", methods=["GET", "POST"])
 async def tools_list(request: Request) -> JSONResponse:
     """List available MCP tools."""
@@ -961,7 +978,7 @@ async def tools_list(request: Request) -> JSONResponse:
             },
         },
     ]
-    return JSONResponse({"jsonrpc": "2.0", "id": None, "result": {"tools": tools}})
+    return JSONResponse({"jsonrpc": "2.0", "id": None, "result": {"tools": tools}}, headers=_CORS_HEADERS)
 
 
 @mcp.custom_route("/tools/call", methods=["POST"])
@@ -1003,6 +1020,7 @@ async def tools_call(request: Request) -> JSONResponse:
         return JSONResponse(
             {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32602, "message": str(e)}},
             status_code=400,
+            headers=_CORS_HEADERS,
         )
 
     # Optional x402 pay-per-call gate (disabled unless VIGIL_X402_ENABLED=1).
@@ -1015,16 +1033,18 @@ async def tools_call(request: Request) -> JSONResponse:
                 return JSONResponse(
                     x402.payment_requirements(tool_name, price),
                     status_code=402,
+                    headers=_CORS_HEADERS,
                 )
 
     try:
         result = await handler(arguments)
-        return JSONResponse({"jsonrpc": "2.0", "id": req_id, "result": result})
+        return JSONResponse({"jsonrpc": "2.0", "id": req_id, "result": result}, headers=_CORS_HEADERS)
     except Exception as e:
         logger.error(f"Tool {tool_name} failed: {e}")
         return JSONResponse(
             {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32000, "message": str(e)}},
             status_code=500,
+            headers=_CORS_HEADERS,
         )
 
 
