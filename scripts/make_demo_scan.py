@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Demo video of the vigil.codes/scan page scanning $VIGIL — 1280x720 @ 60fps.
+"""Demo video of the vigil.codes/scan page scanning $VIGIL — 1920x1080 @ 60fps.
 
 Mirrors the live scan page UI: type a token address into the input, hit scan,
 results render (safety verdict + honeypot + tax + scam). Data is the real live
@@ -9,10 +9,13 @@ import html
 import os
 import subprocess
 
+# Layout uses a 1280x720 canvas; rendered at 1920x1080 (SVG scales cleanly) for
+# crisp 1080p HD output.
 W, H = 1280, 720
+RENDER_W, RENDER_H = 1920, 1080
 FPS = 60
 OUT_DIR = "/root/vigil/.demo_scan_frames"
-FINAL = "/root/vigil/website/assets/vigil-scan-demo-1280x720.mp4"
+FINAL = "/root/vigil/website/assets/vigil-scan-demo-1920x1080.mp4"
 
 BG = "#080808"
 ELEV = "#0e0e0e"
@@ -109,35 +112,38 @@ def main():
         pp = os.path.join(OUT_DIR, f"f_{idx:05d}.png")
         with open(sp, "w") as fh:
             fh.write(svg)
-        subprocess.run(["rsvg-convert", "-w", str(W), "-h", str(H), sp, "-o", pp], check=True)
+        subprocess.run(
+            ["rsvg-convert", "-w", str(RENDER_W), "-h", str(RENDER_H), sp, "-o", pp],
+            check=True,
+        )
         idx += 1
 
     # 1. empty input, blinking cursor (hold)
-    for f in range(30):
-        emit(page("", (f // 18) % 2 == 0, False, False))
-    # 2. type the address
+    for f in range(40):
+        emit(page("", (f // 20) % 2 == 0, False, False))
+    # 2. type the address — slower (2 frames/char) for a smooth, readable feel
     for ci in range(1, len(ADDR) + 1):
-        for _ in range(1):
+        for _ in range(2):
             emit(page(ADDR[:ci], True, False, False))
     # 3. full address typed, hold with cursor
-    for f in range(30):
-        emit(page(ADDR, (f // 18) % 2 == 0, False, False))
+    for f in range(40):
+        emit(page(ADDR, (f // 20) % 2 == 0, False, False))
     # 4. scanning state
-    for f in range(45):
+    for f in range(60):
         emit(page(ADDR, False, True, False))
     # 5. result fades in
-    for f in range(12):
-        emit(page(ADDR, False, False, True, min(1.0, (f + 1) / 12)))
+    for f in range(16):
+        emit(page(ADDR, False, False, True, min(1.0, (f + 1) / 16)))
     # 6. hold result (long, for loop/read)
-    for f in range(150):
+    for f in range(180):
         emit(page(ADDR, False, False, True, 1.0))
 
     print(f"rendered {idx} frames")
     subprocess.run([
         "ffmpeg", "-y", "-framerate", str(FPS),
         "-i", os.path.join(OUT_DIR, "f_%05d.png"),
-        "-c:v", "libx264", "-pix_fmt", "yuv420p",
-        "-vf", "scale=1280:720:flags=lanczos", "-movflags", "+faststart", FINAL,
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18",
+        "-vf", f"scale={RENDER_W}:{RENDER_H}:flags=lanczos", "-movflags", "+faststart", FINAL,
     ], check=True)
     print(f"wrote {FINAL}")
 
