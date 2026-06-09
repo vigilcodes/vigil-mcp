@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIGIL — Live Scan</title>
+  <meta name="description" content="Scan any Base token live. Honeypot, safety score, scam reports — no API key, no install.">
+  <link rel="icon" type="image/svg+xml" href="assets/vigil-logo.svg">
+  <meta property="og:title" content="VIGIL — Live Scan">
+  <meta property="og:description" content="Scan any Base token in your browser. Honeypot, safety score, scam reports. No key, no install.">
+  <meta property="og:image" content="https://vigil.codes/assets/png/vigil-scan-proof-1200x630.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #080808; --bg-elevated: #0e0e0e; --bg-subtle: #141414;
+      --gold: #c8a961; --text: #d4d0c8; --text-dim: #6b6860; --border: #1e1e1c;
+      --serif: 'DM Serif Display', serif; --mono: 'DM Mono', monospace; --sans: 'Inter', sans-serif;
+      --green: #6bbd6b; --amber: #d89b5b; --red: #bd6b6b;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans);
+           min-height: 100vh; line-height: 1.6; }
+    a { color: var(--gold); text-decoration: none; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+    .top img { width: 34px; height: 34px; }
+    .top span { font-family: var(--mono); letter-spacing: 6px; color: var(--gold);
+                text-transform: uppercase; font-size: 13px; }
+    .top a { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+             letter-spacing: 2px; text-transform: uppercase; }
+    .label { font-family: var(--mono); font-size: 11px; letter-spacing: 4px;
+             color: var(--gold); opacity: .6; text-transform: uppercase; }
+    h1 { font-family: var(--serif); font-size: 42px; font-weight: 400; margin: 12px 0 8px; }
+    .sub { color: var(--text-dim); margin-bottom: 32px; }
+    .form { display: flex; gap: 10px; flex-wrap: wrap; }
+    input[type=text] { flex: 1; min-width: 260px; background: var(--bg-subtle);
+      border: 1px solid var(--border); color: var(--text); font-family: var(--mono);
+      font-size: 15px; padding: 16px 18px; border-radius: 10px; outline: none; }
+    input[type=text]:focus { border-color: var(--gold); }
+    button { background: var(--gold); color: var(--bg); border: none; font-family: var(--mono);
+      font-weight: 500; letter-spacing: 1px; text-transform: uppercase; font-size: 13px;
+      padding: 0 28px; border-radius: 10px; cursor: pointer; transition: opacity .2s; }
+    button:hover { opacity: .9; }
+    button:disabled { opacity: .5; cursor: default; }
+    .examples { margin-top: 14px; font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+    .examples a { cursor: pointer; }
+    .examples a:hover { text-decoration: underline; }
+    .result { margin-top: 36px; }
+    .verdict { display: flex; align-items: baseline; gap: 16px; border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; background: var(--bg-elevated); }
+    .verdict .score { font-family: var(--serif); font-size: 56px; line-height: 1; }
+    .verdict .lvl { font-family: var(--mono); font-size: 16px; letter-spacing: 2px;
+                    text-transform: uppercase; }
+    .cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .c { border: 1px solid var(--border); border-radius: 10px; padding: 18px; background: var(--bg-elevated); }
+    .c .k { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--text-dim);
+            text-transform: uppercase; }
+    .c .v { font-family: var(--mono); font-size: 18px; margin-top: 6px; }
+    .meta { margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+            word-break: break-all; }
+    .err { color: var(--red); font-family: var(--mono); font-size: 14px; margin-top: 24px; }
+    .spin { display: inline-block; animation: blink 1s steps(2) infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .foot { margin-top: 48px; font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+    @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <img src="assets/vigil-logo.svg" alt="">
+      <span>Vigil</span>
+      <a href="/">← back to site</a>
+    </div>
+
+    <div class="label">Live scan · Base · no API key</div>
+    <h1>Scan before you sign.</h1>
+    <p class="sub">Paste any Base token address. VIGIL checks safety score, honeypot risk, and community scam reports — live, in your browser.</p>
+
+    <div class="form">
+      <input id="addr" type="text" placeholder="0x… token address on Base" spellcheck="false" autocomplete="off">
+      <button id="go">Scan</button>
+    </div>
+    <div class="examples">
+      try:
+      <a data-addr="0x833589fcd6edb6e08f4c7c32d4f71b54bda02913">USDC</a> ·
+      <a data-addr="0x4200000000000000000000000000000000000006">WETH</a> ·
+      <a data-addr="0xc751afadd6fde251ac624a279ecb9ac85aa27ba3">$VIGIL</a>
+    </div>
+
+    <div id="result" class="result"></div>
+
+    <div class="foot">
+      Powered by the live VIGIL MCP endpoint ·
+      <a href="https://github.com/vigilcodes/vigil-mcp">open source</a> ·
+      <a href="https://mcp.vigil.codes/tools/list">API</a>
+    </div>
+  </div>
+
+  <script>
+    const EP = "https://mcp.vigil.codes/tools/call";
+    const addr = document.getElementById("addr");
+    const go = document.getElementById("go");
+    const result = document.getElementById("result");
+
+    document.querySelectorAll(".examples a").forEach(a => {
+      a.addEventListener("click", () => { addr.value = a.dataset.addr; scan(); });
+    });
+    go.addEventListener("click", scan);
+    addr.addEventListener("keydown", e => { if (e.key === "Enter") scan(); });
+
+    function call(name, args) {
+      return fetch(EP, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call",
+          params: { name, arguments: args } })
+      }).then(r => r.json());
+    }
+
+    function lvlColor(l) {
+      return { safe: "var(--green)", low: "var(--green)", medium: "var(--amber)",
+               high: "var(--red)", critical: "var(--red)" }[l] || "var(--text-dim)";
+    }
+
+    async function scan() {
+      const a = addr.value.trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(a)) {
+        result.innerHTML = '<div class="err">✕ Not a valid 0x address (need 0x + 40 hex chars).</div>';
+        return;
+      }
+      go.disabled = true;
+      result.innerHTML = '<div class="meta"><span class="spin">▮</span> scanning ' + a + ' …</div>';
+      try {
+        const [score, hp, scam] = await Promise.all([
+          call("vigil_safety_score", { contract: a, chain: "base" }),
+          call("vigil_detect_honeypot", { token: a, chain: "base" }),
+          call("vigil_check_scam", { token: a, chain: "base" })
+        ]);
+        const s = score.result || {};
+        const h = hp.result || {};
+        const sc = scam.result || {};
+        if (s.score === undefined) {
+          result.innerHTML = '<div class="err">✕ ' +
+            (score.error ? score.error.message : "Scan failed — try again.") + '</div>';
+          return;
+        }
+        const honeypotTxt = h.is_honeypot ? "DETECTED" : "Not a honeypot";
+        const honeypotColor = h.is_honeypot ? "var(--red)" : "var(--green)";
+        const scamTxt = sc.reported ? (sc.report_count + " report(s)") : "None";
+        const scamColor = sc.reported ? "var(--red)" : "var(--green)";
+        result.innerHTML =
+          '<div class="verdict">' +
+            '<div class="score" style="color:' + lvlColor(s.risk_level) + '">' + s.score + '<span style="font-size:22px;color:var(--text-dim)">/100</span></div>' +
+            '<div><div class="label">Safety verdict</div>' +
+            '<div class="lvl" style="color:' + lvlColor(s.risk_level) + '">' + (s.risk_level || "unknown") + '</div></div>' +
+          '</div>' +
+          '<div class="cards">' +
+            '<div class="c"><div class="k">Honeypot</div><div class="v" style="color:' + honeypotColor + '">' + honeypotTxt + '</div></div>' +
+            '<div class="c"><div class="k">Buy / Sell tax</div><div class="v">' + fmtTax(h.buy_tax) + ' / ' + fmtTax(h.sell_tax) + '</div></div>' +
+            '<div class="c"><div class="k">Scam reports</div><div class="v" style="color:' + scamColor + '">' + scamTxt + '</div></div>' +
+          '</div>' +
+          (s.recommendation ? '<div class="meta">' + s.recommendation + '</div>' : '') +
+          '<div class="meta">contract ' + a + ' · chain base · via mcp.vigil.codes</div>';
+      } catch (e) {
+        result.innerHTML = '<div class="err">✕ Network error reaching the VIGIL endpoint. Try again.</div>';
+      } finally {
+        go.disabled = false;
+      }
+    }
+
+    function fmtTax(t) {
+      if (t === null || t === undefined) return "—";
+      return (t * 100).toFixed(0) + "%";
+    }
+  </script>
+</body>
+</html>
