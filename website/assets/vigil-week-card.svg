@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <text x="80" y="72" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . THIS WEEK</text>
+  <text x="80" y="128" fill="#d4d0c8" font-family="Georgia, serif" font-size="44">Quiet work, shipped.</text>
+  <line x1="80" y1="150" x2="320" y2="150" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+
+  <!-- changelog rows -->
+  <g font-family="'Courier New', monospace">
+    <!-- row 1 -->
+    <g transform="translate(80, 196)">
+      <rect width="1040" height="92" rx="10" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
+      <g stroke="#6bbd6b" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(34,40)">
+        <path d="M0 0 L7 8 L20 -8"/>
+      </g>
+      <text x="78" y="40" fill="#d4d0c8" font-size="20" font-family="Georgia, serif">Live scan demo</text>
+      <text x="78" y="68" fill="#6b6860" font-size="13">paste any Base token — verdict in your browser, no setup</text>
+    </g>
+    <!-- row 2 -->
+    <g transform="translate(80, 300)">
+      <rect width="1040" height="92" rx="10" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
+      <g stroke="#6bbd6b" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(34,40)">
+        <path d="M0 0 L7 8 L20 -8"/>
+      </g>
+      <text x="78" y="40" fill="#d4d0c8" font-size="20" font-family="Georgia, serif">Fixed the "looks down" bug</text>
+      <text x="78" y="68" fill="#6b6860" font-size="13">other agents now reach VIGIL reliably — no more false 404s</text>
+    </g>
+    <!-- row 3 -->
+    <g transform="translate(80, 404)">
+      <rect width="1040" height="92" rx="10" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
+      <g stroke="#6bbd6b" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(34,40)">
+        <path d="M0 0 L7 8 L20 -8"/>
+      </g>
+      <text x="78" y="40" fill="#d4d0c8" font-size="20" font-family="Georgia, serif">Tuned consensus</text>
+      <text x="78" y="68" fill="#6b6860" font-size="13">one noisy source can't trigger a false positive</text>
+    </g>
+  </g>
+
+  <line x1="80" y1="536" x2="1120" y2="536" stroke="#1e1e1c" stroke-width="1"/>
+  <text x="80" y="574" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">the kind of work that decides whether people trust you</text>
+  <text x="1120" y="574" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes/scan</text>
+</svg>
