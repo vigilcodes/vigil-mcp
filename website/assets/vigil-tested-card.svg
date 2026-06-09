@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <text x="80" y="70" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . CORRECTNESS IS THE PRODUCT</text>
+  <text x="80" y="124" fill="#d4d0c8" font-family="Georgia, serif" font-size="44">A scanner you can verify</text>
+  <line x1="80" y1="146" x2="340" y2="146" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+
+  <!-- big number -->
+  <g transform="translate(80, 200)">
+    <text x="0" y="60" fill="url(#gold)" font-family="Georgia, serif" font-size="88">106</text>
+    <text x="0" y="100" fill="#6b6860" font-family="'Courier New', monospace" font-size="16">tests passing</text>
+  </g>
+
+  <!-- pass list -->
+  <g transform="translate(440, 196)" font-family="'Courier New', monospace" font-size="17">
+    <g stroke="#6bbd6b" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 -6 L6 1 L16 -12"/>
+      <path d="M0 30 L6 37 L16 24"/>
+      <path d="M0 66 L6 73 L16 60"/>
+      <path d="M0 102 L6 109 L16 96"/>
+    </g>
+    <text x="34" y="0" fill="#d4d0c8">consensus false-positive guard</text>
+    <text x="34" y="36" fill="#d4d0c8">honeypot + safety scoring logic</text>
+    <text x="34" y="72" fill="#d4d0c8">address validation / injection</text>
+    <text x="34" y="108" fill="#d4d0c8">scanner accuracy on known tokens</text>
+  </g>
+
+  <!-- strip -->
+  <g transform="translate(80, 380)">
+    <rect width="1040" height="96" rx="10" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.3"/>
+    <text x="30" y="40" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">WHY IT MATTERS</text>
+    <text x="30" y="72" fill="#d4d0c8" font-family="Georgia, serif" font-size="21">A security tool that isn't tested is just a guess with a UI.</text>
+  </g>
+
+  <line x1="80" y1="548" x2="1120" y2="548" stroke="#1e1e1c" stroke-width="1"/>
+  <text x="80" y="584" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">12 tools . open source . verify it yourself</text>
+  <text x="1120" y="584" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">github.com/vigilcodes/vigil-mcp</text>
+</svg>
