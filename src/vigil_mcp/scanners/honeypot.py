@@ -20,6 +20,8 @@ class SimulationResult(BaseModel):
 class HoneypotResult(BaseModel):
     token: str
     chain: str
+    token_name: Optional[str] = None
+    token_symbol: Optional[str] = None
     is_honeypot: bool
     can_buy: bool
     can_sell: bool
@@ -52,6 +54,8 @@ class HoneypotDetector:
             return HoneypotResult(
                 token=token,
                 chain=chain,
+                token_name=known.name,
+                token_symbol=known.symbol,
                 is_honeypot=False,
                 can_buy=True,
                 can_sell=True,
@@ -116,6 +120,8 @@ class HoneypotDetector:
         return HoneypotResult(
             token=token,
             chain=chain,
+            token_name=g.token_name,
+            token_symbol=g.token_symbol,
             is_honeypot=is_honeypot,
             can_buy=True,
             can_sell=not cannot_sell,
@@ -140,6 +146,8 @@ class HoneypotDetector:
         return HoneypotResult(
             token=token,
             chain=chain,
+            token_name=data.get("token_name"),
+            token_symbol=data.get("token_symbol"),
             is_honeypot=data.get("is_honeypot", False),
             can_buy=data.get("can_buy", True),
             can_sell=data.get("can_sell", True),

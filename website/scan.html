@@ -150,7 +150,14 @@
         const honeypotColor = h.is_honeypot ? "var(--red)" : "var(--green)";
         const scamTxt = sc.reported ? (sc.report_count + " report(s)") : "None";
         const scamColor = sc.reported ? "var(--red)" : "var(--green)";
+        const name = h.token_name || "";
+        const sym = h.token_symbol ? ("$" + h.token_symbol) : "";
+        const ident = (name || sym)
+          ? '<div class="label" style="margin-bottom:6px">' +
+              (name ? name : "") + (sym ? ' · ' + sym : "") + '</div>'
+          : '';
         result.innerHTML =
+          ident +
           '<div class="verdict">' +
             '<div class="score" style="color:' + lvlColor(s.risk_level) + '">' + s.score + '<span style="font-size:22px;color:var(--text-dim)">/100</span></div>' +
             '<div><div class="label">Safety verdict</div>' +
