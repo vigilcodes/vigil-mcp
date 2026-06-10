@@ -96,8 +96,16 @@ class VigilBot:
             await self._send(client, chat_id, f"⚠️ Scan failed: {e}")
             return
 
-        name = hp.token_symbol or hp.token_name or ""
-        ident = f" <b>{name}</b>" if name else ""
+        name = hp.token_name
+        sym = hp.token_symbol
+        if name and sym:
+            ident = f" <b>{name}</b> (${sym})"
+        elif sym:
+            ident = f" <b>${sym}</b>"
+        elif name:
+            ident = f" <b>{name}</b>"
+        else:
+            ident = ""
         icon = _RISK_ICON.get(score.risk_level, "❓")
         hp_txt = "🔴 HONEYPOT" if hp.is_honeypot else "✅ not a honeypot"
         scam_txt = (
@@ -125,8 +133,16 @@ class VigilBot:
         except Exception as e:  # noqa: BLE001
             await self._send(client, chat_id, f"⚠️ Check failed: {e}")
             return
-        name = hp.token_symbol or hp.token_name or ""
-        ident = f" <b>{name}</b>" if name else ""
+        name = hp.token_name
+        sym = hp.token_symbol
+        if name and sym:
+            ident = f" <b>{name}</b> (${sym})"
+        elif sym:
+            ident = f" <b>${sym}</b>"
+        elif name:
+            ident = f" <b>{name}</b>"
+        else:
+            ident = ""
         verdict = "🔴 HONEYPOT — cannot sell" if hp.is_honeypot else "✅ Not a honeypot"
         await self._send(
             client,
