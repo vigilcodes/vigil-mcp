@@ -23,6 +23,9 @@ import asyncio
 import logging
 import os
 import re
+import sqlite3
+import time
+from contextlib import closing
 from typing import Any, Optional
 
 import httpx
@@ -36,6 +39,8 @@ logger = logging.getLogger("vigil-bot")
 TELEGRAM_API = "https://api.telegram.org"
 _ADDR_RE = re.compile(r"0x[0-9a-fA-F]{40}")
 
+_DEFAULT_DB = os.path.join(os.path.expanduser("~"), ".vigil", "bot_usage.db")
+
 _RISK_ICON = {
     "critical": "🔴",
     "high": "🟠",
@@ -45,12 +50,62 @@ _RISK_ICON = {
 }
 
 
+class UsageStore:
+    """SQLite-backed usage log so we can measure bot adoption.
+
+    Records one row per command (chat id, command, target address, verdict).
+    Used for /stats and to know whether the bot is actually being used.
+    """
+
+    def __init__(self, db_path: Optional[str] = None) -> None:
+        self.db_path = db_path or _DEFAULT_DB
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        with closing(sqlite3.connect(self.db_path)) as c, c:
+            c.execute(
+                """
+                CREATE TABLE IF NOT EXISTS usage (
+                    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                    chat_id   INTEGER,
+                    command   TEXT,
+                    target    TEXT,
+                    verdict   TEXT,
+                    at        INTEGER NOT NULL
+                )
+                """
+            )
+
+    def log(self, chat_id: int, command: str, target: str = "", verdict: str = "") -> None:
+        try:
+            with closing(sqlite3.connect(self.db_path)) as c, c:
+                c.execute(
+                    "INSERT INTO usage (chat_id, command, target, verdict, at) VALUES (?,?,?,?,?)",
+                    (chat_id, command, target, verdict, int(time.time())),
+                )
+        except Exception as e:  # noqa: BLE001 — logging must never break the bot
+            logger.warning("usage log failed: %s", e)
+
+    def stats(self) -> dict[str, Any]:
+        with closing(sqlite3.connect(self.db_path)) as c:
+            total = c.execute("SELECT COUNT(*) FROM usage WHERE target != ''").fetchone()[0]
+            users = c.execute("SELECT COUNT(DISTINCT chat_id) FROM usage").fetchone()[0]
+            day = c.execute(
+                "SELECT COUNT(*) FROM usage WHERE at > ?", (int(time.time()) - 86400,)
+            ).fetchone()[0]
+            top = c.execute(
+                "SELECT target, COUNT(*) n FROM usage WHERE target != '' "
+                "GROUP BY target ORDER BY n DESC LIMIT 5"
+            ).fetchall()
+        return {"total_scans": total, "unique_users": users, "scans_24h": day, "top": top}
+
+
 class VigilBot:
     def __init__(self) -> None:
         self.token = os.getenv("VIGIL_TELEGRAM_BOT_TOKEN", "")
+        self.admin_chat = os.getenv("VIGIL_TELEGRAM_CHAT_ID", "")
         self.scorer = SafetyScorer()
         self.honeypot = HoneypotDetector()
         self.scam_db = ScamDatabase()
+        self.usage = UsageStore()
         self.offset = 0
 
     # ── telegram io ──────────────────────────────────────────
@@ -174,7 +229,11 @@ class VigilBot:
         cmd = text.split()[0].lower().split("@")[0]  # strip @botname in groups
 
         if cmd in ("/start", "/help"):
+            self.usage.log(chat_id, cmd)
             await self._cmd_help(client, chat_id)
+            return
+        if cmd == "/stats":
+            await self._cmd_stats(client, chat_id)
             return
         if cmd in ("/scan", "/honeypot", "/score"):
             addr = self._extract_addr(text)
@@ -184,12 +243,30 @@ class VigilBot:
                     "Send a token address: <code>" + cmd + " 0x…</code> (40 hex chars).",
                 )
                 return
+            self.usage.log(chat_id, cmd, addr)
             if cmd == "/scan":
                 await self._cmd_scan(client, chat_id, addr)
             elif cmd == "/honeypot":
                 await self._cmd_honeypot(client, chat_id, addr)
             else:
                 await self._cmd_score(client, chat_id, addr)
+
+    async def _cmd_stats(self, client: httpx.AsyncClient, chat_id: int) -> None:
+        # Admin-only — stats are visible to the configured owner chat only.
+        if not self.admin_chat or str(chat_id) != str(self.admin_chat):
+            await self._send(client, chat_id, "🛡️ VIGIL bot — try /scan &lt;0x token&gt;")
+            return
+        s = self.usage.stats()
+        top_lines = "\n".join(f"  {t} — {n}×" for t, n in s["top"]) or "  (none yet)"
+        await self._send(
+            client,
+            chat_id,
+            "📊 <b>VIGIL bot stats</b>\n\n"
+            f"Total scans: <b>{s['total_scans']}</b>\n"
+            f"Scans (24h): <b>{s['scans_24h']}</b>\n"
+            f"Unique users: <b>{s['unique_users']}</b>\n\n"
+            f"<b>Top tokens</b>\n{top_lines}",
+        )
 
     # ── poll loop ────────────────────────────────────────────
     async def run(self) -> None:
