@@ -1,0 +1,16 @@
+# /etc/systemd/system/vigil-bot.service
+[Unit]
+Description=VIGIL Telegram bot — scan tokens from chat
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/vigil
+EnvironmentFile=-/root/vigil/.env
+ExecStart=/usr/bin/python3 -m vigil_mcp.autonomous.bot
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
