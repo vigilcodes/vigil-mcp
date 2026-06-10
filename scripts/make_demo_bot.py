@@ -29,6 +29,10 @@ ADDR = "0xc751afadd6fde251ac624a279ecb9ac85aa27ba3"
 ADDR_SHORT = "0xc751…27ba3"
 CHAR_W = 12.0
 
+# Embed the real VIGIL logo as the bot profile picture (base64).
+with open("/root/vigil/.pfp_b64.txt") as _f:
+    PFP_B64 = _f.read().strip()
+
 os.makedirs(OUT_DIR, exist_ok=True)
 
 
@@ -39,12 +43,14 @@ def esc(s):
 def frame(typed, cursor, show_user_bubble, show_bot, bot_alpha=1.0):
     parts = []
 
-    # header bar
+    # header bar with real VIGIL logo as profile pic
     parts.append(f'<rect x="0" y="0" width="{W}" height="64" fill="#1f2c3a"/>')
-    parts.append(f'<circle cx="44" cy="32" r="18" fill="{GOLD}" opacity="0.18"/>')
-    parts.append(f'<text x="44" y="39" text-anchor="middle" font-size="18">🛡️</text>')
-    parts.append(f'<text x="74" y="29" fill="{TEXT}" font-family="Inter, sans-serif" font-size="17" font-weight="600">VIGIL</text>')
-    parts.append(f'<text x="74" y="48" fill="{DIM}" font-family="Inter, sans-serif" font-size="12">@vigilcodesbot · bot</text>')
+    parts.append('<defs><clipPath id="pfpclip"><circle cx="44" cy="32" r="20"/></clipPath></defs>')
+    parts.append(f'<image x="24" y="12" width="40" height="40" clip-path="url(#pfpclip)" '
+                 f'href="data:image/png;base64,{PFP_B64}" preserveAspectRatio="xMidYMid slice"/>')
+    parts.append(f'<circle cx="44" cy="32" r="20" fill="none" stroke="{GOLD}" stroke-width="1" opacity="0.4"/>')
+    parts.append(f'<text x="78" y="29" fill="{TEXT}" font-family="Inter, sans-serif" font-size="17" font-weight="600">VIGIL</text>')
+    parts.append(f'<text x="78" y="48" fill="{DIM}" font-family="Inter, sans-serif" font-size="12">@vigilcodesbot · bot</text>')
 
     # user outgoing bubble (the command)
     if show_user_bubble:
@@ -70,9 +76,11 @@ def frame(typed, cursor, show_user_bubble, show_bot, bot_alpha=1.0):
         bx, by = 60, 190
         parts.append(f'<g opacity="{a:.2f}">')
         parts.append(f'<rect x="{bx}" y="{by}" width="720" height="300" rx="16" fill="{BUBBLE_IN}"/>')
-        # header row
-        parts.append(f'<text x="{bx+28}" y="{by+48}" font-size="20">🛡️</text>')
-        parts.append(f'<text x="{bx+60}" y="{by+48}" fill="{TEXT}" font-family="Inter, sans-serif" font-size="18" font-weight="600">VIGIL scan · vigilcodes ($Vigil)</text>')
+        # header row with logo
+        parts.append(f'<defs><clipPath id="bclip"><circle cx="{bx+40}" cy="{by+36}" r="16"/></clipPath></defs>')
+        parts.append(f'<image x="{bx+24}" y="{by+20}" width="32" height="32" clip-path="url(#bclip)" '
+                     f'href="data:image/png;base64,{PFP_B64}" preserveAspectRatio="xMidYMid slice"/>')
+        parts.append(f'<text x="{bx+68}" y="{by+44}" fill="{TEXT}" font-family="Inter, sans-serif" font-size="18" font-weight="600">VIGIL scan · vigilcodes ($Vigil)</text>')
         parts.append(f'<text x="{bx+28}" y="{by+78}" fill="{MONO_DIM}" font-family="monospace" font-size="14">{ADDR_SHORT} · base</text>')
         parts.append(f'<line x1="{bx+28}" y1="{by+98}" x2="{bx+692}" y2="{by+98}" stroke="#2a3a4a"/>')
         # verdict lines
