@@ -8,50 +8,47 @@
 
   <rect width="1200" height="630" fill="#080808"/>
 
-  <text x="80" y="70" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . KNOWN-ANSWER SCANS . BASE</text>
-  <text x="80" y="122" fill="#d4d0c8" font-family="Georgia, serif" font-size="44">VIGIL tells the difference</text>
-  <line x1="80" y1="146" x2="360" y2="146" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+  <text x="80" y="70" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . LIVE SCANS . NO API KEY</text>
+  <text x="80" y="122" fill="#d4d0c8" font-family="Georgia, serif" font-size="44">It knows the difference.</text>
+  <text x="80" y="158" fill="#6b6860" font-family="Georgia, serif" font-size="19" font-style="italic">real verdicts on real Base tokens — same endpoint, no key.</text>
+  <line x1="80" y1="180" x2="340" y2="180" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
 
-  <!-- SAFE column -->
-  <text x="80" y="196" fill="#6bbd6b" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">✓ VERIFIED SAFE</text>
-  <g transform="translate(80, 214)">
-    <g transform="translate(0,0)">
-      <rect width="480" height="80" rx="10" fill="#0e1a0e" stroke="#6bbd6b" stroke-width="1" opacity="0.9"/>
-      <text x="28" y="50" fill="#d4d0c8" font-family="Georgia, serif" font-size="26">USDC <tspan fill="#6b6860" font-size="14" font-family="'Courier New', monospace">USD Coin</tspan></text>
-      <text x="452" y="50" text-anchor="end" fill="#6bbd6b" font-family="Georgia, serif" font-size="34">92<tspan font-size="16" fill="#6b6860">/100</tspan></text>
-    </g>
-    <g transform="translate(0,94)">
-      <rect width="480" height="80" rx="10" fill="#0e1a0e" stroke="#6bbd6b" stroke-width="1" opacity="0.9"/>
-      <text x="28" y="50" fill="#d4d0c8" font-family="Georgia, serif" font-size="26">WETH <tspan fill="#6b6860" font-size="14" font-family="'Courier New', monospace">Wrapped Ether</tspan></text>
-      <text x="452" y="50" text-anchor="end" fill="#6bbd6b" font-family="Georgia, serif" font-size="34">90<tspan font-size="16" fill="#6b6860">/100</tspan></text>
-    </g>
+  <!-- rows -->
+  <g font-family="'Courier New', monospace">
+    <!-- header -->
+    <text x="80" y="222" fill="#6b6860" font-size="12" letter-spacing="2">TOKEN</text>
+    <text x="820" y="222" fill="#6b6860" font-size="12" letter-spacing="2" text-anchor="end">SCORE</text>
+    <text x="1120" y="222" fill="#6b6860" font-size="12" letter-spacing="2" text-anchor="end">VERDICT</text>
+    <line x1="80" y1="236" x2="1120" y2="236" stroke="#1e1e1c"/>
+
+    <!-- USDC -->
+    <circle cx="92" cy="278" r="6" fill="#6bbd6b"/>
+    <text x="116" y="284" fill="#d4d0c8" font-size="22">USD Coin <tspan fill="#6b6860" font-size="16">· $USDC</tspan></text>
+    <text x="820" y="284" fill="#6bbd6b" font-family="Georgia, serif" font-size="30" text-anchor="end">92</text>
+    <text x="1120" y="284" fill="#6bbd6b" font-size="16" text-anchor="end">SAFE</text>
+
+    <!-- WETH -->
+    <circle cx="92" cy="330" r="6" fill="#6bbd6b"/>
+    <text x="116" y="336" fill="#d4d0c8" font-size="22">Wrapped Ether <tspan fill="#6b6860" font-size="16">· $WETH</tspan></text>
+    <text x="820" y="336" fill="#6bbd6b" font-family="Georgia, serif" font-size="30" text-anchor="end">90</text>
+    <text x="1120" y="336" fill="#6bbd6b" font-size="16" text-anchor="end">SAFE</text>
+
+    <!-- AERO -->
+    <circle cx="92" cy="382" r="6" fill="#6bbd6b"/>
+    <text x="116" y="388" fill="#d4d0c8" font-size="22">Aerodrome <tspan fill="#6b6860" font-size="16">· $AERO</tspan></text>
+    <text x="820" y="388" fill="#6bbd6b" font-family="Georgia, serif" font-size="30" text-anchor="end">78</text>
+    <text x="1120" y="388" fill="#6bbd6b" font-size="16" text-anchor="end">SAFE</text>
+
+    <line x1="80" y1="412" x2="1120" y2="412" stroke="#1e1e1c"/>
+
+    <!-- DEAD -->
+    <circle cx="92" cy="454" r="6" fill="#bd6b6b"/>
+    <text x="116" y="460" fill="#d4d0c8" font-size="22">No contract code <tspan fill="#6b6860" font-size="16">· 0x…dEaD</tspan></text>
+    <text x="820" y="460" fill="#bd6b6b" font-family="Georgia, serif" font-size="30" text-anchor="end">0</text>
+    <text x="1120" y="460" fill="#bd6b6b" font-size="16" text-anchor="end">CRITICAL</text>
   </g>
 
-  <!-- DANGER column -->
-  <text x="640" y="196" fill="#bd6b6b" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">✕ FLAGGED</text>
-  <g transform="translate(640, 214)">
-    <g transform="translate(0,0)">
-      <rect width="480" height="80" rx="10" fill="#1a0e0e" stroke="#bd6b6b" stroke-width="1" opacity="0.9"/>
-      <text x="28" y="44" fill="#d4d0c8" font-family="Georgia, serif" font-size="22">No-code address</text>
-      <text x="28" y="66" fill="#6b6860" font-family="'Courier New', monospace" font-size="12">nothing deployed here</text>
-      <text x="452" y="52" text-anchor="end" fill="#bd6b6b" font-family="Georgia, serif" font-size="30">CRITICAL</text>
-    </g>
-    <g transform="translate(0,94)">
-      <rect width="480" height="80" rx="10" fill="#1a0e0e" stroke="#bd6b6b" stroke-width="1" opacity="0.9"/>
-      <text x="28" y="44" fill="#d4d0c8" font-family="Georgia, serif" font-size="22">Honeypot check</text>
-      <text x="28" y="66" fill="#6b6860" font-family="'Courier New', monospace" font-size="12">no contract code → blocked</text>
-      <text x="452" y="52" text-anchor="end" fill="#bd6b6b" font-family="Georgia, serif" font-size="24">BLOCKED</text>
-    </g>
-  </g>
-
-  <!-- strip -->
-  <g transform="translate(80, 430)">
-    <rect width="1040" height="92" rx="10" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.3"/>
-    <text x="30" y="40" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">THE WHOLE JOB</text>
-    <text x="30" y="72" fill="#d4d0c8" font-family="Georgia, serif" font-size="21">Good token in → real score. Garbage in → flagged, never a fake "safe".</text>
-  </g>
-
-  <line x1="80" y1="558" x2="1120" y2="558" stroke="#1e1e1c" stroke-width="1"/>
-  <text x="80" y="594" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">scan any Base token yourself · no key</text>
-  <text x="1120" y="594" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes/scan</text>
+  <line x1="80" y1="520" x2="1120" y2="520" stroke="#1e1e1c"/>
+  <text x="80" y="558" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">good tokens score. bad ones get flagged. try any token yourself.</text>
+  <text x="1120" y="558" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes/scan</text>
 </svg>
