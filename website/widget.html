@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIGIL Badge</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: transparent; }
+    body {
+      font-family: 'DM Mono', ui-monospace, monospace;
+      color: #d4d0c8;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: #0c0c0c; border: 1px solid #1e1e1c; border-radius: 12px;
+      padding: 12px 16px; min-width: 240px; text-decoration: none;
+    }
+    .badge:hover { border-color: rgba(200,169,97,0.4); }
+    .logo { width: 34px; height: 34px; flex-shrink: 0; border-radius: 8px;
+            background: rgba(200,169,97,0.08); display:flex; align-items:center;
+            justify-content:center; font-size: 18px; }
+    .score { font-family: Georgia, serif; font-size: 30px; line-height: 1; }
+    .meta { display: flex; flex-direction: column; gap: 2px; }
+    .lvl { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
+    .by { font-size: 9px; color: #6b6860; letter-spacing: 1px; }
+    .name { font-size: 12px; color: #d4d0c8; }
+    .err { font-size: 12px; color: #bd6b6b; }
+    .load { font-size: 12px; color: #6b6860; }
+    .sep { width: 1px; align-self: stretch; background: #1e1e1c; margin: 0 2px; }
+  </style>
+</head>
+<body>
+  <a class="badge" id="badge" href="https://vigil.codes/scan" target="_blank" rel="noopener">
+    <div class="logo">🛡️</div>
+    <div class="load" id="content">scanning…</div>
+  </a>
+  <script>
+    const EP = "https://mcp.vigil.codes/tools/call";
+    const params = new URLSearchParams(location.search);
+    const token = (params.get("token") || "").trim();
+    const chain = (params.get("chain") || "base").trim();
+    const content = document.getElementById("content");
+    const badge = document.getElementById("badge");
+
+    const COLOR = { safe:"#6bbd6b", low:"#6bbd6b", medium:"#d89b5b", high:"#bd6b6b", critical:"#bd6b6b" };
+
+    function call(name, args) {
+      return fetch(EP, { method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({jsonrpc:"2.0",id:1,method:"tools/call",params:{name,arguments:args}})
+      }).then(r => r.json());
+    }
+
+    async function run() {
+      if (!/^0x[0-9a-fA-F]{40}$/.test(token)) {
+        content.className = "err"; content.textContent = "invalid token";
+        return;
+      }
+      badge.href = "https://vigil.codes/scan";
+      try {
+        const [s, h] = await Promise.all([
+          call("vigil_safety_score", { contract: token, chain }),
+          call("vigil_detect_honeypot", { token, chain })
+        ]);
+        const r = s.result;
+        if (!r || r.score === undefined) { throw new Error("no result"); }
+        const c = COLOR[r.risk_level] || "#6b6860";
+        const nm = (h.result && h.result.token_symbol) ? ("$" + h.result.token_symbol) : "";
+        content.outerHTML =
+          '<div class="score" style="color:'+c+'">'+r.score+'</div>' +
+          '<div class="sep"></div>' +
+          '<div class="meta">' +
+            (nm ? '<div class="name">'+nm+'</div>' : '') +
+            '<div class="lvl" style="color:'+c+'">'+r.risk_level+'</div>' +
+            '<div class="by">VIGIL · scan before you sign</div>' +
+          '</div>';
+      } catch (e) {
+        content.className = "err"; content.textContent = "scan unavailable";
+      }
+    }
+    run();
+  </script>
+</body>
+</html>
