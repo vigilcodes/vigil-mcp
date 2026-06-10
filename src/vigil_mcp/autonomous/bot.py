@@ -37,7 +37,7 @@ from vigil_mcp.scanners.scam_db import ScamDatabase
 logger = logging.getLogger("vigil-bot")
 
 TELEGRAM_API = "https://api.telegram.org"
-_ADDR_RE = re.compile(r"0x[0-9a-fA-F]{40}")
+_ADDR_RE = re.compile(r"0[xX][0-9a-fA-F]{40}")
 
 _DEFAULT_DB = os.path.join(os.path.expanduser("~"), ".vigil", "bot_usage.db")
 
