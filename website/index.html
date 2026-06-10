@@ -113,7 +113,7 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 22px;
     }
     .nav-right a {
       font-family: var(--mono);
@@ -124,6 +124,25 @@
       text-transform: uppercase;
       transition: color 0.3s;
       white-space: nowrap;
+    }
+    /* primary CTA pill — Live Scan (the thing we're pushing) */
+    .nav-right a.nav-cta {
+      color: var(--gold);
+      border: 1px solid rgba(200, 169, 97, 0.4);
+      border-radius: 999px;
+      padding: 7px 16px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .nav-right a.nav-cta:hover {
+      background: var(--gold);
+      color: var(--bg);
+    }
+    /* subtle divider before external links */
+    .nav-right .nav-sep {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+      flex-shrink: 0;
     }
     .nav-right a:hover { color: var(--gold); }
 
@@ -743,6 +762,12 @@
     }
 
     /* ---- RESPONSIVE ---- */
+    @media (min-width: 1025px) and (max-width: 1240px) {
+      .nav-right { gap: 16px; }
+      .nav-right a { font-size: 11px; letter-spacing: 1px; }
+      .nav-logo span { letter-spacing: 4px; }
+    }
+
     @media (max-width: 1024px) {
       .wrap { padding: 0 32px; }
       .hero-grid { grid-template-columns: 1fr; gap: 48px; }
@@ -752,7 +777,38 @@
       .arch-flow { flex-direction: column; }
       .arch-arrow { justify-content: center; padding: 4px 0; transform: rotate(90deg); }
       .config-block { grid-template-columns: 1fr; }
- ca  
+
+      /* Nav — collapse to hamburger menu */
+      .hamburger { display: flex; }
+      .nav-right {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        background: rgba(8, 8, 8, 0.97);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border);
+        padding: 8px 0;
+        display: none;
+      }
+      .nav-right.open { display: flex; }
+      .nav-right a {
+        padding: 14px 32px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(30, 30, 28, 0.5);
+      }
+      .nav-right a.nav-cta {
+        border: none;
+        border-radius: 0;
+        color: var(--gold);
+      }
+      .nav-right a.nav-cta:hover { background: var(--gold-dim); color: var(--gold); }
+      .nav-right .nav-sep { display: none; }
+
       /* Hero */
       .hero { min-height: auto; padding: 100px 0 60px; }
       .hero-title { font-size: 36px; line-height: 1.1; }
@@ -860,14 +916,14 @@
       <div class="nav-right" id="navMenu">
         <a href="#features">Functions</a>
         <a href="#autonomous">Autonomous</a>
-        <a href="#arch">Architecture</a>
         <a href="#pricing">Pricing</a>
         <a href="#token">$VIGIL</a>
         <a href="#install">Install</a>
-        <a href="/scan">Live Scan</a>
+        <span class="nav-sep"></span>
         <a href="https://clawhub.ai/vigilcodes/vigil-security-scanner" target="_blank">ClawHub</a>
         <a href="https://github.com/vigilcodes/vigil-mcp" target="_blank">GitHub</a>
         <a href="https://x.com/vigilcodes" target="_blank">X</a>
+        <a href="/scan" class="nav-cta">Live Scan</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Menu">
         <span></span><span></span><span></span>
