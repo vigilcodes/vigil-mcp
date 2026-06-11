@@ -12,6 +12,7 @@ from starlette.responses import HTMLResponse, JSONResponse
 
 from vigil_mcp.autonomous.sentinel import Sentinel, SentinelStore
 from vigil_mcp.bridge.base_mcp import BaseMCPBridge
+from vigil_mcp.feed import FeedStore, extract_verdict, feed_worthy
 from vigil_mcp.monitors.wallet_monitor import WalletMonitor
 from vigil_mcp.payments import x402
 from vigil_mcp.revoker.engine import RevocationEngine
@@ -54,6 +55,7 @@ scam_db = ScamDatabase()
 sentinel_store = SentinelStore()
 sentinel = Sentinel(store=sentinel_store)
 consensus_engine = ConsensusEngine()
+feed_store = FeedStore()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -1038,6 +1040,12 @@ async def tools_call(request: Request) -> JSONResponse:
 
     try:
         result = await handler(arguments)
+        # Anonymized public feed — token + verdict only, no user identity.
+        if feed_worthy(tool_name) and isinstance(result, dict):
+            target = arguments.get("token") or arguments.get("contract") or ""
+            if target:
+                verdict, score = extract_verdict(tool_name, result)
+                feed_store.record(target, arguments.get("chain", "base"), tool_name, verdict, score)
         return JSONResponse({"jsonrpc": "2.0", "id": req_id, "result": result}, headers=_CORS_HEADERS)
     except Exception as e:
         logger.error(f"Tool {tool_name} failed: {e}")
@@ -1106,6 +1114,21 @@ async def index(request: Request) -> HTMLResponse:
 </body>
 </html>"""
     return HTMLResponse(html)
+
+
+@mcp.custom_route("/feed", methods=["GET", "OPTIONS"])
+async def public_feed(request: Request) -> JSONResponse:
+    """Public, anonymized scan feed — recent scans + totals. No user data."""
+    if request.method == "OPTIONS":
+        return JSONResponse({}, headers=_CORS_HEADERS)
+    try:
+        limit = int(request.query_params.get("limit", "30"))
+    except ValueError:
+        limit = 30
+    return JSONResponse(
+        {"totals": feed_store.totals(), "recent": feed_store.recent(limit)},
+        headers=_CORS_HEADERS,
+    )
 
 
 @mcp.custom_route("/health", methods=["GET"])
