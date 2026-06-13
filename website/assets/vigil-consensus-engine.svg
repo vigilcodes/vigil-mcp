@@ -25,41 +25,41 @@
   <line x1="80" y1="170" x2="420" y2="170" stroke="#c8a961" stroke-width="1" opacity="0.2"/>
 
   <!-- 5 source boxes on the left -->
-  <g font-family="'DM Mono', 'Courier New', monospace" font-size="13">
+  <g font-family="'DM Mono', 'Courier New', monospace">
     <!-- Source 1: GoPlus -->
     <g transform="translate(80, 210)">
       <rect width="260" height="52" rx="6" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
       <circle cx="24" cy="26" r="5" fill="#c8a961" opacity="0.8"/>
-      <text x="40" y="22" fill="#d4d0c8" font-size="14">GoPlus Security</text>
-      <text x="40" y="40" fill="#6b6860" font-size="11">honeypot · tax · mint · ownership</text>
+      <text x="40" y="22" fill="#d4d0c8" font-size="13">GoPlus Security</text>
+      <text x="40" y="40" fill="#6b6860" font-size="10">honeypot · tax · mint · ownership</text>
     </g>
     <!-- Source 2: Bytecode -->
     <g transform="translate(80, 275)">
       <rect width="260" height="52" rx="6" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
       <circle cx="24" cy="26" r="5" fill="#c8a961" opacity="0.8"/>
-      <text x="40" y="22" fill="#d4d0c8" font-size="14">Onchain Bytecode</text>
-      <text x="40" y="40" fill="#6b6860" font-size="11">opcode analysis · selfdestruct · safety</text>
+      <text x="40" y="22" fill="#d4d0c8" font-size="13">Onchain Bytecode</text>
+      <text x="40" y="40" fill="#6b6860" font-size="10">opcode · selfdestruct · safety</text>
     </g>
     <!-- Source 3: DexScreener -->
     <g transform="translate(80, 340)">
       <rect width="260" height="52" rx="6" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
       <circle cx="24" cy="26" r="5" fill="#c8a961" opacity="0.8"/>
-      <text x="40" y="22" fill="#d4d0c8" font-size="14">DexScreener Market</text>
-      <text x="40" y="40" fill="#6b6860" font-size="11">liquidity depth · pool age · volume</text>
+      <text x="40" y="22" fill="#d4d0c8" font-size="13">DexScreener Market</text>
+      <text x="40" y="40" fill="#6b6860" font-size="10">liquidity · pool age · volume</text>
     </g>
     <!-- Source 4: Deployer -->
     <g transform="translate(80, 405)">
       <rect width="260" height="52" rx="6" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
       <circle cx="24" cy="26" r="5" fill="#c8a961" opacity="0.8"/>
-      <text x="40" y="22" fill="#d4d0c8" font-size="14">Deployer Reputation</text>
-      <text x="40" y="40" fill="#6b6860" font-size="11">verification · deployer history</text>
+      <text x="40" y="22" fill="#d4d0c8" font-size="13">Deployer Reputation</text>
+      <text x="40" y="40" fill="#6b6860" font-size="10">verification · deployer history</text>
     </g>
     <!-- Source 5: Community -->
     <g transform="translate(80, 470)">
       <rect width="260" height="52" rx="6" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
       <circle cx="24" cy="26" r="5" fill="#c8a961" opacity="0.8"/>
-      <text x="40" y="22" fill="#d4d0c8" font-size="14">Community Scam DB</text>
-      <text x="40" y="40" fill="#6b6860" font-size="11">crowd-sourced reports · real victims</text>
+      <text x="40" y="22" fill="#d4d0c8" font-size="13">Community Scam DB</text>
+      <text x="40" y="40" fill="#6b6860" font-size="10">scam reports · real victims</text>
     </g>
   </g>
 
