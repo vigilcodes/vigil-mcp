@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+    <linearGradient id="danger-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0.02"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <!-- Top label -->
+  <text x="80" y="55" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . WALLET APPROVALS . BASE</text>
+
+  <!-- Title -->
+  <text x="80" y="108" fill="#d4d0c8" font-family="Georgia, serif" font-size="40">Your wallet has approvals</text>
+  <text x="80" y="155" fill="#ef4444" font-family="Georgia, serif" font-size="40" filter="url(#glow)">you forgot about.</text>
+  <line x1="80" y1="178" x2="400" y2="178" stroke="#c8a961" stroke-width="1" opacity="0.2"/>
+
+  <!-- Approval table -->
+  <g transform="translate(80, 210)">
+    <!-- Table header -->
+    <rect width="1040" height="36" rx="4" fill="#0e0e0e"/>
+    <text x="20" y="24" fill="#6b6860" font-family="'Courier New', monospace" font-size="11" letter-spacing="2">SPENDER CONTRACT</text>
+    <text x="440" y="24" fill="#6b6860" font-family="'Courier New', monospace" font-size="11" letter-spacing="2">TOKEN</text>
+    <text x="620" y="24" fill="#6b6860" font-family="'Courier New', monospace" font-size="11" letter-spacing="2">ALLOWANCE</text>
+    <text x="820" y="24" fill="#6b6860" font-family="'Courier New', monospace" font-size="11" letter-spacing="2">SCORE</text>
+
+    <!-- Row 1 — CRITICAL -->
+    <g transform="translate(0, 48)">
+      <rect width="1040" height="52" rx="4" fill="url(#danger-bg)" stroke="#ef4444" stroke-width="0.5" opacity="0.6"/>
+      <text x="20" y="22" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="13">0x7a25...d593</text>
+      <text x="20" y="40" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">unverified · unknown deployer</text>
+      <text x="440" y="30" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="13">USDC</text>
+      <text x="620" y="30" fill="#ef4444" font-family="'Courier New', monospace" font-size="13">unlimited</text>
+      <g transform="translate(820, 12)">
+        <rect width="48" height="28" rx="4" fill="rgba(239,68,68,0.12)" stroke="#ef4444" stroke-width="0.5"/>
+        <text x="24" y="19" text-anchor="middle" fill="#ef4444" font-family="'Courier New', monospace" font-size="14">12</text>
+      </g>
+      <text x="890" y="30" fill="#ef4444" font-family="'Courier New', monospace" font-size="11">critical</text>
+    </g>
+
+    <!-- Row 2 — WARNING -->
+    <g transform="translate(0, 108)">
+      <rect width="1040" height="52" rx="4" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="0.5"/>
+      <text x="20" y="22" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="13">0x3fc9...b82e</text>
+      <text x="20" y="40" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">unverified · 3 scam reports</text>
+      <text x="440" y="30" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="13">WETH</text>
+      <text x="620" y="30" fill="#fbbf24" font-family="'Courier New', monospace" font-size="13">unlimited</text>
+      <g transform="translate(820, 12)">
+        <rect width="48" height="28" rx="4" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="0.5"/>
+        <text x="24" y="19" text-anchor="middle" fill="#fbbf24" font-family="'Courier New', monospace" font-size="14">38</text>
+      </g>
+      <text x="890" y="30" fill="#fbbf24" font-family="'Courier New', monospace" font-size="11">medium</text>
+    </g>
+
+    <!-- Row 3 — SAFE -->
+    <g transform="translate(0, 168)">
+      <rect width="1040" height="52" rx="4" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="0.5"/>
+      <text x="20" y="22" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="13">0xa0b8...6eb5</text>
+      <text x="20" y="40" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">verified · Binance bridge</text>
+      <text x="440" y="30" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="13">USDC</text>
+      <text x="620" y="30" fill="#4ade80" font-family="'Courier New', monospace" font-size="13">500 USDC</text>
+      <g transform="translate(820, 12)">
+        <rect width="48" height="28" rx="4" fill="rgba(74,222,128,0.08)" stroke="#4ade80" stroke-width="0.5"/>
+        <text x="24" y="19" text-anchor="middle" fill="#4ade80" font-family="'Courier New', monospace" font-size="14">91</text>
+      </g>
+      <text x="890" y="30" fill="#4ade80" font-family="'Courier New', monospace" font-size="11">safe</text>
+    </g>
+
+    <!-- Row 4 — SAFE -->
+    <g transform="translate(0, 228)">
+      <rect width="1040" height="52" rx="4" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="0.5"/>
+      <text x="20" y="22" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="13">0x1111...1111</text>
+      <text x="20" y="40" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">verified · 1inch router</text>
+      <text x="440" y="30" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="13">ETH</text>
+      <text x="620" y="30" fill="#4ade80" font-family="'Courier New', monospace" font-size="13">unlimited</text>
+      <g transform="translate(820, 12)">
+        <rect width="48" height="28" rx="4" fill="rgba(74,222,128,0.08)" stroke="#4ade80" stroke-width="0.5"/>
+        <text x="24" y="19" text-anchor="middle" fill="#4ade80" font-family="'Courier New', monospace" font-size="14">95</text>
+      </g>
+      <text x="890" y="30" fill="#4ade80" font-family="'Courier New', monospace" font-size="11">safe</text>
+    </g>
+  </g>
+
+  <!-- Summary -->
+  <g transform="translate(80, 500)">
+    <rect width="1040" height="50" rx="6" fill="#0d0d0d" stroke="#c8a961" stroke-width="0.5" opacity="0.4"/>
+    <text x="24" y="30" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" letter-spacing="1">14 APPROVALS SCANNED</text>
+    <text x="300" y="30" fill="#ef4444" font-family="'Courier New', monospace" font-size="12">2 CRITICAL</text>
+    <text x="450" y="30" fill="#fbbf24" font-family="'Courier New', monospace" font-size="12">1 MEDIUM</text>
+    <text x="590" y="30" fill="#4ade80" font-family="'Courier New', monospace" font-size="12">11 SAFE</text>
+    <text x="750" y="30" fill="#d4d0c8" font-family="Georgia, serif" font-size="15">→ revoke the red ones</text>
+  </g>
+
+  <!-- Bottom bar -->
+  <line x1="80" y1="575" x2="1120" y2="575" stroke="#1e1e1c" stroke-width="1"/>
+  <text x="80" y="605" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">scan every approval · score every spender · revoke the dangerous ones</text>
+  <text x="1120" y="605" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">mcp.vigil.codes</text>
+</svg>
