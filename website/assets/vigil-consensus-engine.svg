@@ -17,15 +17,15 @@
   <rect width="1200" height="630" fill="#080808"/>
 
   <!-- Top label -->
-  <text x="80" y="55" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . CONSENSUS ENGINE . BASE</text>
+  <text x="80" y="55" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . CONSENSUS ENGINE . BASE</text>
 
   <!-- Title -->
-  <text x="80" y="105" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="42">5 sources. One verdict.</text>
-  <text x="80" y="148" fill="#6b6860" font-family="'DM Serif Display', Georgia, serif" font-size="22" font-style="italic">No single signal can produce a false positive.</text>
+  <text x="80" y="105" fill="#d4d0c8" font-family="Georgia, serif" font-size="42">5 sources. One verdict.</text>
+  <text x="80" y="148" fill="#6b6860" font-family="Georgia, serif" font-size="22" font-style="italic">No single signal can produce a false positive.</text>
   <line x1="80" y1="170" x2="420" y2="170" stroke="#c8a961" stroke-width="1" opacity="0.2"/>
 
   <!-- 5 source boxes on the left -->
-  <g font-family="'DM Mono', 'Courier New', monospace" font-size="13">
+  <g font-family="'Courier New', monospace" font-size="13">
     <!-- Source 1: GoPlus -->
     <g transform="translate(80, 210)">
       <rect width="260" height="52" rx="6" fill="#0d0d0d" stroke="#1e1e1c" stroke-width="1"/>
@@ -75,10 +75,10 @@
   <!-- Consensus Engine center box -->
   <g transform="translate(580, 240)">
     <rect width="200" height="140" rx="10" fill="url(#gold-dim)" stroke="#c8a961" stroke-width="1.5" filter="url(#glow)"/>
-    <text x="100" y="50" text-anchor="middle" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="11" letter-spacing="3">CONSENSUS</text>
-    <text x="100" y="75" text-anchor="middle" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="11" letter-spacing="3">ENGINE</text>
+    <text x="100" y="50" text-anchor="middle" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="3">CONSENSUS</text>
+    <text x="100" y="75" text-anchor="middle" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="3">ENGINE</text>
     <line x1="40" y1="90" x2="160" y2="90" stroke="#c8a961" stroke-width="0.5" opacity="0.3"/>
-    <text x="100" y="115" text-anchor="middle" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="16">majority vote</text>
+    <text x="100" y="115" text-anchor="middle" fill="#d4d0c8" font-family="Georgia, serif" font-size="16">majority vote</text>
   </g>
 
   <!-- Arrow from consensus to verdict -->
@@ -90,11 +90,11 @@
   <!-- Verdict box -->
   <g transform="translate(860, 240)">
     <rect width="260" height="140" rx="10" fill="#0d0d0d" stroke="#c8a961" stroke-width="1"/>
-    <text x="130" y="35" text-anchor="middle" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="11" letter-spacing="3">VERDICT</text>
+    <text x="130" y="35" text-anchor="middle" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="3">VERDICT</text>
     <line x1="30" y1="48" x2="230" y2="48" stroke="#1e1e1c" stroke-width="1"/>
 
     <!-- Verdict levels -->
-    <g font-family="'DM Mono', 'Courier New', monospace" font-size="13">
+    <g font-family="'Courier New', monospace" font-size="13">
       <circle cx="40" cy="72" r="4" fill="#4ade80"/>
       <text x="54" y="76" fill="#d4d0c8">safe — majority vote green</text>
 
@@ -108,6 +108,6 @@
 
   <!-- Bottom bar -->
   <line x1="80" y1="555" x2="1120" y2="555" stroke="#1e1e1c" stroke-width="1"/>
-  <text x="80" y="590" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="13">consensus = low false positives · 5 independent sources must agree</text>
-  <text x="1120" y="590" text-anchor="end" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="13" opacity="0.7">mcp.vigil.codes</text>
+  <text x="80" y="590" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">consensus = low false positives · 5 independent sources must agree</text>
+  <text x="1120" y="590" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">mcp.vigil.codes</text>
 </svg>

@@ -8,14 +8,14 @@
 
   <rect width="1200" height="630" fill="#080808"/>
 
-  <text x="80" y="68" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . MULTI-SOURCE CONSENSUS</text>
-  <text x="80" y="118" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="42">One source can't cry wolf</text>
-  <text x="80" y="152" fill="#6b6860" font-family="'DM Serif Display', Georgia, serif" font-size="19" font-style="italic">risk only escalates when independent sources agree.</text>
+  <text x="80" y="68" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . MULTI-SOURCE CONSENSUS</text>
+  <text x="80" y="118" fill="#d4d0c8" font-family="Georgia, serif" font-size="42">One source can't cry wolf</text>
+  <text x="80" y="152" fill="#6b6860" font-family="Georgia, serif" font-size="19" font-style="italic">risk only escalates when independent sources agree.</text>
   <line x1="80" y1="174" x2="340" y2="174" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
 
   <!-- 5 sources -->
-  <text x="80" y="218" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="13" letter-spacing="3">5 INDEPENDENT SOURCES VOTE</text>
-  <g font-family="'DM Mono', 'Courier New', monospace" font-size="15" transform="translate(80, 244)">
+  <text x="80" y="218" fill="#6b6860" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">5 INDEPENDENT SOURCES VOTE</text>
+  <g font-family="'Courier New', monospace" font-size="15" transform="translate(80, 244)">
     <g transform="translate(0,0)">
       <rect width="200" height="44" rx="8" fill="#0e1a0e" stroke="#6bbd6b" stroke-width="1" opacity="0.9"/>
       <circle cx="26" cy="22" r="6" fill="#6bbd6b"/>
@@ -44,8 +44,8 @@
   </g>
 
   <!-- escalation ladder -->
-  <text x="80" y="346" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="13" letter-spacing="3">VERDICT = HOW MANY AGREE</text>
-  <g font-family="'DM Mono', 'Courier New', monospace" font-size="16" transform="translate(80, 372)">
+  <text x="80" y="346" fill="#6b6860" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">VERDICT = HOW MANY AGREE</text>
+  <g font-family="'Courier New', monospace" font-size="16" transform="translate(80, 372)">
     <g transform="translate(0,0)">
       <rect width="500" height="40" rx="8" fill="#0c0c0c" stroke="#1e1e1c" stroke-width="1"/>
       <text x="20" y="26" fill="#6bbd6b">0 sources flag risk</text>
@@ -71,13 +71,13 @@
   <!-- right note -->
   <g transform="translate(640, 372)">
     <rect width="480" height="190" rx="10" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
-    <text x="30" y="48" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="12" letter-spacing="2">THE GUARD</text>
-    <text x="30" y="88" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="23">A single noisy source</text>
-    <text x="30" y="118" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="23">can't trigger a</text>
-    <text x="30" y="148" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="23">false positive.</text>
+    <text x="30" y="48" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">THE GUARD</text>
+    <text x="30" y="88" fill="#d4d0c8" font-family="Georgia, serif" font-size="23">A single noisy source</text>
+    <text x="30" y="118" fill="#d4d0c8" font-family="Georgia, serif" font-size="23">can't trigger a</text>
+    <text x="30" y="148" fill="#d4d0c8" font-family="Georgia, serif" font-size="23">false positive.</text>
   </g>
 
   <line x1="80" y1="588" x2="1120" y2="588" stroke="#1e1e1c" stroke-width="1"/>
-  <text x="80" y="616" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="13">vigil_consensus . live on mcp.vigil.codes</text>
-  <text x="1120" y="616" text-anchor="end" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes</text>
+  <text x="80" y="616" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">vigil_consensus . live on mcp.vigil.codes</text>
+  <text x="1120" y="616" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes</text>
 </svg>

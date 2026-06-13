@@ -50,16 +50,16 @@
   </g>
 
   <!-- VIGIL text -->
-  <text x="600" y="410" text-anchor="middle" fill="url(#gold)" font-family="'DM Serif Display', Georgia, serif" font-size="64" font-weight="400" filter="url(#gl)">VIGIL</text>
+  <text x="600" y="410" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="64" font-weight="400" filter="url(#gl)">VIGIL</text>
 
   <!-- Tagline -->
-  <text x="600" y="455" text-anchor="middle" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="18" font-weight="300">Onchain Security Meets Autonomous Agents</text>
+  <text x="600" y="455" text-anchor="middle" fill="#6b6860" font-family="'Courier New', monospace" font-size="18" font-weight="300">Onchain Security Meets Autonomous Agents</text>
 
   <!-- Divider -->
   <line x1="450" y1="475" x2="750" y2="475" stroke="#c8a961" stroke-width="1" opacity="0.2"/>
 
   <!-- Ecosystem badges -->
-  <g font-family="'DM Mono', 'Courier New', monospace" font-size="13" fill="#c8a961" opacity="0.6">
+  <g font-family="'Courier New', monospace" font-size="13" fill="#c8a961" opacity="0.6">
     <text x="350" y="520" text-anchor="middle">Base L2</text>
     <text x="600" y="520" text-anchor="middle">MCP Server</text>
     <text x="850" y="520" text-anchor="middle">Open Source</text>
@@ -70,5 +70,5 @@
   <circle cx="725" cy="516" r="2" fill="#c8a961" opacity="0.3"/>
 
   <!-- Bottom links -->
-  <text x="600" y="580" text-anchor="middle" fill="#3a3830" font-family="'DM Mono', 'Courier New', monospace" font-size="12">vigil.codes · github.com/vigilcodes/vigil-mcp</text>
+  <text x="600" y="580" text-anchor="middle" fill="#3a3830" font-family="'Courier New', monospace" font-size="12">vigil.codes · github.com/vigilcodes/vigil-mcp</text>
 </svg>

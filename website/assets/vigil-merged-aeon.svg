@@ -25,12 +25,12 @@
   </g>
 
   <!-- VIGIL text -->
-  <text x="600" y="185" text-anchor="middle" fill="url(#gold)" font-family="'DM Serif Display', Georgia, serif" font-size="42">VIGIL</text>
+  <text x="600" y="185" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="42">VIGIL</text>
 
   <!-- Merged badge -->
   <g transform="translate(480, 210)">
     <rect width="240" height="32" rx="16" fill="#c8a961" opacity="0.15"/>
-    <text x="120" y="22" text-anchor="middle" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="12" font-weight="600">MERGED INTO AEON</text>
+    <text x="120" y="22" text-anchor="middle" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" font-weight="600">MERGED INTO AEON</text>
   </g>
 
   <!-- Arrow down -->
@@ -40,15 +40,15 @@
   <g transform="translate(250, 310)">
     <rect width="700" height="180" rx="8" fill="none" stroke="#c8a961" stroke-width="1.5" opacity="0.3"/>
     <rect width="700" height="180" rx="8" fill="#c8a961" opacity="0.04"/>
-    <text x="350" y="45" text-anchor="middle" fill="#d4d0c8" font-family="'DM Mono', 'Courier New', monospace" font-size="24" font-weight="600">aaronjmars/aeon</text>
-    <text x="350" y="75" text-anchor="middle" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="14">The most autonomous agent framework</text>
+    <text x="350" y="45" text-anchor="middle" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="24" font-weight="600">aaronjmars/aeon</text>
+    <text x="350" y="75" text-anchor="middle" fill="#6b6860" font-family="'Courier New', monospace" font-size="14">The most autonomous agent framework</text>
 
     <!-- Features -->
-    <text x="60" y="115" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="12" opacity="0.6">▸ Scheduled security scans every 6 hours</text>
-    <text x="60" y="135" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="12" opacity="0.6">▸ Autonomous alerting on risky approvals</text>
-    <text x="60" y="155" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="12" opacity="0.6">▸ Chain with token-movers for auto checks</text>
+    <text x="60" y="115" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" opacity="0.6">▸ Scheduled security scans every 6 hours</text>
+    <text x="60" y="135" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" opacity="0.6">▸ Autonomous alerting on risky approvals</text>
+    <text x="60" y="155" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" opacity="0.6">▸ Chain with token-movers for auto checks</text>
   </g>
 
   <!-- Bottom -->
-  <text x="600" y="550" text-anchor="middle" fill="#3a3830" font-family="'DM Mono', 'Courier New', monospace" font-size="12">vigil.codes · github.com/vigilcodes/vigil-mcp</text>
+  <text x="600" y="550" text-anchor="middle" fill="#3a3830" font-family="'Courier New', monospace" font-size="12">vigil.codes · github.com/vigilcodes/vigil-mcp</text>
 </svg>

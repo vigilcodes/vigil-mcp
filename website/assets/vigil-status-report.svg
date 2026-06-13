@@ -9,8 +9,8 @@
   <rect width="1200" height="630" fill="#080808"/>
 
   <!-- Header -->
-  <text x="80" y="60" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">$VIGIL . SECURITY REPORT . BASE</text>
-  <text x="80" y="105" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="36">We pointed VIGIL at its own token.</text>
+  <text x="80" y="60" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">$VIGIL . SECURITY REPORT . BASE</text>
+  <text x="80" y="105" fill="#d4d0c8" font-family="Georgia, serif" font-size="36">We pointed VIGIL at its own token.</text>
   <line x1="80" y1="125" x2="440" y2="125" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
 
   <!-- Score ring -->
@@ -21,13 +21,13 @@
     <circle cx="0" cy="0" r="90" stroke="url(#gold)" stroke-width="4" fill="none"
             stroke-dasharray="469 566" stroke-dashoffset="0"
             transform="rotate(-90)"/>
-    <text x="0" y="12" text-anchor="middle" fill="url(#gold)" font-family="'DM Serif Display', Georgia, serif" font-size="56">83</text>
-    <text x="0" y="40" text-anchor="middle" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="16">/100</text>
-    <text x="0" y="65" text-anchor="middle" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="13" letter-spacing="2">LOW RISK</text>
+    <text x="0" y="12" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="56">83</text>
+    <text x="0" y="40" text-anchor="middle" fill="#6b6860" font-family="'Courier New', monospace" font-size="16">/100</text>
+    <text x="0" y="65" text-anchor="middle" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" letter-spacing="2">LOW RISK</text>
   </g>
 
   <!-- Scan results -->
-  <g font-family="'DM Mono', 'Courier New', monospace" font-size="15">
+  <g font-family="'Courier New', monospace" font-size="15">
     <g transform="translate(400, 180)">
       <text x="0" y="0" fill="#c8a961">✓</text><text x="28" y="0" fill="#d4d0c8">Not a honeypot</text>
       <text x="28" y="22" fill="#6b6860" font-size="12">Buy &amp; sell work normally</text>
@@ -53,12 +53,12 @@
   <!-- Token info -->
   <g transform="translate(80, 490)">
     <rect width="1040" height="60" rx="6" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.2"/>
-    <text x="24" y="28" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="12">CA: 0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3</text>
-    <text x="24" y="48" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="12">Chain: Base · Ticker: $VIGIL · Agent: mcp.vigil.codes</text>
+    <text x="24" y="28" fill="#6b6860" font-family="'Courier New', monospace" font-size="12">CA: 0xC751afAdD6fde251Ac624A279ECB9ac85AA27bA3</text>
+    <text x="24" y="48" fill="#6b6860" font-family="'Courier New', monospace" font-size="12">Chain: Base · Ticker: $VIGIL · Agent: mcp.vigil.codes</text>
   </g>
 
   <!-- Bottom bar -->
   <line x1="80" y1="575" x2="1120" y2="575" stroke="#1e1e1c" stroke-width="1"/>
-  <text x="80" y="600" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="13">A security agent should pass its own audit.</text>
-  <text x="1120" y="600" text-anchor="end" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes</text>
+  <text x="80" y="600" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">A security agent should pass its own audit.</text>
+  <text x="1120" y="600" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes</text>
 </svg>

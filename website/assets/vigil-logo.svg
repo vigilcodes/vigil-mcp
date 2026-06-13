@@ -75,5 +75,5 @@
 
   <!-- "VIGIL" text -->
   <text x="256" y="480" text-anchor="middle" fill="#c8a961" font-size="32" 
-        font-family="'DM Mono', 'Courier New', monospace" font-weight="700" letter-spacing="18" filter="url(#gl2)">VIGIL</text>
+        font-family="'Courier New', monospace" font-weight="700" letter-spacing="18" filter="url(#gl2)">VIGIL</text>
 </svg>
