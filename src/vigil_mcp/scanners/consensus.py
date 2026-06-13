@@ -20,7 +20,7 @@ we keep one noisy source from producing a false positive.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
