@@ -81,5 +81,5 @@
 
   <!-- VIGIL text -->
   <text x="512" y="920" text-anchor="middle" fill="#c8a961" font-size="56" 
-        font-family="'Courier New', monospace" font-weight="700" letter-spacing="36" filter="url(#gl2)">VIGIL</text>
+        font-family="'DM Mono', 'Courier New', monospace" font-weight="700" letter-spacing="36" filter="url(#gl2)">VIGIL</text>
 </svg>

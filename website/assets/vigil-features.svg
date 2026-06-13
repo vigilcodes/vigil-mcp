@@ -9,66 +9,66 @@
   <rect width="1200" height="630" fill="#080808"/>
 
   <!-- Header -->
-  <text x="80" y="60" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">SECURITY TOOLS</text>
-  <text x="80" y="100" fill="#d4d0c8" font-family="Georgia, serif" font-size="36">Six agents. One protocol.</text>
+  <text x="80" y="60" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">SECURITY TOOLS</text>
+  <text x="80" y="100" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="36">Six agents. One protocol.</text>
   <line x1="80" y1="120" x2="300" y2="120" stroke="#c8a961" stroke-width="1" opacity="0.2"/>
 
   <!-- Feature cards — 2x3 grid -->
   <!-- Row 1 -->
   <g transform="translate(60, 150)">
     <rect width="340" height="130" rx="4" fill="none" stroke="#1e1e1c" stroke-width="1"/>
-    <text x="24" y="36" fill="#c8a961" font-family="Georgia, serif" font-size="42" opacity="0.3">01</text>
-    <text x="24" y="70" fill="#d4d0c8" font-family="Georgia, serif" font-size="18">Approval Scanner</text>
-    <text x="24" y="95" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">Flag unlimited allowances. Identify risky</text>
-    <text x="24" y="110" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">spender contracts before they drain funds.</text>
+    <text x="24" y="36" fill="#c8a961" font-family="'DM Serif Display', Georgia, serif" font-size="42" opacity="0.3">01</text>
+    <text x="24" y="70" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="18">Approval Scanner</text>
+    <text x="24" y="95" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">Flag unlimited allowances. Identify risky</text>
+    <text x="24" y="110" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">spender contracts before they drain funds.</text>
   </g>
 
   <g transform="translate(430, 150)">
     <rect width="340" height="130" rx="4" fill="none" stroke="#1e1e1c" stroke-width="1"/>
-    <text x="24" y="36" fill="#c8a961" font-family="Georgia, serif" font-size="42" opacity="0.3">02</text>
-    <text x="24" y="70" fill="#d4d0c8" font-family="Georgia, serif" font-size="18">Token Analyzer</text>
-    <text x="24" y="95" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">Hidden mint. Proxy patterns. Tax</text>
-    <text x="24" y="110" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">manipulation. Blacklist functions.</text>
+    <text x="24" y="36" fill="#c8a961" font-family="'DM Serif Display', Georgia, serif" font-size="42" opacity="0.3">02</text>
+    <text x="24" y="70" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="18">Token Analyzer</text>
+    <text x="24" y="95" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">Hidden mint. Proxy patterns. Tax</text>
+    <text x="24" y="110" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">manipulation. Blacklist functions.</text>
   </g>
 
   <g transform="translate(800, 150)">
     <rect width="340" height="130" rx="4" fill="none" stroke="#1e1e1c" stroke-width="1"/>
-    <text x="24" y="36" fill="#c8a961" font-family="Georgia, serif" font-size="42" opacity="0.3">03</text>
-    <text x="24" y="70" fill="#d4d0c8" font-family="Georgia, serif" font-size="18">Honeypot Detector</text>
-    <text x="24" y="95" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">Simulate buy/sell. Detect tokens that</text>
-    <text x="24" y="110" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">block selling or trap liquidity.</text>
+    <text x="24" y="36" fill="#c8a961" font-family="'DM Serif Display', Georgia, serif" font-size="42" opacity="0.3">03</text>
+    <text x="24" y="70" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="18">Honeypot Detector</text>
+    <text x="24" y="95" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">Simulate buy/sell. Detect tokens that</text>
+    <text x="24" y="110" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">block selling or trap liquidity.</text>
   </g>
 
   <!-- Row 2 -->
   <g transform="translate(60, 300)">
     <rect width="340" height="130" rx="4" fill="none" stroke="#1e1e1c" stroke-width="1"/>
-    <text x="24" y="36" fill="#c8a961" font-family="Georgia, serif" font-size="42" opacity="0.3">04</text>
-    <text x="24" y="70" fill="#d4d0c8" font-family="Georgia, serif" font-size="18">Safety Score</text>
-    <text x="24" y="95" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">0-100 rating. Code analysis, ownership,</text>
-    <text x="24" y="110" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">liquidity depth, holder distribution.</text>
+    <text x="24" y="36" fill="#c8a961" font-family="'DM Serif Display', Georgia, serif" font-size="42" opacity="0.3">04</text>
+    <text x="24" y="70" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="18">Safety Score</text>
+    <text x="24" y="95" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">0-100 rating. Code analysis, ownership,</text>
+    <text x="24" y="110" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">liquidity depth, holder distribution.</text>
   </g>
 
   <g transform="translate(430, 300)">
     <rect width="340" height="130" rx="4" fill="none" stroke="#1e1e1c" stroke-width="1"/>
-    <text x="24" y="36" fill="#c8a961" font-family="Georgia, serif" font-size="42" opacity="0.3">05</text>
-    <text x="24" y="70" fill="#d4d0c8" font-family="Georgia, serif" font-size="18">Approval Revoker</text>
-    <text x="24" y="95" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">Revoke dangerous approvals via</text>
-    <text x="24" y="110" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">Bankr transaction signing.</text>
+    <text x="24" y="36" fill="#c8a961" font-family="'DM Serif Display', Georgia, serif" font-size="42" opacity="0.3">05</text>
+    <text x="24" y="70" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="18">Approval Revoker</text>
+    <text x="24" y="95" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">Revoke dangerous approvals via</text>
+    <text x="24" y="110" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">Bankr transaction signing.</text>
   </g>
 
   <g transform="translate(800, 300)">
     <rect width="340" height="130" rx="4" fill="none" stroke="#1e1e1c" stroke-width="1"/>
-    <text x="24" y="36" fill="#c8a961" font-family="Georgia, serif" font-size="42" opacity="0.3">06</text>
-    <text x="24" y="70" fill="#d4d0c8" font-family="Georgia, serif" font-size="18">Wallet Report</text>
-    <text x="24" y="95" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">Full security posture assessment.</text>
-    <text x="24" y="110" fill="#6b6860" font-family="'Courier New', monospace" font-size="11">All findings. One report.</text>
+    <text x="24" y="36" fill="#c8a961" font-family="'DM Serif Display', Georgia, serif" font-size="42" opacity="0.3">06</text>
+    <text x="24" y="70" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="18">Wallet Report</text>
+    <text x="24" y="95" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">Full security posture assessment.</text>
+    <text x="24" y="110" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="11">All findings. One report.</text>
   </g>
 
   <!-- Bottom bar -->
   <line x1="60" y1="470" x2="1140" y2="470" stroke="#1e1e1c" stroke-width="1"/>
 
   <!-- MCP + Base badges -->
-  <g font-family="'Courier New', monospace" font-size="12">
+  <g font-family="'DM Mono', 'Courier New', monospace" font-size="12">
     <rect x="60" y="495" width="100" height="28" rx="4" fill="none" stroke="#c8a961" stroke-width="1" opacity="0.3"/>
     <text x="110" y="514" text-anchor="middle" fill="#c8a961" opacity="0.6">MCP</text>
 
@@ -80,5 +80,5 @@
   </g>
 
   <!-- Footer -->
-  <text x="1140" y="590" text-anchor="end" fill="#3a3830" font-family="'Courier New', monospace" font-size="11">vigil.codes</text>
+  <text x="1140" y="590" text-anchor="end" fill="#3a3830" font-family="'DM Mono', 'Courier New', monospace" font-size="11">vigil.codes</text>
 </svg>

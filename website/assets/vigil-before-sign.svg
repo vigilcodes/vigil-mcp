@@ -23,20 +23,20 @@
   </g>
 
   <!-- Statement — centered, large -->
-  <text x="600" y="160" text-anchor="middle" fill="#6b6860" font-family="Georgia, serif" font-size="40">Most tools tell you</text>
-  <text x="600" y="220" text-anchor="middle" fill="#d4d0c8" font-family="Georgia, serif" font-size="40">what happened</text>
-  <text x="600" y="280" text-anchor="middle" fill="#d4d0c8" font-family="Georgia, serif" font-size="40">after you lose</text>
-  <text x="600" y="340" text-anchor="middle" fill="#d4d0c8" font-family="Georgia, serif" font-size="40">your money.</text>
+  <text x="600" y="160" text-anchor="middle" fill="#6b6860" font-family="'DM Serif Display', Georgia, serif" font-size="40">Most tools tell you</text>
+  <text x="600" y="220" text-anchor="middle" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="40">what happened</text>
+  <text x="600" y="280" text-anchor="middle" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="40">after you lose</text>
+  <text x="600" y="340" text-anchor="middle" fill="#d4d0c8" font-family="'DM Serif Display', Georgia, serif" font-size="40">your money.</text>
 
   <!-- Gold divider -->
   <line x1="560" y1="370" x2="640" y2="370" stroke="#c8a961" stroke-width="1" opacity="0.4"/>
 
   <!-- VIGIL answer -->
-  <text x="600" y="420" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="40">VIGIL tells you</text>
-  <text x="600" y="480" text-anchor="middle" fill="url(#gold)" font-family="Georgia, serif" font-size="40">before you sign.</text>
+  <text x="600" y="420" text-anchor="middle" fill="url(#gold)" font-family="'DM Serif Display', Georgia, serif" font-size="40">VIGIL tells you</text>
+  <text x="600" y="480" text-anchor="middle" fill="url(#gold)" font-family="'DM Serif Display', Georgia, serif" font-size="40">before you sign.</text>
 
   <!-- Bottom bar -->
   <line x1="80" y1="545" x2="1120" y2="545" stroke="#1e1e1c" stroke-width="1"/>
-  <text x="80" y="582" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">8 free tools · open source · plug into any AI agent</text>
-  <text x="1120" y="582" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes</text>
+  <text x="80" y="582" fill="#6b6860" font-family="'DM Mono', 'Courier New', monospace" font-size="13">8 free tools · open source · plug into any AI agent</text>
+  <text x="1120" y="582" text-anchor="end" fill="#c8a961" font-family="'DM Mono', 'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes</text>
 </svg>
