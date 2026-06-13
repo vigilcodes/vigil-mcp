@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIGIL — Demo</title>
+  <meta name="description" content="VIGIL — onchain security for agents on Base. Full 30-second walkthrough.">
+  <link rel="icon" type="image/svg+xml" href="assets/vigil-logo.svg">
+  <meta property="og:title" content="VIGIL — 30s Walkthrough">
+  <meta property="og:description" content="Scan, consensus, live feed — all on Base. No API key.">
+  <meta property="og:type" content="video.other">
+  <meta property="og:video" content="https://vigil.codes/assets/vigil-full-demo-1920x1080.mp4">
+  <meta property="og:video:type" content="video/mp4">
+  <meta property="og:video:width" content="1920">
+  <meta property="og:video:height" content="1080">
+  <meta property="og:image" content="https://vigil.codes/assets/png/vigil-article-cover-1500x600.png">
+  <meta name="twitter:card" content="player">
+  <meta name="twitter:player" content="https://vigil.codes/demo">
+  <meta name="twitter:player:width" content="1920">
+  <meta name="twitter:player:height" content="1080">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{--bg:#080808;--gold:#c8a961;--text:#d4d0c8;--dim:#6b6860;--border:#1e1e1c;
+      --serif:'DM Serif Display',serif;--mono:'DM Mono',monospace;--sans:'Inter',sans-serif;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+    .wrap{max-width:1100px;width:100%;}
+    .top{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+    .top img{width:30px;height:30px;}
+    .top span{font-family:var(--mono);letter-spacing:6px;color:var(--gold);text-transform:uppercase;font-size:12px;}
+    .top a{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;}
+    h1{font-family:var(--serif);font-size:32px;font-weight:400;margin-bottom:8px;}
+    .sub{color:var(--dim);margin-bottom:20px;font-size:15px;}
+    video{width:100%;border-radius:12px;background:#000;display:block;}
+    .links{margin-top:20px;display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;}
+    .links a{color:var(--gold);text-decoration:none;}
+    .links a:hover{text-decoration:underline;}
+    @media(max-width:640px){h1{font-size:24px;}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <img src="assets/vigil-logo.svg" alt="">
+      <span>Vigil</span>
+      <a href="/">vigil.codes →</a>
+    </div>
+    <h1>Scan before you sign.</h1>
+    <p class="sub">A 30-second walkthrough — live scan, multi-source consensus, public feed.</p>
+    <video src="assets/vigil-full-demo-1920x1080.mp4" controls autoplay muted playsinline preload="auto"></video>
+    <div class="links">
+      <a href="/scan">→ try it yourself</a>
+      <a href="/feed">→ live feed</a>
+      <a href="https://t.me/vigilcodesbot">→ telegram bot</a>
+      <a href="https://github.com/vigilcodes/vigil-mcp">→ github</a>
+    </div>
+  </div>
+</body>
+</html>
