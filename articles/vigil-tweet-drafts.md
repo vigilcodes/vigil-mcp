@@ -183,3 +183,72 @@ $VIGIL, audited by VIGIL 👁️
 83/100 · not a honeypot · 0% tax · verified · 0 scam reports
 
 Powered by GoPlus + Base RPC. Scan any Base token free at vigil.codes
+
+
+========================================================
+12 TOOLS — NEW CARDS (SVG + PNG)
+========================================================
+
+New images generated from SVG (matching brand: Georgia + Courier New, gold on #080808):
+- website/assets/vigil-card-12tools.svg   → png/vigil-card-12tools.png
+- website/assets/vigil-status-report.svg  → png/vigil-status-report.png
+- website/assets/vigil-before-sign.svg    → png/vigil-before-sign.png
+- website/assets/vigil-shipped-12tools.svg → png/vigil-shipped-12tools.png
+
+
+=== 7. 12 TOOLS — shipping update (BEST) ===
+[Image: vigil-shipped-12tools.png]
+
+New on VIGIL today 👁️
+
+→ Token Market — price, liquidity, pool age
+→ Deployer Check — verification + reputation
+→ Batch Scan — score a whole wallet at once
+→ Consensus Engine — 5 sources vote, no false positives
+→ Community scam database
+
+12 tools. One endpoint. Any AI agent can plug in.
+
+vigil.codes
+
+
+=== 8. BEFORE YOU SIGN — brand statement (pinned tweet) ===
+[Image: vigil-before-sign.png]
+
+Most security tools tell you what happened after you lose your money.
+
+VIGIL tells you before you sign.
+
+8 free tools. Open source. Plug into any AI client.
+
+vigil.codes 👁️
+
+
+=== 9. TOOLKIT OVERVIEW — reference card ===
+[Image: vigil-card-12tools.png]
+
+12 security tools. One MCP endpoint. Any AI agent.
+
+VIGIL — onchain security on Base 👁️
+
+8 free · 3 premium (x402) · 100% open source
+
+vigil.codes
+
+
+=== 10. $VIGIL DOGFOODING — trust builder ===
+[Image: vigil-status-report.png]
+
+We pointed VIGIL at its own token 👁️
+
+$VIGIL security report — live from mcp.vigil.codes:
+
+✓ Not a honeypot
+✓ Buy/sell tax: 0%
+✓ Source verified · not mintable
+✓ 0 scam reports
+✓ Safety score: 83/100
+
+A security agent should pass its own audit.
+
+vigil.codes
