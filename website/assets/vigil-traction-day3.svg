@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8a961"/>
+      <stop offset="100%" stop-color="#e8d5a3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <text x="80" y="72" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL . LIVE TRACTION . BASE</text>
+  <text x="80" y="128" fill="#d4d0c8" font-family="Georgia, serif" font-size="46">Scans are climbing.</text>
+  <text x="80" y="166" fill="#6b6860" font-family="Georgia, serif" font-size="20" font-style="italic">organic adoption — no marketing push, just shipped.</text>
+  <line x1="80" y1="190" x2="340" y2="190" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+
+  <!-- 4 stat cards -->
+  <g>
+    <rect x="80" y="226" width="252" height="170" rx="12" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.3"/>
+    <text x="106" y="280" fill="#6b6860" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">TOTAL SCANS</text>
+    <text x="106" y="356" fill="url(#gold)" font-family="Georgia, serif" font-size="74">98</text>
+
+    <rect x="348" y="226" width="252" height="170" rx="12" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.3"/>
+    <text x="374" y="280" fill="#6b6860" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">LAST 24H</text>
+    <text x="374" y="356" fill="url(#gold)" font-family="Georgia, serif" font-size="74">59</text>
+
+    <rect x="616" y="226" width="252" height="170" rx="12" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.3"/>
+    <text x="642" y="280" fill="#6b6860" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">TOKENS CHECKED</text>
+    <text x="642" y="356" fill="url(#gold)" font-family="Georgia, serif" font-size="74">24</text>
+
+    <rect x="884" y="226" width="252" height="170" rx="12" fill="#1a0e0e" stroke="#bd6b6b" stroke-width="1" opacity="0.45"/>
+    <text x="910" y="280" fill="#6b6860" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">FLAGGED RISKY</text>
+    <text x="910" y="356" fill="#bd6b6b" font-family="Georgia, serif" font-size="74">2</text>
+  </g>
+
+  <!-- bar chart visual hint: day 1 vs 24h -->
+  <g transform="translate(80, 432)">
+    <text x="0" y="0" fill="#6b6860" font-family="'Courier New', monospace" font-size="11" letter-spacing="2">DAY-OVER-DAY</text>
+    <rect x="0" y="14" width="120" height="22" fill="url(#gold)" opacity="0.35"/>
+    <text x="132" y="30" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="14">8 scans · day 1</text>
+    <rect x="0" y="46" width="900" height="22" fill="url(#gold)"/>
+    <text x="912" y="62" fill="#d4d0c8" font-family="'Courier New', monospace" font-size="14">59 scans · last 24h</text>
+  </g>
+
+  <line x1="80" y1="548" x2="1120" y2="548" stroke="#1e1e1c"/>
+  <text x="80" y="586" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">live, anonymized — vigil.codes/feed · @vigilcodesbot · vigil.codes/scan</text>
+  <text x="1120" y="586" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">🛡️ VIGIL</text>
+</svg>
