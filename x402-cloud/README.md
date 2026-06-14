@@ -12,14 +12,15 @@ x402-paid tools (e.g. `vigil_consensus`), which would create a double-paywall.
 - **URL:** `https://x402.bankr.bot/0x9f6697155bbfc4c87fe9499ceb233a3dda4ce708/vigil-pretrade`
 - **Price:** $0.01 USDC/req (Base)
 - **What it does:** one call runs `vigil_safety_score`, `vigil_detect_honeypot`,
-  and `vigil_check_scam` in parallel, then returns one aggregated verdict
-  (`safe` → `critical`) + recommendation.
+  `vigil_check_scam`, and `vigil_liquidity_lock` in parallel, then returns one
+  aggregated verdict (`safe` → `critical`) + recommendation.
 - **Bias:** any hard risk signal dominates; missing data lowers completeness but
-  never fabricates a `safe`.
+  never fabricates a `safe`. Liquidity `unknown` (e.g. V3/NFT positions) does
+  not move the verdict.
 
 #### Future
-When `vigil_liquidity_lock` (PR #2) ships to production at `mcp.vigil.codes`,
-add it as a fourth source in `x402/vigil-pretrade/index.ts` and redeploy.
+The report now includes `vigil_liquidity_lock`. Add further VIGIL tools as new
+sources in `x402/vigil-pretrade/index.ts` and redeploy.
 
 ## Deploy / manage
 

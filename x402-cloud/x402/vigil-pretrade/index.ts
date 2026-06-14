@@ -68,17 +68,19 @@ export default async function handler(req: Request) {
   // Run the free scanners in parallel. If any fails, we surface it as a
   // partial result rather than failing the whole report — but if ALL fail,
   // we return 502 so the payment is not settled.
-  const [scoreR, honeypotR, scamR] = await Promise.allSettled([
+  const [scoreR, honeypotR, scamR, lockR] = await Promise.allSettled([
     callVigil("vigil_safety_score", { contract: token, token, chain }),
     callVigil("vigil_detect_honeypot", { token, chain }),
     callVigil("vigil_check_scam", { token, chain }),
+    callVigil("vigil_liquidity_lock", { token, chain }),
   ]);
 
   const score = scoreR.status === "fulfilled" ? (scoreR.value as Record<string, unknown>) : null;
   const honeypot = honeypotR.status === "fulfilled" ? (honeypotR.value as Record<string, unknown>) : null;
   const scam = scamR.status === "fulfilled" ? (scamR.value as Record<string, unknown>) : null;
+  const lock = lockR.status === "fulfilled" ? (lockR.value as Record<string, unknown>) : null;
 
-  if (!score && !honeypot && !scam) {
+  if (!score && !honeypot && !scam && !lock) {
     return new Response(
       JSON.stringify({ error: "VIGIL upstream unreachable — no scanners returned data" }),
       { status: 502, headers: { "Content-Type": "application/json" } },
@@ -112,10 +114,24 @@ export default async function handler(req: Request) {
     reasons.push(`Safety score: ${safetyScore !== null ? `${safetyScore}/100` : riskLevel} (${riskLevel})`);
   }
 
+  // Liquidity lock: only `unlocked` raises risk. locked/burned are positive
+  // signals; `unknown` (e.g. V3/NFT positions) must NOT move the verdict —
+  // missing lock data is never treated as a safety problem or a guarantee.
+  const lockStatus = typeof lock?.lock_status === "string" ? (lock.lock_status as string) : "unknown";
+  if (lockStatus === "unlocked") {
+    if (verdict === "safe") verdict = "high";
+    const pct =
+      typeof lock?.locked_fraction === "number" ? ` (${Math.round((lock.locked_fraction as number) * 100)}% locked)` : "";
+    reasons.push(`Liquidity is withdrawable — rug-pull risk${pct}`);
+  } else if (lockStatus === "locked" || lockStatus === "burned") {
+    reasons.push(`Liquidity ${lockStatus}`);
+  }
+
   const missing: string[] = [];
   if (!score) missing.push("safety_score");
   if (!honeypot) missing.push("honeypot");
   if (!scam) missing.push("scam_db");
+  if (!lock) missing.push("liquidity_lock");
 
   const report = {
     token,
@@ -130,6 +146,7 @@ export default async function handler(req: Request) {
       safety_score: score,
       honeypot,
       scam_db: scam,
+      liquidity_lock: lock,
     },
     incomplete: missing.length > 0,
     missing_sources: missing,
