@@ -1,0 +1,55 @@
+{
+  "network": "base",
+  "currency": "USDC",
+  "services": {
+    "vigil-pretrade": {
+      "description": "VIGIL Full Pre-Trade Report. One call runs multiple onchain security scanners against a Base token (safety score, honeypot detection, community scam DB) and returns a single aggregated verdict + recommendation. Built for trading agents that want one clean go/no-go signal before they sign.",
+      "price": "0.01",
+      "methods": ["POST"],
+      "paymentScheme": "exact",
+      "category": "security",
+      "tags": ["security", "rugpull", "honeypot", "pretrade", "base", "defi"],
+      "schema": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string",
+              "description": "Token contract address to scan (0x-prefixed, 40 hex chars)"
+            },
+            "chain": {
+              "type": "string",
+              "description": "Blockchain network",
+              "enum": ["base", "ethereum", "polygon", "arbitrum"]
+            }
+          },
+          "required": ["token"]
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "token": { "type": "string", "description": "Scanned token address" },
+            "chain": { "type": "string", "description": "Chain the scan ran on" },
+            "verdict": {
+              "type": "string",
+              "description": "Overall verdict: safe, low, medium, high, or critical"
+            },
+            "recommendation": {
+              "type": "string",
+              "description": "Human-readable go/no-go recommendation"
+            },
+            "reasons": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of signals behind the verdict"
+            },
+            "incomplete": {
+              "type": "boolean",
+              "description": "True if one or more scanners did not return data"
+            }
+          }
+        }
+      }
+    }
+  }
+}
