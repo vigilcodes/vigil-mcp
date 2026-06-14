@@ -14,9 +14,7 @@ import time
 from contextlib import closing
 from typing import Any, Optional
 
-_DEFAULT_DB = os.getenv(
-    "VIGIL_FEED_DB", os.path.join(os.path.expanduser("~"), ".vigil", "feed.db")
-)
+_DEFAULT_DB = os.getenv("VIGIL_FEED_DB", os.path.join(os.path.expanduser("~"), ".vigil", "feed.db"))
 
 # Only these tools produce a feed-worthy verdict on a token.
 _FEED_TOOLS = {
@@ -47,9 +45,7 @@ class FeedStore:
                 """
             )
 
-    def record(
-        self, token: str, chain: str, tool: str, verdict: str = "", score: Optional[int] = None
-    ) -> None:
+    def record(self, token: str, chain: str, tool: str, verdict: str = "", score: Optional[int] = None) -> None:
         try:
             with closing(sqlite3.connect(self.db_path)) as c, c:
                 c.execute(
@@ -62,25 +58,18 @@ class FeedStore:
     def recent(self, limit: int = 30) -> list[dict[str, Any]]:
         with closing(sqlite3.connect(self.db_path)) as c:
             rows = c.execute(
-                "SELECT token, chain, tool, verdict, score, at FROM feed "
-                "ORDER BY id DESC LIMIT ?",
+                "SELECT token, chain, tool, verdict, score, at FROM feed ORDER BY id DESC LIMIT ?",
                 (min(limit, 100),),
             ).fetchall()
-        return [
-            {"token": r[0], "chain": r[1], "tool": r[2], "verdict": r[3], "score": r[4], "at": r[5]}
-            for r in rows
-        ]
+        return [{"token": r[0], "chain": r[1], "tool": r[2], "verdict": r[3], "score": r[4], "at": r[5]} for r in rows]
 
     def totals(self) -> dict[str, Any]:
         with closing(sqlite3.connect(self.db_path)) as c:
             total = c.execute("SELECT COUNT(*) FROM feed").fetchone()[0]
             flagged = c.execute(
-                "SELECT COUNT(*) FROM feed WHERE verdict IN ('high','critical') "
-                "OR verdict='honeypot'"
+                "SELECT COUNT(*) FROM feed WHERE verdict IN ('high','critical') OR verdict='honeypot'"
             ).fetchone()[0]
-            day = c.execute(
-                "SELECT COUNT(*) FROM feed WHERE at > ?", (int(time.time()) - 86400,)
-            ).fetchone()[0]
+            day = c.execute("SELECT COUNT(*) FROM feed WHERE at > ?", (int(time.time()) - 86400,)).fetchone()[0]
             tokens = c.execute("SELECT COUNT(DISTINCT token) FROM feed").fetchone()[0]
         return {"total": total, "flagged": flagged, "last_24h": day, "unique_tokens": tokens}
 

@@ -11,9 +11,7 @@ import time
 from contextlib import closing
 from typing import Any, Optional
 
-DEFAULT_DB_PATH = os.getenv(
-    "VIGIL_SCAM_DB", os.path.join(os.path.expanduser("~"), ".vigil", "scam_reports.db")
-)
+DEFAULT_DB_PATH = os.getenv("VIGIL_SCAM_DB", os.path.join(os.path.expanduser("~"), ".vigil", "scam_reports.db"))
 
 VALID_EVIDENCE = {"honeypot", "rugpull", "phishing", "scam", "fake"}
 
@@ -46,9 +44,7 @@ class ScamDatabase:
                 )
                 """
             )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_token_chain ON scam_reports(token, chain)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_token_chain ON scam_reports(token, chain)")
 
     def report(
         self,
@@ -61,9 +57,7 @@ class ScamDatabase:
         """Store a scam report. Returns the created report id and aggregate count."""
         evidence_type = evidence_type.lower().strip()
         if evidence_type not in VALID_EVIDENCE:
-            raise ValueError(
-                f"Invalid evidence_type '{evidence_type}'. Use: {', '.join(sorted(VALID_EVIDENCE))}"
-            )
+            raise ValueError(f"Invalid evidence_type '{evidence_type}'. Use: {', '.join(sorted(VALID_EVIDENCE))}")
 
         token_l = token.lower()
         chain_l = chain.lower()

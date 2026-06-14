@@ -27,9 +27,7 @@ from vigil_mcp.monitors.wallet_monitor import WalletMonitor
 
 logger = logging.getLogger("vigil-sentinel")
 
-DEFAULT_DB = os.getenv(
-    "VIGIL_SENTINEL_DB", os.path.join(os.path.expanduser("~"), ".vigil", "sentinel.db")
-)
+DEFAULT_DB = os.getenv("VIGIL_SENTINEL_DB", os.path.join(os.path.expanduser("~"), ".vigil", "sentinel.db"))
 
 
 class SentinelStore:
@@ -77,8 +75,7 @@ class SentinelStore:
         w, ch = wallet.lower(), chain.lower()
         with closing(self._conn()) as conn, conn:
             conn.execute(
-                "INSERT OR REPLACE INTO watchlist (wallet, chain, label, added_at) "
-                "VALUES (?, ?, ?, ?)",
+                "INSERT OR REPLACE INTO watchlist (wallet, chain, label, added_at) VALUES (?, ?, ?, ?)",
                 (w, ch, label, int(time.time())),
             )
         return {"wallet": w, "chain": ch, "label": label, "status": "watching"}
@@ -86,17 +83,13 @@ class SentinelStore:
     def remove(self, wallet: str, chain: str) -> dict[str, Any]:
         w, ch = wallet.lower(), chain.lower()
         with closing(self._conn()) as conn, conn:
-            cur = conn.execute(
-                "DELETE FROM watchlist WHERE wallet = ? AND chain = ?", (w, ch)
-            )
+            cur = conn.execute("DELETE FROM watchlist WHERE wallet = ? AND chain = ?", (w, ch))
             removed = cur.rowcount
         return {"wallet": w, "chain": ch, "removed": removed > 0}
 
     def list(self) -> list[dict[str, Any]]:
         with closing(self._conn()) as conn:
-            rows = conn.execute(
-                "SELECT wallet, chain, label, added_at FROM watchlist ORDER BY added_at"
-            ).fetchall()
+            rows = conn.execute("SELECT wallet, chain, label, added_at FROM watchlist ORDER BY added_at").fetchall()
         return [dict(r) for r in rows]
 
     # ── alert dedup ──────────────────────────────────────────
@@ -114,9 +107,7 @@ class SentinelStore:
         with closing(self._conn()) as conn, conn:
             for a in alerts:
                 fp = self._fingerprint(w, ch, a)
-                exists = conn.execute(
-                    "SELECT 1 FROM seen_alerts WHERE fingerprint = ?", (fp,)
-                ).fetchone()
+                exists = conn.execute("SELECT 1 FROM seen_alerts WHERE fingerprint = ?", (fp,)).fetchone()
                 if exists:
                     continue
                 conn.execute(
@@ -174,10 +165,7 @@ class Sentinel:
                 report = await self.monitor.monitor(wallet, chain, self.lookback)
                 alerts = [a.model_dump() for a in report.alerts]
                 new_alerts = self.store.filter_new(wallet, chain, alerts)
-                notify_worthy = [
-                    a for a in new_alerts
-                    if self._SEV_ORDER.get(a.get("severity"), 0) >= threshold
-                ]
+                notify_worthy = [a for a in new_alerts if self._SEV_ORDER.get(a.get("severity"), 0) >= threshold]
                 if notify_worthy:
                     await _notify(
                         {
@@ -198,7 +186,10 @@ class Sentinel:
                 )
                 logger.info(
                     "Sentinel scanned %s (%s): %d new, %d notified",
-                    wallet, chain, len(new_alerts), len(notify_worthy),
+                    wallet,
+                    chain,
+                    len(new_alerts),
+                    len(notify_worthy),
                 )
             except Exception as e:  # noqa: BLE001 — one wallet shouldn't kill the loop
                 logger.error("Sentinel scan failed for %s: %s", wallet, e)

@@ -34,8 +34,7 @@ logger = logging.getLogger("vigil-mcp")
 mcp = FastMCP(
     "vigil",
     instructions=(
-        "Onchain security scanner — scan token approvals, detect rugpulls,"
-        " check honeypots, revoke dangerous approvals"
+        "Onchain security scanner — scan token approvals, detect rugpulls, check honeypots, revoke dangerous approvals"
     ),
     host=os.getenv("VIGIL_MCP_HOST", "127.0.0.1"),
     port=int(os.getenv("VIGIL_MCP_PORT", "3100")),
@@ -83,9 +82,7 @@ class InvalidAddressError(ValueError):
 
 def _validate_address(addr: str, field: str) -> str:
     if not isinstance(addr, str) or not _ADDR_RE.match(addr):
-        raise InvalidAddressError(
-            f"Invalid {field}: expected a 0x-prefixed 40-hex-char address, got '{addr}'"
-        )
+        raise InvalidAddressError(f"Invalid {field}: expected a 0x-prefixed 40-hex-char address, got '{addr}'")
     return addr.lower()
 
 
@@ -262,9 +259,7 @@ async def vigil_wallet_report(wallet: str, chain: str = "base") -> dict[str, Any
             {
                 "priority": "critical",
                 "action": f"Revoke {critical} critical approvals immediately",
-                "detail": (
-                    "These approvals grant unlimited spending power to potentially risky contracts"
-                ),
+                "detail": ("These approvals grant unlimited spending power to potentially risky contracts"),
             }
         )
     if high > 0:
@@ -298,9 +293,7 @@ async def vigil_wallet_report(wallet: str, chain: str = "base") -> dict[str, Any
         },
         "scam_db_hits": flagged_via_scam_db,
         "scam_interactions": scam_history,
-        "top_risks": [
-            a.model_dump() for a in approvals.approvals if a.risk in ("critical", "high")
-        ][:5],
+        "top_risks": [a.model_dump() for a in approvals.approvals if a.risk in ("critical", "high")][:5],
         "recommendations": recommendations,
     }
 
@@ -341,9 +334,7 @@ async def _get_native_balance_eth(wallet: str, chain: str) -> Optional[float]:
 
 
 @mcp.tool()
-async def vigil_monitor_wallet(
-    wallet: str, chain: str = "base", lookback_blocks: int = 1000
-) -> dict[str, Any]:
+async def vigil_monitor_wallet(wallet: str, chain: str = "base", lookback_blocks: int = 1000) -> dict[str, Any]:
     """Monitor wallet for suspicious activity in recent blocks.
 
     Checks for: new approvals, unlimited allowances, interactions
@@ -483,9 +474,7 @@ async def vigil_revoke_approval(token: str, spender: str, chain: str = "base") -
 
 
 @mcp.tool()
-async def vigil_batch_revoke(
-    wallet: str, chain: str = "base", risk_level: str = "critical"
-) -> dict[str, Any]:
+async def vigil_batch_revoke(wallet: str, chain: str = "base", risk_level: str = "critical") -> dict[str, Any]:
     """Revoke all risky approvals for a wallet in one session.
 
     Only revokes approvals at or above the specified risk level.
@@ -503,9 +492,7 @@ async def vigil_batch_revoke(
 
     for approval in approvals.approvals:
         try:
-            tx = await revocation_engine.revoke_single(
-                approval.token_address, approval.spender_address, chain
-            )
+            tx = await revocation_engine.revoke_single(approval.token_address, approval.spender_address, chain)
             results["revoked"] += 1
             results["transactions"].append(
                 {
@@ -590,9 +577,7 @@ async def vigil_check_scam(token: str, chain: str = "base") -> dict[str, Any]:
 
 
 @mcp.tool()
-async def vigil_sentinel_watch(
-    wallet: str, chain: str = "base", label: str = ""
-) -> dict[str, Any]:
+async def vigil_sentinel_watch(wallet: str, chain: str = "base", label: str = "") -> dict[str, Any]:
     """Add a wallet to the autonomous Sentinel watchlist.
 
     The Sentinel loop scans watched wallets on a schedule and surfaces only
@@ -719,9 +704,7 @@ async def get_token_info() -> str:
 # ─────────────────────────────────────────────────────────────
 
 TOOL_MAP = {
-    "vigil_scan_approvals": lambda args: vigil_scan_approvals(
-        args.get("wallet", ""), args.get("chain", "base")
-    ),
+    "vigil_scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
     "vigil_scan_token": lambda args: vigil_scan_token(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
@@ -731,9 +714,7 @@ TOOL_MAP = {
     "vigil_safety_score": lambda args: vigil_safety_score(
         args.get("contract") or args.get("token", ""), args.get("chain", "base")
     ),
-    "vigil_wallet_report": lambda args: vigil_wallet_report(
-        args.get("wallet", ""), args.get("chain", "base")
-    ),
+    "vigil_wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
     "vigil_monitor_wallet": lambda args: vigil_monitor_wallet(
         args.get("wallet", ""),
         args.get("chain", "base"),
@@ -745,9 +726,7 @@ TOOL_MAP = {
     "vigil_deployer_check": lambda args: vigil_deployer_check(
         args.get("contract") or args.get("token", ""), args.get("chain", "base")
     ),
-    "vigil_batch_scan": lambda args: vigil_batch_scan(
-        args.get("tokens", []), args.get("chain", "base")
-    ),
+    "vigil_batch_scan": lambda args: vigil_batch_scan(args.get("tokens", []), args.get("chain", "base")),
     "vigil_check_scam": lambda args: vigil_check_scam(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
@@ -755,9 +734,7 @@ TOOL_MAP = {
     "vigil_consensus": lambda args: vigil_consensus(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
-    "scan_approvals": lambda args: vigil_scan_approvals(
-        args.get("wallet", ""), args.get("chain", "base")
-    ),
+    "scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
     "scan_token": lambda args: vigil_scan_token(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
@@ -767,9 +744,7 @@ TOOL_MAP = {
     "safety_score": lambda args: vigil_safety_score(
         args.get("contract") or args.get("token", ""), args.get("chain", "base")
     ),
-    "wallet_report": lambda args: vigil_wallet_report(
-        args.get("wallet", ""), args.get("chain", "base")
-    ),
+    "wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
     "monitor_wallet": lambda args: vigil_monitor_wallet(
         args.get("wallet", ""),
         args.get("chain", "base"),
@@ -781,16 +756,12 @@ TOOL_MAP = {
     "deployer_check": lambda args: vigil_deployer_check(
         args.get("contract") or args.get("token", ""), args.get("chain", "base")
     ),
-    "batch_scan": lambda args: vigil_batch_scan(
-        args.get("tokens", []), args.get("chain", "base")
-    ),
+    "batch_scan": lambda args: vigil_batch_scan(args.get("tokens", []), args.get("chain", "base")),
     "check_scam": lambda args: vigil_check_scam(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
     "sentinel_status": lambda args: vigil_sentinel_status(),
-    "consensus": lambda args: vigil_consensus(
-        args.get("token") or args.get("contract", ""), args.get("chain", "base")
-    ),
+    "consensus": lambda args: vigil_consensus(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
 }
 
 

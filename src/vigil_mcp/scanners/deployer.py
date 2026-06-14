@@ -171,8 +171,7 @@ class DeployerScanner:
         note = "Deployer reputation via Basescan"
         if plan_limited:
             note = (
-                "Verification available; deployer address and contract age require a "
-                "paid Basescan plan for this chain"
+                "Verification available; deployer address and contract age require a paid Basescan plan for this chain"
             )
 
         return DeployerInfo(

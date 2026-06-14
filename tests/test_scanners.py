@@ -169,9 +169,7 @@ class TestApprovalScannerRPC:
             ],
             "data": "0x" + hex(10**18)[2:].zfill(64),
         }
-        httpx_mock.add_response(
-            json={"jsonrpc": "2.0", "id": 1, "result": [unlimited_log, safe_log]}
-        )
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": [unlimited_log, safe_log]})
 
         result = await scanner._scan_via_rpc(WALLET, "base", "critical")
         assert result.total == 1
@@ -824,8 +822,7 @@ class TestSentinelStore:
     def test_filter_new_dedups(self, tmp_path):
         store = self._store(tmp_path)
         alerts = [
-            {"severity": "high", "category": "approval", "message": "unlimited",
-             "details": {"spender": "0xabc"}},
+            {"severity": "high", "category": "approval", "message": "unlimited", "details": {"spender": "0xabc"}},
         ]
         first = store.filter_new(WALLET, "base", alerts)
         assert len(first) == 1  # new the first time
@@ -846,10 +843,19 @@ class TestSentinelLoop:
 
         async def _fake_monitor(self, wallet, chain, lookback):
             return MonitorResult(
-                wallet=wallet, chain=chain, monitored_at=0.0,
-                alerts=[Alert(severity="critical", category="approval",
-                              message="unlimited approval", details={"spender": "0xbad"})],
-                summary={}, recommendations=[],
+                wallet=wallet,
+                chain=chain,
+                monitored_at=0.0,
+                alerts=[
+                    Alert(
+                        severity="critical",
+                        category="approval",
+                        message="unlimited approval",
+                        details={"spender": "0xbad"},
+                    )
+                ],
+                summary={},
+                recommendations=[],
             )
 
         from vigil_mcp.monitors.wallet_monitor import WalletMonitor

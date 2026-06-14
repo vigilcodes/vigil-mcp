@@ -196,10 +196,7 @@ class ConsensusEngine:
         elif verdict == "unknown":
             summary = "Insufficient data from independent sources to reach a verdict."
         else:
-            summary = (
-                f"{n_risk} independent source(s) flagged risk → {verdict.upper()}. "
-                + "; ".join(all_reasons)
-            )
+            summary = f"{n_risk} independent source(s) flagged risk → {verdict.upper()}. " + "; ".join(all_reasons)
 
         return ConsensusResult(
             token=token.lower(),

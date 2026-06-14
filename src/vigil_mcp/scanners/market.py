@@ -87,9 +87,7 @@ class MarketScanner:
         # Prefer pairs where the requested token is the BASE token, because
         # DexScreener's priceUsd refers to the base token. This avoids reporting
         # the counter-asset's price (e.g. WETH) when our token is the quote side.
-        base_pairs = [
-            p for p in pairs if ((p.get("baseToken") or {}).get("address") or "").lower() == token_l
-        ]
+        base_pairs = [p for p in pairs if ((p.get("baseToken") or {}).get("address") or "").lower() == token_l]
         price_pairs = base_pairs or pairs
         best = max(price_pairs, key=_liq)
 

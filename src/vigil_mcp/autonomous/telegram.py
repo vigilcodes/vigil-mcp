@@ -23,9 +23,7 @@ TELEGRAM_API = "https://api.telegram.org"
 
 
 def is_configured() -> bool:
-    return bool(os.getenv("VIGIL_TELEGRAM_BOT_TOKEN")) and bool(
-        os.getenv("VIGIL_TELEGRAM_CHAT_ID")
-    )
+    return bool(os.getenv("VIGIL_TELEGRAM_BOT_TOKEN")) and bool(os.getenv("VIGIL_TELEGRAM_CHAT_ID"))
 
 
 def _format_alert(payload: dict[str, Any]) -> str:

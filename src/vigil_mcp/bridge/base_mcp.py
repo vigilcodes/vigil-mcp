@@ -124,9 +124,7 @@ class BaseMCPBridge:
         """Return VIGIL tool schemas for Base MCP registration."""
         return {
             "vigil_security_check": {
-                "description": (
-                    "Run pre-trade security check before executing DeFi operations on Base"
-                ),
+                "description": ("Run pre-trade security check before executing DeFi operations on Base"),
                 "parameters": {
                     "type": "object",
                     "properties": {

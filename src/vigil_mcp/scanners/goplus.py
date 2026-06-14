@@ -106,9 +106,7 @@ class GoPlusScanner:
     async def token_security(self, token: str, chain: str) -> GoPlusResult:
         chain_id = _CHAIN_IDS.get(chain.lower())
         if not chain_id:
-            return GoPlusResult(
-                available=False, note=f"GoPlus: unsupported chain '{chain}'"
-            )
+            return GoPlusResult(available=False, note=f"GoPlus: unsupported chain '{chain}'")
 
         url = f"{self.base}/token_security/{chain_id}"
         try:
@@ -117,23 +115,17 @@ class GoPlusScanner:
                 access = await self._get_token(client)
                 if access:
                     headers["Authorization"] = access
-                resp = await client.get(
-                    url, params={"contract_addresses": token}, headers=headers
-                )
+                resp = await client.get(url, params={"contract_addresses": token}, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
         except Exception as e:  # noqa: BLE001 — best-effort enrichment
             return GoPlusResult(available=False, note=f"GoPlus lookup failed: {e}")
 
         if data.get("code") != 1:
-            return GoPlusResult(
-                available=False, note=f"GoPlus: {data.get('message', 'no data')}"
-            )
+            return GoPlusResult(available=False, note=f"GoPlus: {data.get('message', 'no data')}")
 
         result_map = data.get("result") or {}
-        row = result_map.get(token.lower()) or (
-            next(iter(result_map.values()), None) if result_map else None
-        )
+        row = result_map.get(token.lower()) or (next(iter(result_map.values()), None) if result_map else None)
         if not row:
             return GoPlusResult(available=False, note="GoPlus: no record for token")
 
