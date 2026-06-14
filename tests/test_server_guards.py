@@ -38,9 +38,7 @@ class TestAddressValidation:
 
     def test_validate_tool_arguments_accepts_good(self):
         # Should not raise
-        server._validate_tool_arguments(
-            {"wallet": "0x" + "a" * 40, "chain": "base"}
-        )
+        server._validate_tool_arguments({"wallet": "0x" + "a" * 40, "chain": "base"})
 
     def test_batch_tokens_validated(self):
         good = "0x" + "a" * 40
@@ -71,9 +69,9 @@ class TestEndpointRoutingDefault:
 
     def test_scanners_default_empty_api_base(self, monkeypatch):
         monkeypatch.delenv("VIGIL_API", raising=False)
-        from vigil_mcp.scanners.safety_score import SafetyScorer
-        from vigil_mcp.scanners.honeypot import HoneypotDetector
         from vigil_mcp.scanners.approvals import ApprovalScanner
+        from vigil_mcp.scanners.honeypot import HoneypotDetector
+        from vigil_mcp.scanners.safety_score import SafetyScorer
         from vigil_mcp.scanners.token_scanner import TokenScanner
 
         assert SafetyScorer().api_base == ""

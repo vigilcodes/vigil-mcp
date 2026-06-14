@@ -44,8 +44,7 @@ KNOWN_GOOD: dict[tuple[str, str], KnownContract] = {
     ),
     # Aerodrome
     ("base", "0x940181a94a35a4569e4529a3cdfb74e38fd98631"): KnownContract(
-        "Aerodrome", "AERO", 78, "safe",
-        "Aerodrome Finance governance token — emissions via mint are by design"
+        "Aerodrome", "AERO", 78, "safe", "Aerodrome Finance governance token — emissions via mint are by design"
     ),
     ("base", "0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43"): KnownContract(
         "Aerodrome Router", "AERO-R", 82, "safe", "Aerodrome v1 Router"

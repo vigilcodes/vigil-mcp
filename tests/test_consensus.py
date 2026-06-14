@@ -5,8 +5,6 @@ the verdict past "medium"; risk only escalates to high/critical when multiple
 independent sources agree.
 """
 
-import pytest
-
 from vigil_mcp.scanners.consensus import (
     RISK,
     SAFE,
@@ -60,9 +58,7 @@ class TestConsensusTally:
         assert r.risk_sources == 2
 
     def test_three_sources_agree_is_critical(self):
-        votes = [_risk("goplus"), _risk("scam_db"), _risk("onchain", 0.8)] + [
-            _safe(s) for s in "de"
-        ]
+        votes = [_risk("goplus"), _risk("scam_db"), _risk("onchain", 0.8)] + [_safe(s) for s in "de"]
         r = _tally(votes)
         assert r.verdict == "critical"
         assert r.risk_sources == 3

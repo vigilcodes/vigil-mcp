@@ -84,18 +84,14 @@ class ApprovalScanner:
             "arbitrum": os.getenv("ARBITRUM_RPC", "https://arb1.arbitrum.io/rpc"),
         }
 
-    async def scan(
-        self, wallet: str, chain: str, risk_filter: Optional[str] = None
-    ) -> ApprovalScanResult:
+    async def scan(self, wallet: str, chain: str, risk_filter: Optional[str] = None) -> ApprovalScanResult:
         """Scan all approvals for a wallet."""
         # Try API first, fallback to direct RPC
         if self.api_base and self.api_key:
             return await self._scan_via_api(wallet, chain, risk_filter)
         return await self._scan_via_rpc(wallet, chain, risk_filter)
 
-    async def _scan_via_api(
-        self, wallet: str, chain: str, risk_filter: Optional[str]
-    ) -> ApprovalScanResult:
+    async def _scan_via_api(self, wallet: str, chain: str, risk_filter: Optional[str]) -> ApprovalScanResult:
         """Scan via VIGIL hosted API."""
         params = {"wallet": wallet, "chain": chain}
         if risk_filter:
@@ -121,9 +117,7 @@ class ApprovalScanner:
             summary=summary,
         )
 
-    async def _scan_via_rpc(
-        self, wallet: str, chain: str, risk_filter: Optional[str]
-    ) -> ApprovalScanResult:
+    async def _scan_via_rpc(self, wallet: str, chain: str, risk_filter: Optional[str]) -> ApprovalScanResult:
         """Scan via direct RPC — reads Approval events from chain."""
         rpc_url = self.rpc_urls.get(chain)
         if not rpc_url:

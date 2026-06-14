@@ -52,7 +52,7 @@ def is_enabled() -> bool:
 
 def _price_units(usd: float) -> str:
     """Convert a USD price to USDC atomic-unit string (6 decimals)."""
-    return str(int(round(usd * (10 ** USDC_DECIMALS))))
+    return str(int(round(usd * (10**USDC_DECIMALS))))
 
 
 def _default_prices() -> dict[str, float]:
@@ -66,11 +66,11 @@ def _default_prices() -> dict[str, float]:
     base = float(os.getenv("VIGIL_X402_PRICE_USD", "0.005"))
     return {
         "vigil_scan_token": base,
-        "vigil_token_market": base * 0.6,    # lighter call (DexScreener)
+        "vigil_token_market": base * 0.6,  # lighter call (DexScreener)
         "vigil_deployer_check": base,
-        "vigil_batch_scan": base * 5,        # heavy: scans many tokens
-        "vigil_wallet_report": base * 2,     # aggregates several scans
-        "vigil_consensus": base * 1.5,       # aggregates 5 independent sources
+        "vigil_batch_scan": base * 5,  # heavy: scans many tokens
+        "vigil_wallet_report": base * 2,  # aggregates several scans
+        "vigil_consensus": base * 1.5,  # aggregates 5 independent sources
         # Intentionally NOT priced (stay free):
         # vigil_detect_honeypot — core pre-trade check, must be barrier-free
         # vigil_safety_score   — core pre-trade check, must be barrier-free

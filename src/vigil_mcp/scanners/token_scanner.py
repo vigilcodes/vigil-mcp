@@ -257,9 +257,7 @@ class TokenScanner:
                     Finding(
                         severity="critical",
                         category="ownership",
-                        message=(
-                            "Contract contains mint function — owner can create unlimited tokens"
-                        ),
+                        message=("Contract contains mint function — owner can create unlimited tokens"),
                     )
                 )
                 score -= 30
@@ -270,9 +268,7 @@ class TokenScanner:
                     Finding(
                         severity="high",
                         category="manipulation",
-                        message=(
-                            "Blacklist function detected — owner can block addresses from selling"
-                        ),
+                        message=("Blacklist function detected — owner can block addresses from selling"),
                     )
                 )
                 score -= 20
@@ -283,9 +279,7 @@ class TokenScanner:
                     Finding(
                         severity="high",
                         category="tax",
-                        message=(
-                            "Tax modification function detected — owner can change buy/sell tax"
-                        ),
+                        message=("Tax modification function detected — owner can change buy/sell tax"),
                     )
                 )
                 score -= 15
@@ -322,28 +316,30 @@ class TokenScanner:
             if gp.is_honeypot:
                 gp_honeypot = HoneypotInfo(detected=True, reason="GoPlus flags as honeypot")
                 findings.append(
-                    Finding(severity="critical", category="honeypot",
-                            message="GoPlus flags this token as a honeypot"))
+                    Finding(severity="critical", category="honeypot", message="GoPlus flags this token as a honeypot")
+                )
                 score -= 30
             if (gp.sell_tax or 0) > 0.10:
                 findings.append(
-                    Finding(severity="high", category="tax",
-                            message=f"High sell tax: {round((gp.sell_tax or 0) * 100)}%"))
+                    Finding(
+                        severity="high", category="tax", message=f"High sell tax: {round((gp.sell_tax or 0) * 100)}%"
+                    )
+                )
                 score -= 10
             if gp.hidden_owner:
                 findings.append(
-                    Finding(severity="high", category="ownership",
-                            message="Hidden owner detected (GoPlus)"))
+                    Finding(severity="high", category="ownership", message="Hidden owner detected (GoPlus)")
+                )
                 score -= 10
             if gp.can_take_back_ownership:
                 findings.append(
-                    Finding(severity="medium", category="ownership",
-                            message="Owner can reclaim ownership (GoPlus)"))
+                    Finding(severity="medium", category="ownership", message="Owner can reclaim ownership (GoPlus)")
+                )
                 score -= 5
             if gp.is_open_source:
                 findings.append(
-                    Finding(severity="low", category="general",
-                            message="Source code is open / verified (GoPlus)"))
+                    Finding(severity="low", category="general", message="Source code is open / verified (GoPlus)")
+                )
 
         if not findings:
             findings.append(
