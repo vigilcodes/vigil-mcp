@@ -88,12 +88,9 @@ class UsageStore:
         with closing(sqlite3.connect(self.db_path)) as c:
             total = c.execute("SELECT COUNT(*) FROM usage WHERE target != ''").fetchone()[0]
             users = c.execute("SELECT COUNT(DISTINCT chat_id) FROM usage").fetchone()[0]
-            day = c.execute(
-                "SELECT COUNT(*) FROM usage WHERE at > ?", (int(time.time()) - 86400,)
-            ).fetchone()[0]
+            day = c.execute("SELECT COUNT(*) FROM usage WHERE at > ?", (int(time.time()) - 86400,)).fetchone()[0]
             top = c.execute(
-                "SELECT target, COUNT(*) n FROM usage WHERE target != '' "
-                "GROUP BY target ORDER BY n DESC LIMIT 5"
+                "SELECT target, COUNT(*) n FROM usage WHERE target != '' GROUP BY target ORDER BY n DESC LIMIT 5"
             ).fetchall()
         return {"total_scans": total, "unique_users": users, "scans_24h": day, "top": top}
 
@@ -163,11 +160,7 @@ class VigilBot:
             ident = ""
         icon = _RISK_ICON.get(score.risk_level, "❓")
         hp_txt = "🔴 HONEYPOT" if hp.is_honeypot else "✅ not a honeypot"
-        scam_txt = (
-            f"🔴 {scam.get('report_count', 0)} report(s)"
-            if scam.get("reported")
-            else "✅ none"
-        )
+        scam_txt = f"🔴 {scam.get('report_count', 0)} report(s)" if scam.get("reported") else "✅ none"
         buy = "—" if hp.buy_tax is None else f"{hp.buy_tax * 100:.0f}%"
         sell = "—" if hp.sell_tax is None else f"{hp.sell_tax * 100:.0f}%"
 
@@ -239,7 +232,8 @@ class VigilBot:
             addr = self._extract_addr(text)
             if not addr:
                 await self._send(
-                    client, chat_id,
+                    client,
+                    chat_id,
                     "Send a token address: <code>" + cmd + " 0x…</code> (40 hex chars).",
                 )
                 return

@@ -38,9 +38,9 @@ class TestUsageStore:
         s.log(2, "/scan", USDC, "safe")
         s.log(2, "/honeypot", "0x" + "a" * 40, "")
         stats = s.stats()
-        assert stats["total_scans"] == 3       # rows with a target
-        assert stats["unique_users"] == 2      # chat ids 1 and 2
-        assert stats["top"][0][0] == USDC      # USDC most scanned
+        assert stats["total_scans"] == 3  # rows with a target
+        assert stats["unique_users"] == 2  # chat ids 1 and 2
+        assert stats["top"][0][0] == USDC  # USDC most scanned
         assert stats["top"][0][1] == 2
 
     def test_help_command_not_counted_as_scan(self, tmp_path):

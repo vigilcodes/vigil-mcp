@@ -79,9 +79,7 @@ class WalletMonitor:
             },
         }
 
-    async def _rpc_post(
-        self, client: httpx.AsyncClient, rpc_list: list[str], payload: dict
-    ) -> dict:
+    async def _rpc_post(self, client: httpx.AsyncClient, rpc_list: list[str], payload: dict) -> dict:
         """POST a JSON-RPC payload, falling back through rpc_list on failure.
 
         Tries the first RPC (typically the configured QuickNode); if it errors
@@ -110,21 +108,15 @@ class WalletMonitor:
 
         async with httpx.AsyncClient(timeout=30) as client:
             # Get recent approval events for this wallet
-            approval_alerts = await self._check_recent_approvals(
-                client, wallet, chain, rpc_list, lookback_blocks
-            )
+            approval_alerts = await self._check_recent_approvals(client, wallet, chain, rpc_list, lookback_blocks)
             alerts.extend(approval_alerts)
 
             # Check for interactions with known risky patterns
-            risk_alerts = await self._check_risky_interactions(
-                client, wallet, chain, rpc_list, lookback_blocks
-            )
+            risk_alerts = await self._check_risky_interactions(client, wallet, chain, rpc_list, lookback_blocks)
             alerts.extend(risk_alerts)
 
             # Check balance changes
-            balance_alerts = await self._check_balance_changes(
-                client, wallet, chain, rpc_list, lookback_blocks
-            )
+            balance_alerts = await self._check_balance_changes(client, wallet, chain, rpc_list, lookback_blocks)
             alerts.extend(balance_alerts)
 
         # Generate summary
@@ -139,37 +131,35 @@ class WalletMonitor:
             "high": high,
             "medium": medium,
             "low": low,
-            "status": (
-                "CRITICAL"
-                if critical > 0
-                else "WARNING"
-                if high > 0
-                else "ATTENTION"
-                if medium > 0
-                else "OK"
-            ),
+            "status": ("CRITICAL" if critical > 0 else "WARNING" if high > 0 else "ATTENTION" if medium > 0 else "OK"),
         }
 
         # Generate recommendations
         recommendations = []
         if critical > 0:
-            recommendations.append({
-                "priority": "critical",
-                "action": "Immediately revoke critical approvals",
-                "detail": f"Found {critical} critical alerts requiring immediate attention",
-            })
+            recommendations.append(
+                {
+                    "priority": "critical",
+                    "action": "Immediately revoke critical approvals",
+                    "detail": f"Found {critical} critical alerts requiring immediate attention",
+                }
+            )
         if high > 0:
-            recommendations.append({
-                "priority": "high",
-                "action": "Review high-risk approvals",
-                "detail": f"Found {high} high-risk items",
-            })
+            recommendations.append(
+                {
+                    "priority": "high",
+                    "action": "Review high-risk approvals",
+                    "detail": f"Found {high} high-risk items",
+                }
+            )
         if len(alerts) == 0:
-            recommendations.append({
-                "priority": "info",
-                "action": "No suspicious activity detected",
-                "detail": f"Wallet looks clean for the last {lookback_blocks} blocks",
-            })
+            recommendations.append(
+                {
+                    "priority": "info",
+                    "action": "No suspicious activity detected",
+                    "detail": f"Wallet looks clean for the last {lookback_blocks} blocks",
+                }
+            )
 
         return MonitorResult(
             wallet=wallet,
@@ -188,7 +178,8 @@ class WalletMonitor:
         try:
             # Get current block
             block_resp = await self._rpc_post(
-                client, rpc_list,
+                client,
+                rpc_list,
                 {"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []},
             )
             current_block = int(block_resp.get("result", "0x0"), 16)
@@ -199,19 +190,22 @@ class WalletMonitor:
 
             # Get logs for this wallet
             logs_resp = await self._rpc_post(
-                client, rpc_list,
+                client,
+                rpc_list,
                 {
                     "jsonrpc": "2.0",
                     "id": 2,
                     "method": "eth_getLogs",
-                    "params": [{
-                        "fromBlock": from_block,
-                        "toBlock": "latest",
-                        "topics": [
-                            approval_topic,
-                            "0x" + wallet[2:].lower().zfill(64),
-                        ],
-                    }],
+                    "params": [
+                        {
+                            "fromBlock": from_block,
+                            "toBlock": "latest",
+                            "topics": [
+                                approval_topic,
+                                "0x" + wallet[2:].lower().zfill(64),
+                            ],
+                        }
+                    ],
                 },
             )
             logs = logs_resp.get("result", [])
@@ -236,26 +230,30 @@ class WalletMonitor:
                     severity = "medium"
                     msg = f"New approval to {spender[:10]}..."
 
-                alerts.append(Alert(
-                    severity=severity,
-                    category="approval",
-                    message=msg,
-                    details={
-                        "token": token,
-                        "spender": spender,
-                        "unlimited": is_unlimited,
-                        "block": log.get("blockNumber"),
-                        "tx": log.get("transactionHash"),
-                    },
-                    timestamp=time.time(),
-                ))
+                alerts.append(
+                    Alert(
+                        severity=severity,
+                        category="approval",
+                        message=msg,
+                        details={
+                            "token": token,
+                            "spender": spender,
+                            "unlimited": is_unlimited,
+                            "block": log.get("blockNumber"),
+                            "tx": log.get("transactionHash"),
+                        },
+                        timestamp=time.time(),
+                    )
+                )
 
         except Exception as e:
-            alerts.append(Alert(
-                severity="info",
-                category="system",
-                message=f"Could not fetch approval events: {str(e)[:100]}",
-            ))
+            alerts.append(
+                Alert(
+                    severity="info",
+                    category="system",
+                    message=f"Could not fetch approval events: {str(e)[:100]}",
+                )
+            )
 
         return alerts
 
@@ -266,7 +264,8 @@ class WalletMonitor:
         alerts = []
         try:
             block_resp = await self._rpc_post(
-                client, rpc_list,
+                client,
+                rpc_list,
                 {"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []},
             )
             current_block = int(block_resp.get("result", "0x0"), 16)
@@ -274,19 +273,22 @@ class WalletMonitor:
 
             # Get normal transactions
             tx_resp = await self._rpc_post(
-                client, rpc_list,
+                client,
+                rpc_list,
                 {
                     "jsonrpc": "2.0",
                     "id": 3,
                     "method": "eth_getLogs",
-                    "params": [{
-                        "fromBlock": from_block,
-                        "toBlock": "latest",
-                        "topics": [
-                            None,
-                            "0x" + wallet[2:].lower().zfill(64),
-                        ],
-                    }],
+                    "params": [
+                        {
+                            "fromBlock": from_block,
+                            "toBlock": "latest",
+                            "topics": [
+                                None,
+                                "0x" + wallet[2:].lower().zfill(64),
+                            ],
+                        }
+                    ],
                 },
             )
             logs = tx_resp.get("result", [])
@@ -301,7 +303,8 @@ class WalletMonitor:
                 if contract and contract not in self.known_safe_spenders.get(chain, {}):
                     # Check if contract has code
                     code_resp = await self._rpc_post(
-                        client, rpc_list,
+                        client,
+                        rpc_list,
                         {
                             "jsonrpc": "2.0",
                             "id": 4,
@@ -311,12 +314,14 @@ class WalletMonitor:
                     )
                     code = code_resp.get("result", "0x")
                     if code in ("0x", "0x0"):
-                        alerts.append(Alert(
-                            severity="medium",
-                            category="contract_interaction",
-                            message=f"Interaction with contract that has no code: {contract[:10]}...",
-                            details={"contract": contract},
-                        ))
+                        alerts.append(
+                            Alert(
+                                severity="medium",
+                                category="contract_interaction",
+                                message=f"Interaction with contract that has no code: {contract[:10]}...",
+                                details={"contract": contract},
+                            )
+                        )
 
         except Exception:
             pass
@@ -331,7 +336,8 @@ class WalletMonitor:
         try:
             # Get current ETH balance
             bal_resp = await self._rpc_post(
-                client, rpc_list,
+                client,
+                rpc_list,
                 {
                     "jsonrpc": "2.0",
                     "id": 5,
@@ -344,12 +350,14 @@ class WalletMonitor:
             balance_eth = balance / 1e18
 
             if balance_eth < 0.001:
-                alerts.append(Alert(
-                    severity="low",
-                    category="balance",
-                    message=f"Low ETH balance: {balance_eth:.6f} ETH",
-                    details={"balance_wei": balance, "balance_eth": balance_eth},
-                ))
+                alerts.append(
+                    Alert(
+                        severity="low",
+                        category="balance",
+                        message=f"Low ETH balance: {balance_eth:.6f} ETH",
+                        details={"balance_wei": balance, "balance_eth": balance_eth},
+                    )
+                )
 
         except Exception:
             pass

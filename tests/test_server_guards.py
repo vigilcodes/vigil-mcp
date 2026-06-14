@@ -38,9 +38,7 @@ class TestAddressValidation:
 
     def test_validate_tool_arguments_accepts_good(self):
         # Should not raise
-        server._validate_tool_arguments(
-            {"wallet": "0x" + "a" * 40, "chain": "base"}
-        )
+        server._validate_tool_arguments({"wallet": "0x" + "a" * 40, "chain": "base"})
 
     def test_batch_tokens_validated(self):
         good = "0x" + "a" * 40
@@ -61,7 +59,7 @@ class TestHealthToolCount:
         # /health counts canonical vigil_* tools; TOOL_MAP also holds unprefixed
         # aliases, so the prefixed count must match /tools/list, not len(TOOL_MAP).
         prefixed = [k for k in server.TOOL_MAP if k.startswith("vigil_")]
-        assert len(prefixed) == 12
+        assert len(prefixed) == 13
         # Aliases exist too, so the raw map is larger.
         assert len(server.TOOL_MAP) > len(prefixed)
 
@@ -71,9 +69,9 @@ class TestEndpointRoutingDefault:
 
     def test_scanners_default_empty_api_base(self, monkeypatch):
         monkeypatch.delenv("VIGIL_API", raising=False)
-        from vigil_mcp.scanners.safety_score import SafetyScorer
-        from vigil_mcp.scanners.honeypot import HoneypotDetector
         from vigil_mcp.scanners.approvals import ApprovalScanner
+        from vigil_mcp.scanners.honeypot import HoneypotDetector
+        from vigil_mcp.scanners.safety_score import SafetyScorer
         from vigil_mcp.scanners.token_scanner import TokenScanner
 
         assert SafetyScorer().api_base == ""

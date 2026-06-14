@@ -169,9 +169,7 @@ class TestApprovalScannerRPC:
             ],
             "data": "0x" + hex(10**18)[2:].zfill(64),
         }
-        httpx_mock.add_response(
-            json={"jsonrpc": "2.0", "id": 1, "result": [unlimited_log, safe_log]}
-        )
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": [unlimited_log, safe_log]})
 
         result = await scanner._scan_via_rpc(WALLET, "base", "critical")
         assert result.total == 1
@@ -824,8 +822,7 @@ class TestSentinelStore:
     def test_filter_new_dedups(self, tmp_path):
         store = self._store(tmp_path)
         alerts = [
-            {"severity": "high", "category": "approval", "message": "unlimited",
-             "details": {"spender": "0xabc"}},
+            {"severity": "high", "category": "approval", "message": "unlimited", "details": {"spender": "0xabc"}},
         ]
         first = store.filter_new(WALLET, "base", alerts)
         assert len(first) == 1  # new the first time
@@ -846,10 +843,19 @@ class TestSentinelLoop:
 
         async def _fake_monitor(self, wallet, chain, lookback):
             return MonitorResult(
-                wallet=wallet, chain=chain, monitored_at=0.0,
-                alerts=[Alert(severity="critical", category="approval",
-                              message="unlimited approval", details={"spender": "0xbad"})],
-                summary={}, recommendations=[],
+                wallet=wallet,
+                chain=chain,
+                monitored_at=0.0,
+                alerts=[
+                    Alert(
+                        severity="critical",
+                        category="approval",
+                        message="unlimited approval",
+                        details={"spender": "0xbad"},
+                    )
+                ],
+                summary={},
+                recommendations=[],
             )
 
         from vigil_mcp.monitors.wallet_monitor import WalletMonitor
@@ -1049,3 +1055,208 @@ class TestApprovalEnrichment:
         assert result.total == 1
         assert result.approvals[0].token_symbol == "DEMO"
         assert result.approvals[0].token_name == "DemoToken"
+
+
+# ─── LiquidityLockScanner ──────────────────────────────────
+
+
+class TestLiquidityLockClassify:
+    """Pure-function classification rules (no I/O, no fixtures)."""
+
+    def _scanner(self):
+        from vigil_mcp.scanners.liquidity_lock import LiquidityLockScanner
+
+        return LiquidityLockScanner()
+
+    def test_decode_uint256_full_word(self):
+        s = self._scanner()
+        # 1 in 32-byte uint256
+        assert s._decode_uint256("0x" + "0" * 63 + "1") == 1
+        # large value
+        assert s._decode_uint256("0x" + "f" * 64) == (1 << 256) - 1
+
+    def test_decode_uint256_short_or_empty(self):
+        s = self._scanner()
+        assert s._decode_uint256("0x") is None
+        assert s._decode_uint256("0x123") is None
+        assert s._decode_uint256(None) is None
+        # extra trailing bytes are tolerated — we read only the first word
+        assert s._decode_uint256("0x" + "0" * 63 + "5" + "ab" * 8) == 5
+
+
+class TestLiquidityLockScanner:
+    """Integration tests with mocked HTTP responses."""
+
+    LP = "0x" + "b" * 40
+    LOCKER = "0xc4e637d37113192f4f1f060daebd7758de7f4131"  # UNCX V2 on Base
+    BURN = "0x000000000000000000000000000000000000dead"
+
+    def _word(self, value: int) -> str:
+        return "0x" + format(value, "064x")
+
+    @pytest.fixture
+    def scanner(self):
+        from vigil_mcp.scanners.liquidity_lock import LiquidityLockScanner
+
+        return LiquidityLockScanner()
+
+    @staticmethod
+    def _mock_dexscreener(httpx_mock, pair_address):
+        # MarketScanner calls DexScreener first; mock the deepest pair on Base.
+        httpx_mock.add_response(
+            url=lambda u: "dexscreener" in str(u),  # match any dexscreener URL
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "pairAddress": pair_address,
+                        "baseToken": {"address": TOKEN},
+                        "liquidity": {"usd": 100_000},
+                    }
+                ]
+            },
+        )
+
+    @pytest.mark.asyncio
+    async def test_unsupported_chain(self, scanner):
+        result = await scanner.scan(TOKEN, "solana")
+        assert result.available is False
+        assert result.determined is False
+        assert result.lock_status == "unknown"
+        assert "not supported" in result.notes[0].lower()
+
+    @pytest.mark.asyncio
+    async def test_no_pair_found(self, scanner, httpx_mock):
+        # DexScreener returns empty.
+        httpx_mock.add_response(json={"pairs": []})
+        result = await scanner.scan(TOKEN, "base")
+        assert result.lock_status == "unknown"
+        assert result.determined is False
+        assert "no DEX pair" in result.notes[0].lower() or "no dex pair" in result.notes[0].lower()
+
+    @pytest.mark.asyncio
+    async def test_locked_via_uncx(self, scanner, httpx_mock):
+        # 1) DexScreener returns a pair (LP token == pair address).
+        httpx_mock.add_response(
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "pairAddress": self.LP,
+                        "baseToken": {"address": TOKEN},
+                        "liquidity": {"usd": 100_000},
+                    }
+                ]
+            }
+        )
+        # 2) totalSupply = 1000
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(1000)})
+        # 3) balanceOf(burn 0x0...0) = 0
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(0)})
+        # 4) balanceOf(burn 0x...dEaD) = 0
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(0)})
+        # 5) balanceOf(UNCX V2) = 850 ⇒ 85% locked
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(850)})
+
+        result = await scanner.scan(TOKEN, "base")
+        assert result.lock_status == "locked"
+        assert result.determined is True
+        assert result.locked_fraction == 0.85
+        assert result.locker_name == "UNCX Network Locker V2"
+
+    @pytest.mark.asyncio
+    async def test_burned(self, scanner, httpx_mock):
+        httpx_mock.add_response(
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "pairAddress": self.LP,
+                        "baseToken": {"address": TOKEN},
+                        "liquidity": {"usd": 100_000},
+                    }
+                ]
+            }
+        )
+        # totalSupply = 1000
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(1000)})
+        # burn 0x0...0 = 0
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(0)})
+        # burn 0x...dEaD = 950 ⇒ 95% burned
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(950)})
+        # UNCX = 0
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(0)})
+
+        result = await scanner.scan(TOKEN, "base")
+        assert result.lock_status == "burned"
+        assert result.determined is True
+        assert result.locked_fraction == 0.95
+
+    @pytest.mark.asyncio
+    async def test_unlocked(self, scanner, httpx_mock):
+        httpx_mock.add_response(
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "pairAddress": self.LP,
+                        "baseToken": {"address": TOKEN},
+                        "liquidity": {"usd": 100_000},
+                    }
+                ]
+            }
+        )
+        # totalSupply = 1000, all balances 0 ⇒ 0% locked = unlocked
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(1000)})
+        for _ in range(3):  # 2 burn addrs + 1 locker
+            httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(0)})
+
+        result = await scanner.scan(TOKEN, "base")
+        assert result.lock_status == "unlocked"
+        assert result.determined is True
+        assert result.locked_fraction == 0.0
+        assert "WITHDRAWABLE" in result.notes[0]
+
+    @pytest.mark.asyncio
+    async def test_total_supply_zero_returns_unknown(self, scanner, httpx_mock):
+        httpx_mock.add_response(
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "pairAddress": self.LP,
+                        "baseToken": {"address": TOKEN},
+                        "liquidity": {"usd": 100_000},
+                    }
+                ]
+            }
+        )
+        # totalSupply = 0
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": self._word(0)})
+
+        result = await scanner.scan(TOKEN, "base")
+        assert result.lock_status == "unknown"
+        assert result.determined is False
+
+    @pytest.mark.asyncio
+    async def test_total_supply_short_data_returns_unknown(self, scanner, httpx_mock):
+        """V3 / NFT-LP positions have no totalSupply — must return unknown, not unlocked."""
+        httpx_mock.add_response(
+            json={
+                "pairs": [
+                    {
+                        "chainId": "base",
+                        "pairAddress": self.LP,
+                        "baseToken": {"address": TOKEN},
+                        "liquidity": {"usd": 100_000},
+                    }
+                ]
+            }
+        )
+        # eth_call totalSupply returns "0x" — function does not exist
+        httpx_mock.add_response(json={"jsonrpc": "2.0", "id": 1, "result": "0x"})
+
+        result = await scanner.scan(TOKEN, "base")
+        assert result.lock_status == "unknown"
+        assert result.determined is False
+        assert "V3" in result.notes[0] or "NFT" in result.notes[0]

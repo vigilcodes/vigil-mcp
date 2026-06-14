@@ -41,10 +41,7 @@ class RevocationEngine:
 
     def _check_auth(self):
         if not self.api_key:
-            raise ValueError(
-                "BANKR_API_KEY required for revocation. "
-                "Set it with: export BANKR_API_KEY=bk_your_key"
-            )
+            raise ValueError("BANKR_API_KEY required for revocation. Set it with: export BANKR_API_KEY=bk_your_key")
 
     async def revoke_single(self, token: str, spender: str, chain: str) -> dict[str, Any]:
         """Revoke a single token approval."""
@@ -102,9 +99,7 @@ class RevocationEngine:
             "note": "Sign and submit this transaction to revoke the approval",
         }
 
-    async def report_scam(
-        self, token: str, evidence_type: str, description: str, chain: str
-    ) -> dict[str, Any]:
+    async def report_scam(self, token: str, evidence_type: str, description: str, chain: str) -> dict[str, Any]:
         """Submit a scam report to the community database."""
         self._check_auth()
 

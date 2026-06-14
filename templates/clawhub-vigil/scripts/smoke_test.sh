@@ -24,11 +24,15 @@ try:
     elif 'error' in d:
         print('ERROR')
         print(json.dumps(d['error'], indent=2)[:700])
+    elif 'x402Version' in d or 'accepts' in d:
+        accepts = (d.get('accepts') or [{}])[0]
+        price = accepts.get('maxAmountRequired', '?')
+        print('PAYMENT_REQUIRED (expected — x402 paid tool)')
+        print('  price (USDC atomic units):', price)
+        print('  resource:', accepts.get('resource', '?'))
     else:
         print('UNEXPECTED:', json.dumps(d)[:300])
 except Exception as e:
-    import sys
-    sys.stdin.seek(0) if hasattr(sys.stdin,'seek') else None
     print('PARSE_FAIL:', e)
 " 2>&1
     echo ""

@@ -183,3 +183,63 @@ $VIGIL, audited by VIGIL 👁️
 83/100 · not a honeypot · 0% tax · verified · 0 scam reports
 
 Powered by GoPlus + Base RPC. Scan any Base token free at vigil.codes
+
+
+========================================================
+NEW BATCH — Liquidity Lock Scanner shipped
+========================================================
+
+
+=== ⭐ FINAL — siap kirim (attach: website/assets/vigil-lp-lock-card.png) — 231 chars ===
+
+New on VIGIL: Liquidity Lock Scanner.
+
+4 verdicts: locked / burned / unlocked / unknown.
+
+Missing data returns unknown — never safe. A guess is the failure mode this exists to prevent.
+
+Free. Open source. Live now.
+
+vigil.codes 👁️
+
+
+=== Alt A — "the why" angle (270 chars) ===
+
+Most LP-lock checkers say "looks locked" when they don't actually know.
+
+VIGIL's new scanner returns 4 states:
+locked / burned / unlocked / unknown
+
+Missing data is never safe. That's the failure mode this exists to prevent.
+
+Free. 6th consensus source.
+
+vigil.codes 👁️
+
+
+=== Alt B — mechanics-focused (252 chars) ===
+
+New on VIGIL: Liquidity Lock Scanner 👁️
+
+→ Reads LP totalSupply + balanceOf onchain
+→ ≥80% in locker/burn → locked/burned
+→ Below → unlocked. Missing data → unknown
+→ Never safe-when-uncertain
+→ 6th source in consensus
+
+Free. Open source.
+
+vigil.codes
+
+
+=== Alt C — "we don't guess" thread starter ===
+
+Team.Finance doesn't publish their per-chain contract addresses.
+
+So we didn't add them to VIGIL.
+
+A rug-pull scanner that ships with a guessed locker address would falsely call unlocked LPs "locked" — the exact failure it's supposed to prevent.
+
+We ship what we can verify.
+
+🧵👇

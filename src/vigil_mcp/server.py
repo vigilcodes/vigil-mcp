@@ -20,6 +20,7 @@ from vigil_mcp.scanners.approvals import ApprovalScanner
 from vigil_mcp.scanners.consensus import ConsensusEngine
 from vigil_mcp.scanners.deployer import DeployerScanner
 from vigil_mcp.scanners.honeypot import HoneypotDetector
+from vigil_mcp.scanners.liquidity_lock import LiquidityLockScanner
 from vigil_mcp.scanners.market import MarketScanner
 from vigil_mcp.scanners.safety_score import SafetyScorer
 from vigil_mcp.scanners.scam_db import ScamDatabase
@@ -34,8 +35,7 @@ logger = logging.getLogger("vigil-mcp")
 mcp = FastMCP(
     "vigil",
     instructions=(
-        "Onchain security scanner — scan token approvals, detect rugpulls,"
-        " check honeypots, revoke dangerous approvals"
+        "Onchain security scanner — scan token approvals, detect rugpulls, check honeypots, revoke dangerous approvals"
     ),
     host=os.getenv("VIGIL_MCP_HOST", "127.0.0.1"),
     port=int(os.getenv("VIGIL_MCP_PORT", "3100")),
@@ -56,6 +56,7 @@ sentinel_store = SentinelStore()
 sentinel = Sentinel(store=sentinel_store)
 consensus_engine = ConsensusEngine()
 feed_store = FeedStore()
+liquidity_lock_scanner = LiquidityLockScanner()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -83,9 +84,7 @@ class InvalidAddressError(ValueError):
 
 def _validate_address(addr: str, field: str) -> str:
     if not isinstance(addr, str) or not _ADDR_RE.match(addr):
-        raise InvalidAddressError(
-            f"Invalid {field}: expected a 0x-prefixed 40-hex-char address, got '{addr}'"
-        )
+        raise InvalidAddressError(f"Invalid {field}: expected a 0x-prefixed 40-hex-char address, got '{addr}'")
     return addr.lower()
 
 
@@ -262,9 +261,7 @@ async def vigil_wallet_report(wallet: str, chain: str = "base") -> dict[str, Any
             {
                 "priority": "critical",
                 "action": f"Revoke {critical} critical approvals immediately",
-                "detail": (
-                    "These approvals grant unlimited spending power to potentially risky contracts"
-                ),
+                "detail": ("These approvals grant unlimited spending power to potentially risky contracts"),
             }
         )
     if high > 0:
@@ -298,9 +295,7 @@ async def vigil_wallet_report(wallet: str, chain: str = "base") -> dict[str, Any
         },
         "scam_db_hits": flagged_via_scam_db,
         "scam_interactions": scam_history,
-        "top_risks": [
-            a.model_dump() for a in approvals.approvals if a.risk in ("critical", "high")
-        ][:5],
+        "top_risks": [a.model_dump() for a in approvals.approvals if a.risk in ("critical", "high")][:5],
         "recommendations": recommendations,
     }
 
@@ -341,9 +336,7 @@ async def _get_native_balance_eth(wallet: str, chain: str) -> Optional[float]:
 
 
 @mcp.tool()
-async def vigil_monitor_wallet(
-    wallet: str, chain: str = "base", lookback_blocks: int = 1000
-) -> dict[str, Any]:
+async def vigil_monitor_wallet(wallet: str, chain: str = "base", lookback_blocks: int = 1000) -> dict[str, Any]:
     """Monitor wallet for suspicious activity in recent blocks.
 
     Checks for: new approvals, unlimited allowances, interactions
@@ -420,6 +413,31 @@ async def vigil_consensus(token: str, chain: str = "base") -> dict[str, Any]:
 
 
 @mcp.tool()
+async def vigil_liquidity_lock(token: str, chain: str = "base") -> dict[str, Any]:
+    """Detect whether a token's DEX liquidity is locked, burned, or withdrawable.
+
+    Free core safety check — the classic rug-pull vector is a deployer pulling
+    LP. Returns lock_status of:
+      - `locked`   — recognized lockers hold ≥80% of LP supply (positive signal)
+      - `burned`   — burn addresses hold ≥80% of LP supply (permanent)
+      - `unlocked` — LP is withdrawable; rug-pull risk
+      - `unknown`  — insufficient data; NOT a safety guarantee
+
+    Coverage in this version: V2-style ERC-20 LP tokens (Aerodrome v1, Uniswap
+    V2 forks on Base). V3 / Slipstream NFT positions are not supported and
+    return `unknown` with an explanatory note.
+
+    Args:
+        token: Token contract address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Scanning liquidity lock for {token} on {chain}")
+    result = await liquidity_lock_scanner.scan(token, chain)
+    return result.model_dump()
+
+
+@mcp.tool()
 async def vigil_batch_scan(tokens: list[str], chain: str = "base") -> dict[str, Any]:
     """Scan multiple tokens for safety in one call.
 
@@ -483,9 +501,7 @@ async def vigil_revoke_approval(token: str, spender: str, chain: str = "base") -
 
 
 @mcp.tool()
-async def vigil_batch_revoke(
-    wallet: str, chain: str = "base", risk_level: str = "critical"
-) -> dict[str, Any]:
+async def vigil_batch_revoke(wallet: str, chain: str = "base", risk_level: str = "critical") -> dict[str, Any]:
     """Revoke all risky approvals for a wallet in one session.
 
     Only revokes approvals at or above the specified risk level.
@@ -503,9 +519,7 @@ async def vigil_batch_revoke(
 
     for approval in approvals.approvals:
         try:
-            tx = await revocation_engine.revoke_single(
-                approval.token_address, approval.spender_address, chain
-            )
+            tx = await revocation_engine.revoke_single(approval.token_address, approval.spender_address, chain)
             results["revoked"] += 1
             results["transactions"].append(
                 {
@@ -590,9 +604,7 @@ async def vigil_check_scam(token: str, chain: str = "base") -> dict[str, Any]:
 
 
 @mcp.tool()
-async def vigil_sentinel_watch(
-    wallet: str, chain: str = "base", label: str = ""
-) -> dict[str, Any]:
+async def vigil_sentinel_watch(wallet: str, chain: str = "base", label: str = "") -> dict[str, Any]:
     """Add a wallet to the autonomous Sentinel watchlist.
 
     The Sentinel loop scans watched wallets on a schedule and surfaces only
@@ -719,9 +731,7 @@ async def get_token_info() -> str:
 # ─────────────────────────────────────────────────────────────
 
 TOOL_MAP = {
-    "vigil_scan_approvals": lambda args: vigil_scan_approvals(
-        args.get("wallet", ""), args.get("chain", "base")
-    ),
+    "vigil_scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
     "vigil_scan_token": lambda args: vigil_scan_token(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
@@ -731,9 +741,7 @@ TOOL_MAP = {
     "vigil_safety_score": lambda args: vigil_safety_score(
         args.get("contract") or args.get("token", ""), args.get("chain", "base")
     ),
-    "vigil_wallet_report": lambda args: vigil_wallet_report(
-        args.get("wallet", ""), args.get("chain", "base")
-    ),
+    "vigil_wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
     "vigil_monitor_wallet": lambda args: vigil_monitor_wallet(
         args.get("wallet", ""),
         args.get("chain", "base"),
@@ -745,9 +753,7 @@ TOOL_MAP = {
     "vigil_deployer_check": lambda args: vigil_deployer_check(
         args.get("contract") or args.get("token", ""), args.get("chain", "base")
     ),
-    "vigil_batch_scan": lambda args: vigil_batch_scan(
-        args.get("tokens", []), args.get("chain", "base")
-    ),
+    "vigil_batch_scan": lambda args: vigil_batch_scan(args.get("tokens", []), args.get("chain", "base")),
     "vigil_check_scam": lambda args: vigil_check_scam(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
@@ -755,9 +761,7 @@ TOOL_MAP = {
     "vigil_consensus": lambda args: vigil_consensus(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
-    "scan_approvals": lambda args: vigil_scan_approvals(
-        args.get("wallet", ""), args.get("chain", "base")
-    ),
+    "scan_approvals": lambda args: vigil_scan_approvals(args.get("wallet", ""), args.get("chain", "base")),
     "scan_token": lambda args: vigil_scan_token(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
@@ -767,9 +771,7 @@ TOOL_MAP = {
     "safety_score": lambda args: vigil_safety_score(
         args.get("contract") or args.get("token", ""), args.get("chain", "base")
     ),
-    "wallet_report": lambda args: vigil_wallet_report(
-        args.get("wallet", ""), args.get("chain", "base")
-    ),
+    "wallet_report": lambda args: vigil_wallet_report(args.get("wallet", ""), args.get("chain", "base")),
     "monitor_wallet": lambda args: vigil_monitor_wallet(
         args.get("wallet", ""),
         args.get("chain", "base"),
@@ -781,14 +783,16 @@ TOOL_MAP = {
     "deployer_check": lambda args: vigil_deployer_check(
         args.get("contract") or args.get("token", ""), args.get("chain", "base")
     ),
-    "batch_scan": lambda args: vigil_batch_scan(
-        args.get("tokens", []), args.get("chain", "base")
-    ),
+    "batch_scan": lambda args: vigil_batch_scan(args.get("tokens", []), args.get("chain", "base")),
     "check_scam": lambda args: vigil_check_scam(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
     "sentinel_status": lambda args: vigil_sentinel_status(),
-    "consensus": lambda args: vigil_consensus(
+    "consensus": lambda args: vigil_consensus(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
+    "vigil_liquidity_lock": lambda args: vigil_liquidity_lock(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "liquidity_lock": lambda args: vigil_liquidity_lock(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
 }
@@ -969,6 +973,26 @@ async def tools_list(request: Request) -> JSONResponse:
                 "deployer verification, community scam DB) and returns a verdict "
                 "driven by how many sources agree — risk is only high/critical "
                 "when multiple independent sources concur (false-positive guard)."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
+            },
+        },
+        {
+            "name": "vigil_liquidity_lock",
+            "description": (
+                "Detect whether a token's DEX liquidity is locked, burned, or "
+                "withdrawable. Reads LP totalSupply and balances of recognized "
+                "lockers / burn addresses; classifies as locked / burned / "
+                "unlocked / unknown. Free core safety check. Covers V2-style "
+                "ERC-20 LP tokens (Aerodrome v1, Uniswap V2 forks); V3 / NFT "
+                "positions return `unknown` with a note. Missing data returns "
+                "`unknown` and is NOT a safety guarantee."
             ),
             "inputSchema": {
                 "type": "object",
