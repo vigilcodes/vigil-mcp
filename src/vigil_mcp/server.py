@@ -20,6 +20,7 @@ from vigil_mcp.scanners.approvals import ApprovalScanner
 from vigil_mcp.scanners.consensus import ConsensusEngine
 from vigil_mcp.scanners.deployer import DeployerScanner
 from vigil_mcp.scanners.honeypot import HoneypotDetector
+from vigil_mcp.scanners.liquidity_lock import LiquidityLockScanner
 from vigil_mcp.scanners.market import MarketScanner
 from vigil_mcp.scanners.safety_score import SafetyScorer
 from vigil_mcp.scanners.scam_db import ScamDatabase
@@ -55,6 +56,7 @@ sentinel_store = SentinelStore()
 sentinel = Sentinel(store=sentinel_store)
 consensus_engine = ConsensusEngine()
 feed_store = FeedStore()
+liquidity_lock_scanner = LiquidityLockScanner()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -411,6 +413,31 @@ async def vigil_consensus(token: str, chain: str = "base") -> dict[str, Any]:
 
 
 @mcp.tool()
+async def vigil_liquidity_lock(token: str, chain: str = "base") -> dict[str, Any]:
+    """Detect whether a token's DEX liquidity is locked, burned, or withdrawable.
+
+    Free core safety check — the classic rug-pull vector is a deployer pulling
+    LP. Returns lock_status of:
+      - `locked`   — recognized lockers hold ≥80% of LP supply (positive signal)
+      - `burned`   — burn addresses hold ≥80% of LP supply (permanent)
+      - `unlocked` — LP is withdrawable; rug-pull risk
+      - `unknown`  — insufficient data; NOT a safety guarantee
+
+    Coverage in this version: V2-style ERC-20 LP tokens (Aerodrome v1, Uniswap
+    V2 forks on Base). V3 / Slipstream NFT positions are not supported and
+    return `unknown` with an explanatory note.
+
+    Args:
+        token: Token contract address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    logger.info(f"Scanning liquidity lock for {token} on {chain}")
+    result = await liquidity_lock_scanner.scan(token, chain)
+    return result.model_dump()
+
+
+@mcp.tool()
 async def vigil_batch_scan(tokens: list[str], chain: str = "base") -> dict[str, Any]:
     """Scan multiple tokens for safety in one call.
 
@@ -762,6 +789,12 @@ TOOL_MAP = {
     ),
     "sentinel_status": lambda args: vigil_sentinel_status(),
     "consensus": lambda args: vigil_consensus(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
+    "vigil_liquidity_lock": lambda args: vigil_liquidity_lock(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "liquidity_lock": lambda args: vigil_liquidity_lock(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
 }
 
 
@@ -940,6 +973,26 @@ async def tools_list(request: Request) -> JSONResponse:
                 "deployer verification, community scam DB) and returns a verdict "
                 "driven by how many sources agree — risk is only high/critical "
                 "when multiple independent sources concur (false-positive guard)."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
+            },
+        },
+        {
+            "name": "vigil_liquidity_lock",
+            "description": (
+                "Detect whether a token's DEX liquidity is locked, burned, or "
+                "withdrawable. Reads LP totalSupply and balances of recognized "
+                "lockers / burn addresses; classifies as locked / burned / "
+                "unlocked / unknown. Free core safety check. Covers V2-style "
+                "ERC-20 LP tokens (Aerodrome v1, Uniswap V2 forks); V3 / NFT "
+                "positions return `unknown` with a note. Missing data returns "
+                "`unknown` and is NOT a safety guarantee."
             ),
             "inputSchema": {
                 "type": "object",

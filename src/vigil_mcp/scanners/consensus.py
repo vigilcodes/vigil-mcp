@@ -12,6 +12,7 @@ Sources (each votes independently):
   3. DexScreener market     — liquidity depth + pool age
   4. Deployer / verification— source-verified + deployer reputation
   5. Community scam DB       — crowd-reported scam evidence
+  6. Liquidity lock         — LP locked / burned / withdrawable
 
 A verdict is only "critical"/"high" when MULTIPLE sources concur, which is how
 we keep one noisy source from producing a false positive.
@@ -27,6 +28,7 @@ from pydantic import BaseModel
 from vigil_mcp.scanners.deployer import DeployerScanner
 from vigil_mcp.scanners.goplus import GoPlusScanner
 from vigil_mcp.scanners.known_contracts import lookup_known_contract
+from vigil_mcp.scanners.liquidity_lock import LiquidityLockScanner
 from vigil_mcp.scanners.market import MarketScanner
 from vigil_mcp.scanners.safety_score import SafetyScorer
 from vigil_mcp.scanners.scam_db import ScamDatabase
@@ -66,6 +68,7 @@ class ConsensusEngine:
         self.market = MarketScanner()
         self.deployer = DeployerScanner()
         self.scam_db = ScamDatabase()
+        self.lock = LiquidityLockScanner()
 
     async def evaluate(self, token: str, chain: str) -> ConsensusResult:
         """Query all sources concurrently and compute the consensus verdict."""
@@ -77,9 +80,10 @@ class ConsensusEngine:
         score_task = self.scorer.score(token, chain)
         market_task = self.market.get_market(token, chain)
         deployer_task = self.deployer.check(token, chain)
+        lock_task = self.lock.scan(token, chain)
 
-        gp, score, market, deployer = await asyncio.gather(
-            gp_task, score_task, market_task, deployer_task, return_exceptions=True
+        gp, score, market, deployer, lock = await asyncio.gather(
+            gp_task, score_task, market_task, deployer_task, lock_task, return_exceptions=True
         )
         scam = self.scam_db.check(token, chain)
 
@@ -89,6 +93,7 @@ class ConsensusEngine:
             self._vote_market(market),
             self._vote_deployer(deployer, known is not None),
             self._vote_scam(scam),
+            self._vote_lock(lock),
         ]
 
         return self._tally(token, chain, votes)
@@ -158,6 +163,18 @@ class ConsensusEngine:
             n = scam.get("report_count", 0)
             return SourceVote(source="scam_db", vote=RISK, weight=1.0, reasons=[f"{n} community scam report(s)"])
         return SourceVote(source="scam_db", vote=SAFE, weight=0.4, reasons=["no community reports"])
+
+    def _vote_lock(self, lock: Any) -> SourceVote:
+        if isinstance(lock, Exception) or lock is None or not getattr(lock, "available", False):
+            return SourceVote(source="liquidity_lock", vote=UNKNOWN, weight=0.0, reasons=["no data"])
+        status = getattr(lock, "lock_status", "unknown")
+        if status in ("locked", "burned"):
+            return SourceVote(source="liquidity_lock", vote=SAFE, weight=0.7, reasons=[f"LP {status}"])
+        if status == "unlocked":
+            return SourceVote(
+                source="liquidity_lock", vote=RISK, weight=0.7, reasons=["LP withdrawable — rug-pull risk"]
+            )
+        return SourceVote(source="liquidity_lock", vote=UNKNOWN, weight=0.0, reasons=["lock undetermined"])
 
     # ── tally ────────────────────────────────────────────────
     def _tally(self, token: str, chain: str, votes: list[SourceVote]) -> ConsensusResult:
