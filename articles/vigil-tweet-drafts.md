@@ -243,3 +243,32 @@ A rug-pull scanner that ships with a guessed locker address would falsely call u
 We ship what we can verify.
 
 🧵👇
+
+
+========================================================
+NEW BATCH — Bankr x402 paid endpoint + liquidity lock live
+========================================================
+
+
+=== ⭐ FINAL — siap kirim (attach: website/assets/vigil-bankr-x402-card.png) ===
+
+VIGIL is now a paid service agents can discover and call 👁️
+
+Full Pre-Trade Report live on @bankrbot x402 Cloud:
+one $0.01 call → safety score + honeypot + scam check + liquidity lock → one verdict.
+
+Agent-discoverable. Settles in USDC on Base.
+
+vigil.codes
+
+
+=== Alt — dual milestone (attach same image) ===
+
+VIGIL just leveled up 👁️
+
+→ Liquidity Lock Scanner now LIVE — 13 tools on mcp.vigil.codes
+→ Full Pre-Trade Report shipped on @bankrbot x402 — one call, one verdict, pay-per-scan in USDC
+
+Agents can now pay VIGIL to check a token before they sign.
+
+vigil.codes
