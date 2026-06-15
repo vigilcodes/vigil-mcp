@@ -272,3 +272,128 @@ VIGIL just leveled up 👁️
 Agents can now pay VIGIL to check a token before they sign.
 
 vigil.codes
+
+
+========================================================
+REPLY — clarify Bankr report scope (liquidity lock not yet in composite)
+========================================================
+
+Context: the launch tweet implied the Bankr Pre-Trade Report already
+includes liquidity lock. It does not yet — the Bankr composite is v1
+(safety score + honeypot + scam DB). Liquidity lock IS live on
+mcp.vigil.codes. These replies set the record straight, positively.
+
+
+=== ⭐ C — builder tone (recommended, 217 chars) ===
+
+Small clarification while we ship:
+
+→ liquidity lock scanner: LIVE on mcp.vigil.codes
+→ Bankr Pre-Trade Report: live, runs safety score + honeypot + scam DB
+→ folding lock into that report next
+
+building in public 👁️
+
+
+=== A — momentum (220 chars) ===
+
+Quick note: liquidity lock is already live across VIGIL's 13 tools on mcp.vigil.codes 👁️
+
+Rolling it into the Bankr Pre-Trade Report next — that composite currently runs safety score + honeypot + scam check.
+
+More soon.
+
+
+=== B — short (176 chars) ===
+
+To be precise: liquidity lock is live on mcp.vigil.codes (13 tools).
+
+The Bankr report bundles safety score + honeypot + scam check today — liquidity lock lands in it next. 👁️
+
+
+========================================================
+QUOTE TWEET — Aeon Community Call #4 spotlight (VIGIL @ 26:43)
+========================================================
+
+Decision: QUOTE, not repost. A quote lets us point to the 26:43
+segment, tie it to VIGIL's shipping momentum, and add a CTA. All claims
+accurate to what's live (13 tools + x402).
+
+
+=== ⭐ A — grateful + momentum (recommended, 213 chars) ===
+
+Honored to be in the @aeonframework Community Call #4 spotlight 🙏
+
+On-chain agent security is exactly what VIGIL ships — 13 tools live, now paid + agent-discoverable on x402.
+
+Catch the VIGIL segment at 26:43 👁️
+
+
+=== B — punchy (143 chars) ===
+
+VIGIL spotlighted in @aeonframework Community Call #4 👁️
+
+Agents need security before they sign. That is the whole job.
+
+VIGIL segment → 26:43
+
+
+=== C — connective (216 chars) ===
+
+gm — VIGIL got the security spotlight in @aeonframework Call #4 (26:43) 🙏
+
+Autonomous agents acting on-chain need a guard that checks tokens before they sign. 13 tools live, pay-per-scan on x402.
+
+That is VIGIL. 👁️
+
+
+========================================================
+VIDEO TWEETS — yapping/build-in-public tone (attach the named .mp4)
+========================================================
+
+
+=== 1. attach: website/assets/vigil-scan-demo-1920x1080.mp4 (225 chars) ===
+
+ok real talk — this is what a token scan should feel like 👁️
+
+paste a contract, get a verdict. honeypot? unlimited mint? sketchy deployer? VIGIL tells you before you ape, not after.
+
+no dashboard, no signup. just the answer.
+
+
+=== 2. attach: website/assets/vigil-bot-demo-1920x1080.mp4 (212 chars) ===
+
+scanning tokens straight from telegram now 👀
+
+drop a contract in chat → VIGIL scans it → verdict back in seconds. that's the whole flow.
+
+security shouldn't need a tab switch. it should be where you already are.
+
+
+=== 3. attach: website/assets/vigil-feed-demo-1920x1080.mp4 (190 chars) ===
+
+watching VIGIL scan tokens in real time never gets old 👁️
+
+every verdict, live. safe ones pass, sketchy ones get flagged. this is the feed.
+
+building the security layer agents actually use.
+
+
+=== 4. attach: website/assets/vigil-aeon-demo-1280x720.mp4 (updated for 6-source video, 224 chars) ===
+
+this is the part I keep yapping about 🛡️
+
+an autonomous agent is about to sign → VIGIL steps in mid-loop → 6 independent sources vote → safe to proceed. no human in the loop.
+
+agents acting on-chain need a guard. this is it. @aeonframework
+
+
+=== 5. attach: website/assets/vigil-promo-v4.mp4 (221 chars) ===
+
+what is VIGIL? 60 seconds 👁️
+
+onchain security scanner for Base. approvals, honeypots, rugpulls, liquidity locks — 13 tools, all live.
+
+free to scan. open source. pay-per-call on x402 if you want the bundle.
+
+vigil.codes
