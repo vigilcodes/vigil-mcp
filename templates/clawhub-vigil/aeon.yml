@@ -1,0 +1,82 @@
+# VIGIL × Aeon — autonomous onchain security skill
+#
+# Drop this into your Aeon repo at the root or under skills/vigil/.
+# The agent calls VIGIL's hosted endpoint (mcp.vigil.codes) — no install,
+# no API key for read-only scans. Base-first, 13 tools.
+#
+# What this skill does when run:
+#   1. Scans the target (wallet or token) for security issues
+#   2. Returns a verdict (safe → critical) with evidence
+#   3. If autonomous: logs the result, notifies only on HIGH/CRITICAL
+#
+# Safe for autonomous execution: all tools are READ-ONLY. No state change,
+# no fund movement, no approval/revoke. Revocation is deliberately excluded
+# (that's a separate write skill requiring Bankr auth + human confirmation).
+#
+# Docs: https://github.com/vigilcodes/vigil-mcp
+# Live: https://mcp.vigil.codes/health
+
+name: vigil
+description: "Onchain security scanner — 13 tools, Base-first. Detect honeypots, rugpulls, LP locks, and risky approvals before you sign."
+
+# Aeon scheduling — run on cron or on-demand via heartbeat
+schedule:
+  cron: "0 */6 * * *"  # every 6 hours (adjust to your risk tolerance)
+  on_demand: true       # also callable from other skills / the agent itself
+
+# Capabilities label — Aeon uses these to decide what the skill can do
+capabilities:
+  - external_api        # calls mcp.vigil.codes over HTTPS
+  - read_only           # no state-changing transactions
+  - sends_notifications # surfaces HIGH/CRITICAL alerts via configured channel
+
+# Safety boundaries for autonomous mode
+autonomous:
+  allowed: true
+  # VIGIL's read-only scans are safe to run unattended. The skill never
+  # signs transactions, moves funds, or modifies onchain state.
+  constraints:
+    - "NEVER call vigil_revoke_approval or vigil_batch_revoke (write actions)"
+    - "Only scan wallets/tokens explicitly listed in targets or passed by another skill"
+    - "Notify (don't auto-act) when verdict is HIGH or CRITICAL"
+
+# Target wallets/tokens to scan on schedule
+# Replace with your own addresses. These are examples.
+targets:
+  - address: "0xYOUR_WALLET_HERE"
+    type: wallet
+    chain: base
+    label: "Main trading wallet"
+  # - address: "0xTOKEN_CONTRACT"
+  #   type: token
+  #   chain: base
+  #   label: "Token I'm watching"
+
+# Which VIGIL tools to run per scan cycle (ordered)
+# Wallet targets: approvals + monitor + safety_score
+# Token targets: safety_score + honeypot + liquidity_lock + consensus
+tools:
+  wallet:
+    - vigil_scan_approvals
+    - vigil_monitor_wallet
+    - vigil_safety_score
+  token:
+    - vigil_safety_score
+    - vigil_detect_honeypot
+    - vigil_liquidity_lock
+    - vigil_consensus  # aggregates 6 sources — note: x402-paid ($0.0075)
+
+# Notification config — Aeon routes alerts through your configured channel
+# (Telegram, Discord, Slack, Email — set in your main aeon.yml)
+notifications:
+  min_severity: high  # only surface HIGH and CRITICAL
+  include_evidence: true
+  format: |
+    🛡️ VIGIL Alert: {{verdict}} on {{target}}
+    {{summary}}
+    {{#recommendations}}→ {{.}}{{/recommendations}}
+
+# Environment variables (set via `aeon env set` or GitHub Secrets)
+# None required for read-only scans. Only needed if you add the write skill.
+env: {}
+  # BANKR_API_KEY: ""  # Only for vigil-revoke skill (not this one)

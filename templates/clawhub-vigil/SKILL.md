@@ -1,13 +1,13 @@
 ---
 name: VIGIL Security Scanner
-description: Onchain security scanner on Base — scan token approvals, detect honeypots, analyze contracts for rugpull indicators, and score contract safety. Keyless read-only scanning via VIGIL API. Revoke actions require Bankr auth and are gated separately.
+description: Onchain security scanner on Base — scan token approvals, detect honeypots, analyze contracts for rugpull indicators, check liquidity locks, and score contract safety. 13 tools, keyless read-only scanning via VIGIL API. Revoke actions require Bankr auth and are gated separately.
 var: ""
 tags: [crypto, security, base, defi]
 capabilities: [external_api, sends_notifications]
 ---
 > **${var}** — Wallet address (`0x...`) or token contract address on Base to scan. Required. If empty, log `VIGIL_NO_TARGET` and exit cleanly (no notify).
 
-VIGIL is an onchain security scanner for DeFi traders on Base. It provides twelve read-only scanning tools and one write action (revoke) that requires explicit Bankr authentication.
+VIGIL is an onchain security scanner for DeFi traders on Base. It provides thirteen read-only scanning tools and one write action (revoke) that requires explicit Bankr authentication.
 
 **Read-only tools (this skill):**
 1. Approval Scanner — list all ERC-20/ERC-721 approvals, flag unlimited allowances
@@ -21,7 +21,8 @@ VIGIL is an onchain security scanner for DeFi traders on Base. It provides twelv
 9. Batch Scan — score multiple tokens in one call, ranked by risk
 10. Scam Check — check whether a token has community scam reports (local VIGIL database)
 11. Sentinel Status — list the autonomous Sentinel watchlist and loop configuration
-12. Consensus — multi-source agreement verdict. Aggregates 5 independent signals (GoPlus, onchain score, market liquidity, deployer verification, scam DB); risk only escalates to high/critical when multiple sources concur. Built as a false-positive guard.
+12. Consensus — multi-source agreement verdict. Aggregates 6 independent signals (GoPlus, onchain score, market liquidity, deployer verification, scam DB, liquidity lock); risk only escalates to high/critical when multiple sources concur. Built as a false-positive guard.
+13. Liquidity Lock — detect whether a token's DEX liquidity is locked, burned, or withdrawable. Returns one of: locked / burned / unlocked / unknown. Missing data returns `unknown`, never `safe`. Covers V2-style ERC-20 LP tokens (Aerodrome, Uniswap V2 forks on Base).
 
 **Write action (separate skill, not included here):**
 - Approval Revoker — revoke dangerous approvals via Bankr transaction signing. This is a state-changing onchain transaction and is NOT part of this read-only skill. Use the separate `vigil-revoke` skill (requires `BANKR_API_KEY` and explicit user confirmation).
@@ -225,6 +226,27 @@ echo "$RESULT" | jq '.result'
 # Returns: verdict, confidence, risk_sources/safe_sources counts, and each
 # source's independent vote. Risk only reaches high/critical when multiple
 # independent sources agree — a single source caps at "medium".
+# Now uses 6 independent signals including liquidity lock.
+```
+
+### 12. Liquidity lock detection
+
+```bash
+RESULT=$(curl -m 30 -s "https://mcp.vigil.codes/tools/call" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "vigil_liquidity_lock",
+      "arguments": {"token": "'"$TARGET"'", "chain": "base"}
+    }
+  }')
+echo "$RESULT" | jq '.result'
+# Returns: lock_status (locked/burned/unlocked/unknown), locked_fraction,
+# pair_address. "unknown" means data was insufficient — NOT a safety guarantee.
+# Covers V2-style ERC-20 LP tokens; V3/NFT positions return unknown with a note.
 ```
 
 ## Output Format
