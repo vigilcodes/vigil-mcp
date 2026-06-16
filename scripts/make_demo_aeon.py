@@ -28,8 +28,8 @@ BG = "#080808"
 PANEL = "#0c0c0c"
 
 CHAR_W = 13.2
-LINE_Y0 = 176
-LINE_DY = 40
+LINE_Y0 = 160
+LINE_DY = 33
 
 os.makedirs(OUT_DIR, exist_ok=True)
 
@@ -55,9 +55,11 @@ SCRIPT = [
     ("print", "  deployer    ........  ok", GREEN, 8),
     ("hold",  "", None, 8),
     ("print", "  scam db     ........  ok", GREEN, 8),
+    ("hold",  "", None, 8),
+    ("print", "  liquidity   ........  ok", GREEN, 8),
     ("hold",  "", None, 18),
     ("blank", "", None, 0),
-    ("print", "consensus: 5/5 agree  ->  SAFE", GREEN, 10),
+    ("print", "consensus: 6/6 agree  ->  SAFE", GREEN, 10),
     ("hold",  "", None, 40),
     ("print", "agent proceeds. no human in the loop.", DIM, 10),
     ("hold",  "", None, 150),
