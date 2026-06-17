@@ -397,3 +397,32 @@ onchain security scanner for Base. approvals, honeypots, rugpulls, liquidity loc
 free to scan. open source. pay-per-call on x402 if you want the bundle.
 
 vigil.codes
+
+
+========================================================
+AEON SKILL — aeon.yml drop-in config (attach: website/assets/vigil-aeon-skill-card.png)
+========================================================
+
+
+=== ⭐ B — builder-to-builder (recommended, 266 chars) ===
+
+shipped something for @aeonframework devs 👁️
+
+aeon.yml for VIGIL — drop in, set targets, push:
+→ scans every 6h, autonomous
+→ 13 tools incl. liquidity lock
+→ alerts only on HIGH/CRITICAL
+→ read-only, never signs without you
+
+fork it. github.com/vigilcodes/vigil-mcp
+
+
+=== A — for Aeon devs (257 chars) ===
+
+VIGIL is now a drop-in @aeonframework skill 👁️
+
+Fork the repo, paste your wallets, push. Your agent scans every 6 hours autonomously — 13 tools, 6-source consensus, LP lock detection.
+
+Read-only. No babysitting. No API key.
+
+github.com/vigilcodes/vigil-mcp

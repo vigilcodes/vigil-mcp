@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <text x="80" y="68" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL x AEON . AUTONOMOUS SECURITY SKILL</text>
+  <text x="80" y="118" fill="#d4d0c8" font-family="Georgia, serif" font-size="42">Fork. Configure. Walk away.</text>
+  <text x="80" y="152" fill="#6b6860" font-family="Georgia, serif" font-size="19" font-style="italic">VIGIL as an Aeon skill — scans your wallet every 6 hours, no babysitting.</text>
+  <line x1="80" y1="174" x2="340" y2="174" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+
+  <!-- aeon.yml preview -->
+  <text x="80" y="218" fill="#6b6860" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">AEON.YML — DROP IN AND RUN</text>
+  <g transform="translate(80, 236)">
+    <rect width="500" height="240" rx="8" fill="#0c0c0c" stroke="#1e1e1c" stroke-width="1"/>
+    <g font-family="'Courier New', monospace" font-size="13" fill="#6b6860">
+      <text x="20" y="28" fill="#c8a961">name:</text><text x="80" y="28" fill="#d4d0c8"> vigil</text>
+      <text x="20" y="52" fill="#c8a961">schedule:</text>
+      <text x="40" y="72" fill="#d4d0c8">cron: "0 */6 * * *"</text>
+      <text x="40" y="92" fill="#6b6860"># every 6 hours</text>
+      <text x="20" y="120" fill="#c8a961">autonomous:</text>
+      <text x="40" y="140" fill="#6bbd6b">allowed: true</text>
+      <text x="40" y="160" fill="#6b6860"># read-only only, no revoke</text>
+      <text x="20" y="188" fill="#c8a961">tools.token:</text>
+      <text x="40" y="208" fill="#d4d0c8">- safety_score</text>
+      <text x="40" y="224" fill="#d4d0c8">- honeypot + lock + consensus</text>
+    </g>
+  </g>
+
+  <!-- right: what you get -->
+  <g transform="translate(620, 236)">
+    <text x="0" y="20" fill="#6b6860" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">WHAT THE AGENT DOES</text>
+    <g font-family="'Courier New', monospace" font-size="15" transform="translate(0, 36)">
+      <g transform="translate(0,0)">
+        <rect width="500" height="38" rx="6" fill="#0c0c0c" stroke="#1e1e1c" stroke-width="1"/>
+        <text x="20" y="24" fill="#6bbd6b">▸</text>
+        <text x="44" y="24" fill="#d4d0c8">scans wallets + tokens on schedule</text>
+      </g>
+      <g transform="translate(0,46)">
+        <rect width="500" height="38" rx="6" fill="#0c0c0c" stroke="#1e1e1c" stroke-width="1"/>
+        <text x="20" y="24" fill="#6bbd6b">▸</text>
+        <text x="44" y="24" fill="#d4d0c8">6-source consensus (incl. LP lock)</text>
+      </g>
+      <g transform="translate(0,92)">
+        <rect width="500" height="38" rx="6" fill="#0c0c0c" stroke="#1e1e1c" stroke-width="1"/>
+        <text x="20" y="24" fill="#6bbd6b">▸</text>
+        <text x="44" y="24" fill="#d4d0c8">alerts only on HIGH / CRITICAL</text>
+      </g>
+      <g transform="translate(0,138)">
+        <rect width="500" height="38" rx="6" fill="#0c0c0c" stroke="#1e1e1c" stroke-width="1"/>
+        <text x="20" y="24" fill="#6bbd6b">▸</text>
+        <text x="44" y="24" fill="#d4d0c8">never revokes or signs autonomously</text>
+      </g>
+      <g transform="translate(0,184)">
+        <rect width="500" height="38" rx="6" fill="#0c0c0c" stroke="#1e1e1c" stroke-width="1"/>
+        <text x="20" y="24" fill="#c8a961">★</text>
+        <text x="44" y="24" fill="#c8a961">13 tools . 0 API keys needed</text>
+      </g>
+    </g>
+  </g>
+
+  <line x1="80" y1="588" x2="1120" y2="588" stroke="#1e1e1c" stroke-width="1"/>
+  <text x="80" y="616" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">templates/clawhub-vigil/aeon.yml  ·  fork → configure → run</text>
+  <text x="1120" y="616" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes 👁️</text>
+</svg>
