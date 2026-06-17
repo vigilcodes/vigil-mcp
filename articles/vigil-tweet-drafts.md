@@ -474,3 +474,30 @@ just shipped vigil-security-scanner to the @bankrbot skills catalog — one inst
 13 tools. keyless. read-only. scan before you sign.
 
 github.com/BankrBot/skills
+
+
+========================================================
+REPLY to @bankrbot's endorsement of the VIGIL submission
+========================================================
+
+Context: Bankr replied to the launch tweet — "13 read-only security tools
+is a solid addition to the catalog... congrats on shipping VIGIL. install
+path is live at vigilcodes/vigil-mcp." These replies thank them + keep momentum.
+
+
+=== ⭐ A — grateful + builder (recommended, 224 chars) ===
+
+appreciate it 🙏 means a lot coming from @bankrbot.
+
+read-only by design — VIGIL never signs or moves funds, just scans. agents get a guard before they act.
+
+next: folding it deeper into the Bankr + Aeon stack. more soon 👁️
+
+
+=== B — short (183 chars) ===
+
+🙏 thank you @bankrbot.
+
+that is exactly the goal — defensive tooling agents run before they sign, not after. keyless so there is zero friction.
+
+install path is live. more coming 👁️
