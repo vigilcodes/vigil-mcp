@@ -11,3 +11,7 @@ build/
 website/node_modules/
 
 .vscode/
+
+# external clone of BankrBot/skills fork (not part of this repo)
+bankr-skills-fork/
+x402-cloud/node_modules/
