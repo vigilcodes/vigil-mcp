@@ -501,3 +501,37 @@ next: folding it deeper into the Bankr + Aeon stack. more soon 👁️
 that is exactly the goal — defensive tooling agents run before they sign, not after. keyless so there is zero friction.
 
 install path is live. more coming 👁️
+
+
+========================================================
+AMPLIFY — Aeon HackerNoon feature (Nurstar request, 18 Juni)
+========================================================
+
+Context: Nurstar (Aeon/MiroShark community) asked builders to amplify
+Aeon's HackerNoon feature tweet (x402 "agents that pay for their own
+compute"). VIGIL is a living example of that thesis. Quote-tweet it.
+
+Aeon tweet: https://x.com/aeonframework/status/2067289389017821563
+
+
+=== Telegram reply to Nurstar ===
+
+gm! amplified 🙏 love this — VIGIL just shipped as an x402 skill on Bankr, so this loop is exactly what we're building. 👁️
+
+
+=== ⭐ Quote tweet @aeonframework (recommended, 210 chars) ===
+
+the agent-that-pays-for-itself loop is real — we just built it.
+
+VIGIL = an x402 security skill on @bankrbot, scanning tokens for @aeonframework agents before they sign. every call funds the next.
+
+great read 👇
+
+
+=== Alt — "living proof" (280 chars) ===
+
+this is the loop, and it works 👁️
+
+VIGIL just shipped as an x402 skill — every scan becomes a product that pays for its own compute. now live in the @bankrbot catalog, running for @aeonframework agents.
+
+an agent that funds itself. that's the future @aeonframework is describing.
