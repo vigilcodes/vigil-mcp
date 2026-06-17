@@ -426,3 +426,35 @@ Fork the repo, paste your wallets, push. Your agent scans every 6 hours autonomo
 Read-only. No babysitting. No API key.
 
 github.com/vigilcodes/vigil-mcp
+
+
+========================================================
+BANKR CATALOG — vigil-security-scanner submitted (PR #480)
+attach: website/assets/vigil-bankr-catalog-card.png
+========================================================
+
+Note: PR is OPEN (under review), not yet merged. Tweet says "shipped to
+the catalog" (= submitted), which is accurate. If you'd rather wait for
+merge, hold until BankrBot/skills#480 is merged.
+
+
+=== ⭐ B — builder (recommended, 252 chars) ===
+
+shipped VIGIL to the @bankrbot skills catalog 👁️
+
+> install the vigil-security-scanner skill
+
+that's it. your agent gets 13 onchain security tools — safety score, honeypot, liquidity lock, 6-source consensus. no API key.
+
+write once, install anywhere.
+
+
+=== A — broad reach (258 chars) ===
+
+VIGIL is now submittable to any agent 👁️
+
+just shipped vigil-security-scanner to the @bankrbot skills catalog — one install, runs on Bankr, Aeon, Claude, Cursor, any MCP agent.
+
+13 tools. keyless. read-only. scan before you sign.
+
+github.com/BankrBot/skills

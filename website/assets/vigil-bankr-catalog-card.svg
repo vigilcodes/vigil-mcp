@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <text x="80" y="68" fill="#c8a961" font-family="'Courier New', monospace" font-size="11" letter-spacing="4" opacity="0.5">VIGIL x BANKR . SKILLS CATALOG</text>
+  <text x="80" y="118" fill="#d4d0c8" font-family="Georgia, serif" font-size="42">Install VIGIL into any agent.</text>
+  <text x="80" y="152" fill="#6b6860" font-family="Georgia, serif" font-size="19" font-style="italic">submitted to the Bankr skills catalog — one install, any framework.</text>
+  <line x1="80" y1="174" x2="340" y2="174" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+
+  <!-- install command -->
+  <text x="80" y="218" fill="#6b6860" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">ONE LINE TO INSTALL</text>
+  <g transform="translate(80, 236)">
+    <rect width="1040" height="56" rx="8" fill="#0c0c0c" stroke="#c8a961" stroke-width="1" opacity="0.4"/>
+    <text x="24" y="35" fill="#6bbd6b" font-family="'Courier New', monospace" font-size="16">&gt; install the vigil-security-scanner skill</text>
+  </g>
+
+  <!-- left: what you get -->
+  <text x="80" y="338" fill="#6b6860" font-family="'Courier New', monospace" font-size="13" letter-spacing="3">13 TOOLS . KEYLESS . READ-ONLY</text>
+  <g font-family="'Courier New', monospace" font-size="15" transform="translate(80, 358)">
+    <g transform="translate(0,0)">
+      <rect width="500" height="38" rx="6" fill="#0e1a0e" stroke="#6bbd6b" stroke-width="1" opacity="0.9"/>
+      <text x="20" y="24" fill="#6bbd6b">▸</text>
+      <text x="44" y="24" fill="#d4d0c8">safety score · honeypot · liquidity lock</text>
+    </g>
+    <g transform="translate(0,46)">
+      <rect width="500" height="38" rx="6" fill="#0e1a0e" stroke="#6bbd6b" stroke-width="1" opacity="0.9"/>
+      <text x="20" y="24" fill="#6bbd6b">▸</text>
+      <text x="44" y="24" fill="#d4d0c8">approvals · scam db · deployer check</text>
+    </g>
+    <g transform="translate(0,92)">
+      <rect width="500" height="38" rx="6" fill="#0e1a0e" stroke="#6bbd6b" stroke-width="1" opacity="0.9"/>
+      <text x="20" y="24" fill="#6bbd6b">▸</text>
+      <text x="44" y="24" fill="#d4d0c8">6-source consensus verdict</text>
+    </g>
+    <g transform="translate(0,138)">
+      <rect width="500" height="38" rx="6" fill="#0c0c0c" stroke="#c8a961" stroke-width="1" opacity="0.5"/>
+      <text x="20" y="24" fill="#c8a961">★</text>
+      <text x="44" y="24" fill="#c8a961">no API key · free pre-trade checks</text>
+    </g>
+  </g>
+
+  <!-- right: portability -->
+  <g transform="translate(620, 358)">
+    <rect width="500" height="176" rx="10" fill="#0d0d0d" stroke="#c8a961" stroke-width="1" opacity="0.25"/>
+    <text x="28" y="40" fill="#c8a961" font-family="'Courier New', monospace" font-size="12" letter-spacing="2">WRITE ONCE, INSTALL ANYWHERE</text>
+    <g font-family="'Courier New', monospace" font-size="15" fill="#d4d0c8" transform="translate(28, 64)">
+      <text x="0" y="20">◈ Bankr</text>
+      <text x="0" y="46">◈ Aeon</text>
+      <text x="0" y="72">◈ Claude · Cursor · OpenClaw</text>
+      <text x="0" y="98" fill="#6b6860">any MCP-compatible agent</text>
+    </g>
+  </g>
+
+  <line x1="80" y1="588" x2="1120" y2="588" stroke="#1e1e1c" stroke-width="1"/>
+  <text x="80" y="616" fill="#6b6860" font-family="'Courier New', monospace" font-size="13">github.com/BankrBot/skills · PR #480</text>
+  <text x="1120" y="616" text-anchor="end" fill="#c8a961" font-family="'Courier New', monospace" font-size="13" opacity="0.7">vigil.codes 👁️</text>
+</svg>
