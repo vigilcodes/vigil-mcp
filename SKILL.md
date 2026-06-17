@@ -1,11 +1,21 @@
 ---
-name: VIGIL Security Scanner
-description: Onchain security scanner on Base — scan token approvals, detect honeypots, analyze contracts for rugpull indicators, check liquidity locks, and score contract safety. 13 tools, keyless read-only scanning via VIGIL API. Revoke actions require Bankr auth and are gated separately.
-var: ""
-tags: [crypto, security, base, defi]
-capabilities: [external_api, sends_notifications]
+name: vigil-security-scanner
+description: Onchain security scanner on Base — scan token approvals, detect honeypots, analyze contracts for rugpull indicators, check liquidity locks, and score contract safety. Use when a user asks an agent to evaluate, scan, or check a Base token or wallet before trading, swapping, signing an approval, or investing. 13 read-only tools, keyless and free. Revoke actions require Bankr auth and are gated separately.
+tags: [crypto, security, base, defi, rugpull, honeypot]
+version: 1
+visibility: public
+metadata:
+  emoji: 👁️
+  homepage: https://vigil.codes
+  network: base
+  chainId: 8453
+  requires:
+    bins: [curl, jq]
 ---
-> **${var}** — Wallet address (`0x...`) or token contract address on Base to scan. Required. If empty, log `VIGIL_NO_TARGET` and exit cleanly (no notify).
+
+Pass a wallet address (`0x...`) or token contract address on Base as the scan
+target. VIGIL routes the target to the right tools below — each reports its own
+result, so no up-front type guess is needed.
 
 VIGIL is an onchain security scanner for DeFi traders on Base. It provides thirteen read-only scanning tools and one write action (revoke) that requires explicit Bankr authentication.
 
@@ -31,7 +41,7 @@ Read the last 2 days of `memory/logs/` so a repeat scan can note newly-granted o
 
 ## Config
 
-- Target = `${var}`. Can be a wallet address or token contract address.
+- Target = the wallet or token address passed to the skill. Can be a wallet address or token contract address.
 - Chain = Base (`chainid=8453`, explorer `basescan.org`).
 - VIGIL API: `https://mcp.vigil.codes` (HTTPS, SSE transport)
 - GitHub: `https://github.com/vigilcodes/vigil-mcp`
@@ -45,7 +55,7 @@ hex characters — this rejects quotes, spaces, and any shell/JSON metacharacter
 so the value is safe to interpolate into the curl payloads below.
 
 ```bash
-TARGET="${var}"
+TARGET="$1"   # the wallet or token address passed to the skill
 if ! printf '%s' "$TARGET" | grep -qiE '^0x[0-9a-f]{40}$'; then
   echo "VIGIL_INVALID_TARGET: not a valid 0x address"
   exit 0

@@ -438,15 +438,31 @@ the catalog" (= submitted), which is accurate. If you'd rather wait for
 merge, hold until BankrBot/skills#480 is merged.
 
 
-=== ⭐ B — builder (recommended, 252 chars) ===
+=== ⭐ FINAL — installable now (X-weighted 203 chars, attach card) ===
 
-shipped VIGIL to the @bankrbot skills catalog 👁️
+just submitted VIGIL to the @bankrbot skills catalog 👁️
+
+you can install it right now:
+
+install the skill at https://github.com/vigilcodes/skills/tree/add-vigil-security-scanner/vigil-security-scanner
+
+13 onchain security tools. keyless. read-only. scan before you sign.
+
+# Note: this fork-branch URL works TODAY (Bankr installs from any public
+# tree/<branch>/<path> URL — verified HTTP 200 + SKILL.md at folder root).
+# Once PR #480 merges, the canonical URL becomes:
+#   https://github.com/BankrBot/skills/tree/main/vigil-security-scanner
+
+
+=== B — builder ("submitted" framing, no link) ===
+
+just submitted VIGIL to the @bankrbot skills catalog 👁️
 
 > install the vigil-security-scanner skill
 
-that's it. your agent gets 13 onchain security tools — safety score, honeypot, liquidity lock, 6-source consensus. no API key.
+13 onchain security tools — safety score, honeypot, liquidity lock, 6-source consensus. no API key, read-only.
 
-write once, install anywhere.
+write once, install anywhere. (PR in review)
 
 
 === A — broad reach (258 chars) ===
