@@ -1260,3 +1260,49 @@ class TestLiquidityLockScanner:
         assert result.lock_status == "unknown"
         assert result.determined is False
         assert "V3" in result.notes[0] or "NFT" in result.notes[0]
+
+
+# ─── FeedStore stats methods ──────────────────────────────
+
+
+class TestFeedStoreStats:
+    """Tests for the new FeedStore methods used by /stats."""
+
+    def _store(self, tmp_path):
+        from vigil_mcp.feed import FeedStore
+
+        return FeedStore(db_path=str(tmp_path / "feed.db"))
+
+    def test_tools_by_volume_orders_by_count_desc(self, tmp_path):
+        store = self._store(tmp_path)
+        for _ in range(3):
+            store.record(TOKEN, "base", "vigil_safety_score", "safe", 90)
+        for _ in range(2):
+            store.record(TOKEN, "base", "vigil_consensus", "safe", None)
+        store.record(TOKEN, "base", "vigil_check_scam", "clean", None)
+
+        ranked = store.tools_by_volume(limit=5)
+        assert ranked[0] == {"tool": "vigil_safety_score", "count": 3}
+        assert ranked[1] == {"tool": "vigil_consensus", "count": 2}
+        assert ranked[2] == {"tool": "vigil_check_scam", "count": 1}
+
+    def test_tools_by_volume_empty_returns_empty_list(self, tmp_path):
+        assert self._store(tmp_path).tools_by_volume(5) == []
+
+    def test_recent_flagged_only_returns_high_critical_honeypot(self, tmp_path):
+        store = self._store(tmp_path)
+        store.record(TOKEN, "base", "vigil_safety_score", "safe", 90)
+        store.record(TOKEN, "base", "vigil_safety_score", "low", 60)
+        store.record(TOKEN, "base", "vigil_safety_score", "high", 30)
+        store.record(TOKEN, "base", "vigil_detect_honeypot", "honeypot", None)
+        store.record(TOKEN, "base", "vigil_consensus", "critical", None)
+
+        flagged = store.recent_flagged(limit=10)
+        verdicts = [r["verdict"] for r in flagged]
+        # newest first; only the three flagged ones should appear
+        assert verdicts == ["critical", "honeypot", "high"]
+
+    def test_recent_flagged_empty_returns_empty_list(self, tmp_path):
+        store = self._store(tmp_path)
+        store.record(TOKEN, "base", "vigil_safety_score", "safe", 90)
+        assert store.recent_flagged(limit=5) == []
