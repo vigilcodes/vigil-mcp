@@ -535,3 +535,49 @@ this is the loop, and it works 👁️
 VIGIL just shipped as an x402 skill — every scan becomes a product that pays for its own compute. now live in the @bankrbot catalog, running for @aeonframework agents.
 
 an agent that funds itself. that's the future @aeonframework is describing.
+
+
+========================================================
+APPROVAL SIMULATOR — tool #14 (attach: website/assets/vigil-simulate-demo-1280x720.mp4)
+========================================================
+
+Live: mcp.vigil.codes (14 tools). vigil_simulate_approval — the only
+tool in Base/Aeon/Bankr that answers "should I sign THIS approval?"
+before you sign. Verified live: Uniswap router → safe, random EOA → dangerous.
+
+
+=== ⭐ A — recommended ===
+
+no more blind approvals 👁️
+
+VIGIL now simulates what a spender can do before you sign.
+
+random wallet + unlimited? → DO NOT APPROVE
+known Uniswap router? → proceed
+
+14 tools live. the only one that answers: "should I sign this?"
+
+mcp.vigil.codes
+
+
+=== B — punchy ===
+
+every approval is a door you hand someone a key to 👁️
+
+VIGIL now checks who's on the other side BEFORE you sign:
+→ contract or wallet?
+→ known safe or unknown?
+→ unlimited exposure?
+
+verdict in ~2s. tool #14, live now.
+
+mcp.vigil.codes
+
+
+=== C — builder ===
+
+shipped tool #14 on VIGIL: approval simulator 👁️
+
+existing tools audit approvals you already gave. this one answers the question that actually matters — "should I sign THIS one?"
+
+scan before you sign. live on mcp.vigil.codes
