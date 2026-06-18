@@ -16,6 +16,7 @@ from vigil_mcp.feed import FeedStore, extract_verdict, feed_worthy
 from vigil_mcp.monitors.wallet_monitor import WalletMonitor
 from vigil_mcp.payments import x402
 from vigil_mcp.revoker.engine import RevocationEngine
+from vigil_mcp.scanners.approval_simulator import ApprovalSimulator
 from vigil_mcp.scanners.approvals import ApprovalScanner
 from vigil_mcp.scanners.consensus import ConsensusEngine
 from vigil_mcp.scanners.deployer import DeployerScanner
@@ -57,6 +58,7 @@ sentinel = Sentinel(store=sentinel_store)
 consensus_engine = ConsensusEngine()
 feed_store = FeedStore()
 liquidity_lock_scanner = LiquidityLockScanner()
+approval_simulator = ApprovalSimulator()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -438,6 +440,38 @@ async def vigil_liquidity_lock(token: str, chain: str = "base") -> dict[str, Any
 
 
 @mcp.tool()
+async def vigil_simulate_approval(
+    spender: str, token: str, amount: str = "unlimited", chain: str = "base"
+) -> dict[str, Any]:
+    """Simulate a token approval BEFORE signing — risk-assess the spender.
+
+    Answers the question other tools can't: "If I approve this spender right
+    now, what could they do?" Profiles the spender using code analysis, GoPlus,
+    community scam DB, and known-safe registries.
+
+    Returns:
+      - risk: safe / suspicious / dangerous
+      - spender_profile: contract/EOA, known safe, has transferFrom, flags
+      - reasons: list of signals behind the verdict
+      - recommendation: human-readable go/no-go
+
+    Free core safety check. No API key needed.
+
+    Args:
+        spender: The address you're about to approve (0x...)
+        token: The token you're approving (0x...)
+        amount: Approval amount — "unlimited" or a numeric string
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    spender = _validate_address(spender, "spender")
+    token = _validate_address(token, "token")
+    logger.info(f"Simulating approval: spender={spender} token={token} amount={amount} chain={chain}")
+    result = await approval_simulator.simulate(spender, token, amount, chain)
+    return result.model_dump()
+
+
+@mcp.tool()
 async def vigil_batch_scan(tokens: list[str], chain: str = "base") -> dict[str, Any]:
     """Scan multiple tokens for safety in one call.
 
@@ -795,6 +829,12 @@ TOOL_MAP = {
     "liquidity_lock": lambda args: vigil_liquidity_lock(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
+    "vigil_simulate_approval": lambda args: vigil_simulate_approval(
+        args.get("spender", ""), args.get("token", ""), args.get("amount", "unlimited"), args.get("chain", "base")
+    ),
+    "simulate_approval": lambda args: vigil_simulate_approval(
+        args.get("spender", ""), args.get("token", ""), args.get("amount", "unlimited"), args.get("chain", "base")
+    ),
 }
 
 
@@ -1001,6 +1041,30 @@ async def tools_list(request: Request) -> JSONResponse:
                     "chain": {"type": "string", "default": "base"},
                 },
                 "required": ["token"],
+            },
+        },
+        {
+            "name": "vigil_simulate_approval",
+            "description": (
+                "Simulate a token approval BEFORE signing — risk-assess the "
+                "spender. Profiles the spender using code analysis, GoPlus, "
+                "community scam DB, and known-safe registries. Returns risk "
+                "(safe/suspicious/dangerous), spender profile, reasons, and "
+                "recommendation. Free core safety check."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "spender": {"type": "string", "description": "Address you're about to approve (0x...)"},
+                    "token": {"type": "string", "description": "Token you're approving (0x...)"},
+                    "amount": {
+                        "type": "string",
+                        "description": "Amount: 'unlimited' or numeric",
+                        "default": "unlimited",
+                    },
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["spender", "token"],
             },
         },
     ]
