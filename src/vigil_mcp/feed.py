@@ -23,6 +23,7 @@ _FEED_TOOLS = {
     "vigil_scan_token",
     "vigil_consensus",
     "vigil_check_scam",
+    "vigil_liquidity_lock",
 }
 
 
@@ -72,6 +73,26 @@ class FeedStore:
             day = c.execute("SELECT COUNT(*) FROM feed WHERE at > ?", (int(time.time()) - 86400,)).fetchone()[0]
             tokens = c.execute("SELECT COUNT(DISTINCT token) FROM feed").fetchone()[0]
         return {"total": total, "flagged": flagged, "last_24h": day, "unique_tokens": tokens}
+
+    def tools_by_volume(self, limit: int = 5) -> list[dict[str, Any]]:
+        """Top tools by all-time call count. Used by /stats."""
+        with closing(sqlite3.connect(self.db_path)) as c:
+            rows = c.execute(
+                "SELECT tool, COUNT(*) AS n FROM feed GROUP BY tool ORDER BY n DESC LIMIT ?",
+                (max(1, min(limit, 20)),),
+            ).fetchall()
+        return [{"tool": r[0], "count": r[1]} for r in rows]
+
+    def recent_flagged(self, limit: int = 5) -> list[dict[str, Any]]:
+        """Most recent scans whose verdict was high / critical / honeypot."""
+        with closing(sqlite3.connect(self.db_path)) as c:
+            rows = c.execute(
+                "SELECT token, chain, tool, verdict, score, at FROM feed "
+                "WHERE verdict IN ('high','critical','honeypot') "
+                "ORDER BY id DESC LIMIT ?",
+                (max(1, min(limit, 50)),),
+            ).fetchall()
+        return [{"token": r[0], "chain": r[1], "tool": r[2], "verdict": r[3], "score": r[4], "at": r[5]} for r in rows]
 
 
 def feed_worthy(tool: str) -> bool:

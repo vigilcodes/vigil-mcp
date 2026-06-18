@@ -1131,6 +1131,7 @@ async def index(request: Request) -> HTMLResponse:
     <div class="links">
       <a href="https://vigil.codes">&rarr; Website</a>
       <a href="/tools/list">&rarr; List tools</a>
+      <a href="/stats">&rarr; Stats</a>
       <a href="/health">&rarr; Health</a>
       <a href="https://github.com/vigilcodes/vigil-mcp">&rarr; GitHub</a>
     </div>
@@ -1153,6 +1154,210 @@ async def public_feed(request: Request) -> JSONResponse:
         {"totals": feed_store.totals(), "recent": feed_store.recent(limit)},
         headers=_CORS_HEADERS,
     )
+
+
+# ─────────────────────────────────────────────────────────────
+# /stats — public stats snapshot (cached 60s)
+# Every number is derived live from the feed DB at snapshot time.
+# No hand-edited numbers, no PII beyond publicly-scanned token addresses.
+# ─────────────────────────────────────────────────────────────
+
+_STATS_CACHE: dict[str, Any] = {"snapshot": None, "at": 0.0}
+_STATS_CACHE_TTL = 60.0  # seconds
+
+
+def _build_stats_snapshot() -> dict[str, Any]:
+    """Compose the /stats payload from FeedStore + tool registration count."""
+    import time as _time
+
+    public_tools = sum(1 for name in TOOL_MAP if name.startswith("vigil_"))
+    return {
+        "service": "vigil-mcp",
+        "as_of": int(_time.time()),
+        "tools_live": public_tools,
+        "totals": _stats_totals(feed_store.totals()),
+        "tools_by_volume": feed_store.tools_by_volume(5),
+        "recent_flagged": feed_store.recent_flagged(5),
+    }
+
+
+def _stats_totals(raw: dict[str, Any]) -> dict[str, Any]:
+    """Rename feed totals to the public /stats shape (no behaviour change)."""
+    return {
+        "total_scans": int(raw.get("total", 0)),
+        "flagged": int(raw.get("flagged", 0)),
+        "last_24h": int(raw.get("last_24h", 0)),
+        "unique_tokens": int(raw.get("unique_tokens", 0)),
+    }
+
+
+def _render_stats_html(snapshot: dict[str, Any]) -> str:
+    """Render the public stats page from a snapshot. Pure function, no I/O."""
+    import datetime as _dt
+    import html as _html
+
+    totals = snapshot.get("totals") or {}
+    tools_live = snapshot.get("tools_live", 0)
+    tools_by_volume = snapshot.get("tools_by_volume") or []
+    recent_flagged = snapshot.get("recent_flagged") or []
+    as_of_ts = int(snapshot.get("as_of") or 0)
+    as_of_str = _dt.datetime.utcfromtimestamp(as_of_ts).strftime("%Y-%m-%d %H:%M UTC") if as_of_ts else "—"
+
+    def _short(addr: str) -> str:
+        a = (addr or "").lower()
+        return f"{a[:6]}…{a[-4:]}" if len(a) >= 12 else a
+
+    def _ago(ts: int) -> str:
+        if not ts:
+            return ""
+        now = int(_dt.datetime.now(_dt.timezone.utc).timestamp())
+        d = max(0, now - int(ts))
+        if d < 60:
+            return f"{d}s ago"
+        if d < 3600:
+            return f"{d // 60}m ago"
+        if d < 86400:
+            return f"{d // 3600}h ago"
+        return f"{d // 86400}d ago"
+
+    tools_rows = (
+        "".join(
+            f'<tr><td>{_html.escape(str(t.get("tool", "")))}</td><td class="num">{int(t.get("count", 0))}</td></tr>'
+            for t in tools_by_volume
+        )
+        or '<tr><td colspan="2" class="dim">No data yet.</td></tr>'
+    )
+
+    flagged_rows = (
+        "".join(
+            f'<tr><td><a href="https://basescan.org/token/{_html.escape(str(r.get("token", "")))}" '
+            f'target="_blank" rel="noreferrer">{_html.escape(_short(str(r.get("token", ""))))}</a></td>'
+            f"<td>{_html.escape(str(r.get('verdict', '')))}</td>"
+            f"<td>{_html.escape(str(r.get('tool', '')))}</td>"
+            f'<td class="dim">{_html.escape(_ago(int(r.get("at") or 0)))}</td></tr>'
+            for r in recent_flagged
+        )
+        or '<tr><td colspan="4" class="dim">No flagged scans yet.</td></tr>'
+    )
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIGIL — Public Stats</title>
+<meta http-equiv="refresh" content="60">
+<style>
+  body {{ margin:0; background:#080808; color:#d4d0c8;
+         font-family:'Courier New',monospace; line-height:1.6; }}
+  .wrap {{ max-width:920px; margin:0 auto; padding:48px 28px 80px; }}
+  .label {{ color:#c8a961; font-size:11px; letter-spacing:4px; opacity:.6; }}
+  h1 {{ font-family:Georgia,serif; font-size:42px; font-weight:400; margin:14px 0 4px; }}
+  .sub {{ color:#6b6860; font-style:italic; font-size:18px; }}
+  .grid {{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:32px 0; }}
+  .stat {{ border:1px solid #1e1e1c; border-radius:10px; padding:18px 20px; background:#0c0c0c; }}
+  .stat .n {{ font-family:Georgia,serif; font-size:34px; color:#c8a961; }}
+  .stat .k {{ color:#6b6860; font-size:11px; letter-spacing:3px; margin-top:4px; }}
+  .panel {{ border:1px solid #1e1e1c; border-radius:10px; padding:18px 22px;
+           background:#0c0c0c; margin-top:18px; }}
+  .panel h2 {{ font-size:13px; letter-spacing:3px; color:#6b6860; margin:0 0 14px;
+              font-family:'Courier New',monospace; font-weight:400; }}
+  table {{ width:100%; border-collapse:collapse; font-size:14px; }}
+  td {{ padding:8px 10px; border-bottom:1px solid #141413; }}
+  tr:last-child td {{ border-bottom:none; }}
+  td.num {{ color:#c8a961; text-align:right; }}
+  td.dim, .dim {{ color:#6b6860; }}
+  a {{ color:#c8a961; text-decoration:none; }}
+  a:hover {{ text-decoration:underline; }}
+  .footer {{ color:#6b6860; font-size:12px; margin-top:36px; line-height:1.8; }}
+  @media (max-width:640px) {{ .grid {{ grid-template-columns:repeat(2,1fr); }} }}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="label">VIGIL . PUBLIC STATS . LIVE FEED</div>
+    <h1>Proof, not hype.</h1>
+    <p class="sub">Every number below is derived live from the scan log. No projections.</p>
+
+    <div class="grid">
+      <div class="stat"><div class="n">{int(totals.get("total_scans", 0))}</div>
+        <div class="k">TOTAL SCANS</div></div>
+      <div class="stat"><div class="n">{int(totals.get("flagged", 0))}</div>
+        <div class="k">FLAGGED</div></div>
+      <div class="stat"><div class="n">{int(totals.get("last_24h", 0))}</div>
+        <div class="k">LAST 24H</div></div>
+      <div class="stat"><div class="n">{int(totals.get("unique_tokens", 0))}</div>
+        <div class="k">UNIQUE TOKENS</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>TOP TOOLS BY VOLUME · {int(tools_live)} TOOLS LIVE</h2>
+      <table>{tools_rows}</table>
+    </div>
+
+    <div class="panel">
+      <h2>RECENT FLAGGED SCANS</h2>
+      <table>{flagged_rows}</table>
+    </div>
+
+    <p class="footer">
+      Snapshot: <span class="dim">{_html.escape(as_of_str)}</span> · Refreshes automatically every 60s.<br>
+      All numbers derived live from the VIGIL scan feed. No PII, no wallet identity, no inflated counts.<br>
+      <a href="/stats" id="raw-link">View raw JSON</a>
+      &nbsp;·&nbsp; <a href="/">Server</a>
+      &nbsp;·&nbsp; <a href="https://vigil.codes">vigil.codes</a>
+      &nbsp;·&nbsp; <a href="https://github.com/vigilcodes/vigil-mcp">GitHub</a>
+    </p>
+    <pre id="raw" class="dim" style="margin-top:18px;font-size:12px;"></pre>
+    <script>
+      document.getElementById('raw-link').addEventListener('click', function(e) {{
+        e.preventDefault();
+        fetch('/stats', {{ headers: {{ accept: 'application/json' }} }})
+          .then(function(r) {{ return r.json(); }})
+          .then(function(j) {{
+            document.getElementById('raw').textContent = JSON.stringify(j, null, 2);
+          }});
+      }});
+    </script>
+  </div>
+</body>
+</html>"""
+
+
+@mcp.custom_route("/stats", methods=["GET", "OPTIONS"])
+async def public_stats(request: Request) -> JSONResponse:
+    """Public stats snapshot — derived live from the feed DB.
+
+    Cached in-process for 60 seconds so the page can poll without DB strain.
+    Failure mode: returns HTTP 500 with a minimal error body rather than a
+    stale snapshot presented as fresh.
+
+    Content negotiation: callers asking for HTML (browsers) get a rendered
+    page; everyone else (agents, curl, JSON-RPC clients) gets the raw JSON.
+    """
+    if request.method == "OPTIONS":
+        return JSONResponse({}, headers=_CORS_HEADERS)
+
+    import time as _time
+
+    now = _time.time()
+    cached = _STATS_CACHE.get("snapshot")
+    if cached is not None and (now - _STATS_CACHE.get("at", 0.0)) < _STATS_CACHE_TTL:
+        snapshot = cached
+    else:
+        try:
+            snapshot = _build_stats_snapshot()
+        except Exception as e:  # noqa: BLE001 — fail closed, never serve stale as fresh
+            logger.error(f"/stats build failed: {e}")
+            return JSONResponse({"error": "stats unavailable"}, status_code=500, headers=_CORS_HEADERS)
+        _STATS_CACHE["snapshot"] = snapshot
+        _STATS_CACHE["at"] = now
+
+    accept = (request.headers.get("accept") or "").lower()
+    wants_html = "text/html" in accept and "application/json" not in accept
+    if wants_html:
+        return HTMLResponse(_render_stats_html(snapshot), headers=_CORS_HEADERS)
+    return JSONResponse(snapshot, headers=_CORS_HEADERS)
 
 
 @mcp.custom_route("/health", methods=["GET"])
