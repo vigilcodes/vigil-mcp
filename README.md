@@ -11,7 +11,7 @@ Verify VIGIL is live and returns a real verdict in one call:
 
 ```bash
 curl -s https://mcp.vigil.codes/health
-# -> {"status":"ok","service":"vigil-mcp","tools":12}
+# -> {"status":"ok","service":"vigil-mcp","tools":15}
 
 curl -s -X POST https://mcp.vigil.codes/tools/call \
   -H "Content-Type: application/json" \
@@ -44,7 +44,10 @@ VIGIL ships Base-first. The scanners (approvals, token, honeypot, safety score) 
 - **Token Market** — price, liquidity, 24h volume, and pool age via DexScreener (no API key)
 - **Deployer Check** — contract verification, name, and deployer reputation via Basescan
 - **Batch Scan** — score multiple tokens in one call, ranked by risk
-- **Consensus** — multi-source verdict: 5 independent signals vote; risk only escalates to high/critical when multiple sources agree (false-positive guard)
+- **Consensus** — multi-source verdict: 6 independent signals vote; risk only escalates to high/critical when multiple sources agree (false-positive guard)
+- **Liquidity Lock** — detect whether DEX liquidity is locked, burned, or freely withdrawable (rug-pull vector); missing data returns `unknown`, never `safe`
+- **Approval Simulator** — risk-assess a spender *before* you sign: contract vs EOA, known-safe, scam-flagged, unlimited amount
+- **Clone Detector** — bytecode fingerprinting flags copy-paste scam clones, cross-checked against the scam DB
 - **Approval Revoker** *(separate, BANKR_API_KEY required)* — revoke dangerous approvals via Bankr transaction signing
 
 ## Install
