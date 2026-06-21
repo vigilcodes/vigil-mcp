@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 from vigil_mcp.autonomous.sentinel import Sentinel, SentinelStore
 from vigil_mcp.bridge.base_mcp import BaseMCPBridge
@@ -1432,6 +1432,135 @@ async def health_check(request: Request) -> JSONResponse:
     # every key would double the number and disagree with /tools/list.
     public_tools = sum(1 for name in TOOL_MAP if name.startswith("vigil_"))
     return JSONResponse({"status": "ok", "service": "vigil-mcp", "tools": public_tools})
+
+
+# ─────────────────────────────────────────────────────────────
+# AGENT DISCOVERY — /llms.txt and /.well-known/x402
+# Makes VIGIL discoverable by x402 directories (x402-list.com,
+# agent-tools.cloud) and any agent that scans the standard files.
+# All content is generated from live tool registration — no hand
+# numbers that can drift from reality.
+# ─────────────────────────────────────────────────────────────
+
+
+# Free vs paid is derived from the x402 price map so it never drifts.
+def _tool_pricing() -> tuple[list[str], list[tuple[str, float]]]:
+    """Return (free_tool_names, [(paid_tool_name, usd_price)])."""
+    free: list[str] = []
+    paid: list[tuple[str, float]] = []
+    for name in TOOL_MAP:
+        if not name.startswith("vigil_"):
+            continue
+        price = x402.price_for(name)
+        if price is None:
+            free.append(name)
+        else:
+            paid.append((name, price))
+    return sorted(free), sorted(paid)
+
+
+@mcp.custom_route("/llms.txt", methods=["GET"])
+async def llms_txt(request: Request) -> PlainTextResponse:
+    """Machine-readable catalog for AI agents and x402 directories."""
+    free, paid = _tool_pricing()
+    n_tools = sum(1 for n in TOOL_MAP if n.startswith("vigil_"))
+    free_lines = "\n".join(f"- {n}" for n in free)
+    paid_lines = "\n".join(f"- {n} — ${p:g} USDC/call (x402)" for n, p in paid) or "- (none)"
+    intro = (
+        f"> VIGIL is a keyless onchain security scanner for Base. It exposes {n_tools} tools "
+        "over JSON-RPC 2.0 so any AI agent can scan a token or wallet BEFORE it signs — "
+        "honeypots, rugpulls, liquidity locks, risky approvals, and a 6-source consensus verdict."
+    )
+    notable = (
+        "- vigil_simulate_approval — risk-assess a spender BEFORE you approve it. "
+        'Unique: answers "what could this spender do if I sign?"\n'
+        "- vigil_liquidity_lock — locked / burned / unlocked / unknown. "
+        "Missing data is never reported as safe.\n"
+        "- vigil_consensus — 6 independent sources vote; risk only escalates when "
+        "multiple agree (false-positive guard)."
+    )
+    body = f"""# VIGIL — Onchain Security Scanner (MCP)
+
+{intro}
+
+Endpoint: https://mcp.vigil.codes
+Protocol: JSON-RPC 2.0 over HTTP (POST /tools/call)
+Network: Base (chainid 8453)
+Payments: x402 (USDC on Base) for premium tools; core safety checks are free.
+Source: https://github.com/vigilcodes/vigil-mcp
+Site: https://vigil.codes
+
+## How to call
+
+POST https://mcp.vigil.codes/tools/call
+Content-Type: application/json
+{{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{{"name":"<tool>","arguments":{{...}}}}}}
+
+List all tools: GET https://mcp.vigil.codes/tools/list
+Health:         GET https://mcp.vigil.codes/health
+Live stats:     GET https://mcp.vigil.codes/stats
+x402 manifest:  GET https://mcp.vigil.codes/.well-known/x402
+
+## Free tools (no API key, no payment)
+
+{free_lines}
+
+## Paid tools (x402 — USDC on Base)
+
+{paid_lines}
+
+## Notable
+
+{notable}
+
+Not financial advice. Read-only intelligence. Always verify independently before signing.
+"""
+    return PlainTextResponse(body, headers=_CORS_HEADERS)
+
+
+@mcp.custom_route("/.well-known/x402", methods=["GET", "OPTIONS"])
+async def well_known_x402(request: Request) -> JSONResponse:
+    """x402 service manifest — advertises VIGIL's payable resources."""
+    if request.method == "OPTIONS":
+        return JSONResponse({}, headers=_CORS_HEADERS)
+
+    _, paid = _tool_pricing()
+    resources = []
+    for name, price in paid:
+        resources.append(
+            {
+                "resource": f"https://mcp.vigil.codes/tools/call#{name}",
+                "type": "http",
+                "x402Version": 1,
+                "description": f"VIGIL {name} — onchain security scan on Base",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "eip155:8453",
+                        "maxAmountRequired": str(int(round(price * 1_000_000))),
+                        "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+                        "extra": {"name": "USD Coin", "decimals": 6, "priceUSD": price},
+                    }
+                ],
+            }
+        )
+    return JSONResponse(
+        {
+            "x402Version": 1,
+            "service": "vigil-mcp",
+            "name": "VIGIL — Onchain Security Scanner",
+            "description": (
+                "Keyless onchain security scanner for Base. Scan tokens and wallets before signing: "
+                "honeypots, rugpulls, liquidity locks, risky approvals, multi-source consensus."
+            ),
+            "endpoint": "https://mcp.vigil.codes",
+            "documentation": "https://mcp.vigil.codes/llms.txt",
+            "tools_list": "https://mcp.vigil.codes/tools/list",
+            "network": "eip155:8453",
+            "resources": resources,
+        },
+        headers=_CORS_HEADERS,
+    )
 
 
 # ─────────────────────────────────────────────────────────────
