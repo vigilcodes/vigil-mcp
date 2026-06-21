@@ -1306,3 +1306,85 @@ class TestFeedStoreStats:
         store = self._store(tmp_path)
         store.record(TOKEN, "base", "vigil_safety_score", "safe", 90)
         assert store.recent_flagged(limit=5) == []
+
+
+# ─── CloneDetector ─────────────────────────────────────────
+
+
+class TestCloneFingerprint:
+    """Pure-function fingerprint + classify logic (no I/O)."""
+
+    def _det(self, tmp_path):
+        from vigil_mcp.scanners.clone_detector import CloneDetector, CloneFingerprintStore
+
+        store = CloneFingerprintStore(db_path=str(tmp_path / "clone.db"))
+        return CloneDetector(store=store)
+
+    def test_normalize_rejects_tiny_code(self, tmp_path):
+        det = self._det(tmp_path)
+        # under _MIN_CODE_BYTES (200) -> None
+        assert det._normalize_bytecode("0x" + "60" * 50) is None
+        assert det._normalize_bytecode("0x") is None
+        assert det._normalize_bytecode(None) is None
+
+    def test_normalize_accepts_real_code(self, tmp_path):
+        det = self._det(tmp_path)
+        code = "0x" + "60" * 300  # 300 bytes
+        norm = det._normalize_bytecode(code)
+        assert norm is not None and len(norm) > 0
+
+    def test_fingerprint_stable_and_distinct(self, tmp_path):
+        det = self._det(tmp_path)
+        a = det._normalize_bytecode("0x" + "ab" * 300)
+        b = det._normalize_bytecode("0x" + "ab" * 300)
+        c = det._normalize_bytecode("0x" + "cd" * 300)
+        assert det._fingerprint(a) == det._fingerprint(b)  # stable
+        assert det._fingerprint(a) != det._fingerprint(c)  # distinct
+
+    def test_assess_clone_with_scam_sibling_is_dangerous(self, tmp_path):
+        det = self._det(tmp_path)
+        risk, notes = det._assess(clone_count=2, scam_siblings=["0xabc"])
+        assert risk == "dangerous"
+
+    def test_assess_large_cluster_is_suspicious(self, tmp_path):
+        det = self._det(tmp_path)
+        risk, _ = det._assess(clone_count=5, scam_siblings=[])
+        assert risk == "suspicious"
+
+    def test_assess_few_clones_is_safe_note(self, tmp_path):
+        det = self._det(tmp_path)
+        risk, _ = det._assess(clone_count=1, scam_siblings=[])
+        assert risk == "safe"
+
+    def test_assess_no_clones_is_safe(self, tmp_path):
+        det = self._det(tmp_path)
+        risk, _ = det._assess(clone_count=0, scam_siblings=[])
+        assert risk == "safe"
+
+
+class TestCloneFingerprintStore:
+    def test_siblings_accumulate(self, tmp_path):
+        from vigil_mcp.scanners.clone_detector import CloneFingerprintStore
+
+        store = CloneFingerprintStore(db_path=str(tmp_path / "clone.db"))
+        fp = "deadbeef" * 8
+        store.record(fp, "base", "0x" + "1" * 40)
+        store.record(fp, "base", "0x" + "2" * 40)
+        store.record(fp, "base", "0x" + "3" * 40)
+        # siblings of addr1 = addr2, addr3
+        sibs = store.siblings(fp, "base", exclude="0x" + "1" * 40)
+        assert len(sibs) == 2
+        assert ("0x" + "2" * 40) in sibs
+
+    def test_record_idempotent(self, tmp_path):
+        from vigil_mcp.scanners.clone_detector import CloneFingerprintStore
+
+        store = CloneFingerprintStore(db_path=str(tmp_path / "clone.db"))
+        fp = "cafe" * 16
+        addr = "0x" + "a" * 40
+        store.record(fp, "base", addr)
+        store.record(fp, "base", addr)  # same addr again
+        # a different address shares the fp
+        store.record(fp, "base", "0x" + "b" * 40)
+        sibs = store.siblings(fp, "base", exclude=addr)
+        assert sibs == ["0x" + "b" * 40]  # addr not double-counted
