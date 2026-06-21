@@ -999,7 +999,7 @@
     <div class="wrap">
       <div class="rv">
         <div class="s-label">Agent Capabilities</div>
-        <h2 class="s-title">Twelve autonomous tools,<br>one protocol.</h2>
+        <h2 class="s-title">Fifteen autonomous tools,<br>one protocol.</h2>
         <p class="s-desc">Each tool is exposed as a standardized MCP capability, optimized for Base chain. Any AI client can invoke them — no custom integration required.</p>
       </div>
       <div class="features-grid">
@@ -1061,7 +1061,22 @@
         <div class="feat-cell rv">
           <div class="feat-num">12</div>
           <h3>Multi-Source Consensus</h3>
-          <p>Five independent signals vote separately — GoPlus, onchain score, market, deployer, scam DB. Risk only escalates when multiple sources agree, so a single noisy source can't trigger a false positive.</p>
+          <p>Six independent signals vote separately — GoPlus, onchain score, market, deployer, scam DB, liquidity lock. Risk only escalates when multiple sources agree, so a single noisy source can't trigger a false positive.</p>
+        </div>
+        <div class="feat-cell rv">
+          <div class="feat-num">13</div>
+          <h3>Liquidity Lock</h3>
+          <p>Detect whether a token's DEX liquidity is locked, burned, or freely withdrawable — the classic rug-pull vector. Missing data returns "unknown," never "safe."</p>
+        </div>
+        <div class="feat-cell rv">
+          <div class="feat-num">14</div>
+          <h3>Approval Simulator</h3>
+          <p>The question no other tool answers: if you approve this spender right now, what could it do? Profiles the spender before you sign — contract or EOA, known-safe, scam-flagged, unlimited.</p>
+        </div>
+        <div class="feat-cell rv">
+          <div class="feat-num">15</div>
+          <h3>Clone Detector</h3>
+          <p>Scam farms deploy the same contract dozens of times with new names. Bytecode fingerprinting flags copy-paste clones and cross-checks them against the scam database.</p>
         </div>
       </div>
 
@@ -1130,7 +1145,7 @@
           <div class="arch-node" style="border-color: rgba(200,169,97,0.2);">
             <span class="a-icon">◆</span>
             <div class="a-title">Vigil Agent</div>
-            <div class="a-desc">Security scanner core with 12 tools</div>
+            <div class="a-desc">Security scanner core with 15 tools</div>
           </div>
           <div class="arch-arrow">→</div>
           <div class="arch-node">
