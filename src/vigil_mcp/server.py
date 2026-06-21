@@ -1563,6 +1563,44 @@ async def well_known_x402(request: Request) -> JSONResponse:
     )
 
 
+@mcp.custom_route("/x402/{tool}", methods=["GET", "OPTIONS"])
+async def x402_resource(request: Request) -> JSONResponse:
+    """Per-tool x402 resource path — always advertises HTTP 402 for paid tools.
+
+    This is the directory/probe-friendly surface. A plain GET to
+    /x402/<paid_tool> returns 402 with the x402 `accepts[]` payload, which is
+    what x402 directories (x402-list.com, agent-tools.cloud) and the CDP
+    Bazaar probe for. Free tools return 200 with a pointer to the free
+    JSON-RPC call (no payment needed).
+    """
+    if request.method == "OPTIONS":
+        return JSONResponse({}, headers=_CORS_HEADERS)
+
+    tool = request.path_params.get("tool", "")
+    if not tool.startswith("vigil_"):
+        tool = f"vigil_{tool}"
+
+    if tool not in TOOL_MAP:
+        return JSONResponse({"error": f"Unknown tool: {tool}"}, status_code=404, headers=_CORS_HEADERS)
+
+    price = x402.price_for(tool)
+    if price is None:
+        # Free tool — advertise how to call it for free.
+        return JSONResponse(
+            {
+                "tool": tool,
+                "free": True,
+                "call": "POST https://mcp.vigil.codes/tools/call",
+                "body": {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": tool, "arguments": {}}},
+            },
+            headers=_CORS_HEADERS,
+        )
+
+    # Paid tool — return the x402 payment requirements with HTTP 402.
+    reqs = x402.payment_requirements(tool, price)
+    return JSONResponse(reqs, status_code=402, headers=_CORS_HEADERS)
+
+
 # ─────────────────────────────────────────────────────────────
 # ENTRYPOINT
 # ─────────────────────────────────────────────────────────────
