@@ -16,6 +16,11 @@ dependencies = [
     "eth-abi>=5.0.0",
     "eth-account>=0.10.0",
     "eth-utils>=5.0.0",
+    # PyJWT + cryptography are used to sign the CDP facilitator Bearer JWT
+    # (EdDSA/Ed25519). cryptography is already pulled in transitively by
+    # eth-account; pinned here explicitly because x402 settlement depends on it.
+    "pyjwt>=2.8.0",
+    "cryptography>=42.0.0",
 ]
 
 [project.optional-dependencies]
