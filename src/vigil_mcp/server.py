@@ -881,6 +881,7 @@ _CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-PAYMENT",
+    "Access-Control-Expose-Headers": "X-PAYMENT-RESPONSE",
     "Access-Control-Max-Age": "86400",
 }
 
@@ -1169,6 +1170,13 @@ async def tools_call(request: Request) -> JSONResponse:
         )
 
     # Optional x402 pay-per-call gate (disabled unless VIGIL_X402_ENABLED=1).
+    # Flow for a paid tool:
+    #   1. verify the X-PAYMENT payload with the facilitator (no funds move)
+    #   2. run the tool — only charge for a successful result
+    #   3. settle onchain (funds move + Builder Code attribution) and return
+    #      the settlement tx in the X-PAYMENT-RESPONSE header
+    payment_hdr = ""
+    price = None
     if x402.is_enabled():
         price = x402.price_for(tool_name)
         if price:
@@ -1189,7 +1197,19 @@ async def tools_call(request: Request) -> JSONResponse:
             if target:
                 verdict, score = extract_verdict(tool_name, result)
                 feed_store.record(target, arguments.get("chain", "base"), tool_name, verdict, score)
-        return JSONResponse({"jsonrpc": "2.0", "id": req_id, "result": result}, headers=_CORS_HEADERS)
+
+        response_headers = dict(_CORS_HEADERS)
+        # Settle the payment now that the tool succeeded. If settlement fails we
+        # still return the result (the agent already passed verification) but log
+        # it — failing to deliver a paid-for verdict is worse than a missed charge.
+        if price and payment_hdr:
+            settle_result = await x402.settle_payment(payment_hdr, tool_name, price)
+            if settle_result:
+                response_headers["X-PAYMENT-RESPONSE"] = x402.settlement_response_header(settle_result)
+            else:
+                logger.warning("x402 settle failed after successful %s; result returned unpaid", tool_name)
+
+        return JSONResponse({"jsonrpc": "2.0", "id": req_id, "result": result}, headers=response_headers)
     except Exception as e:
         logger.error(f"Tool {tool_name} failed: {e}")
         return JSONResponse(
@@ -1586,22 +1606,14 @@ async def well_known_x402(request: Request) -> JSONResponse:
             {
                 "resource": f"https://mcp.vigil.codes/tools/call#{name}",
                 "type": "http",
-                "x402Version": 1,
+                "x402Version": x402.X402_VERSION,
                 "description": f"VIGIL {name} — onchain security scan on Base",
-                "accepts": [
-                    {
-                        "scheme": "exact",
-                        "network": "eip155:8453",
-                        "maxAmountRequired": str(int(round(price * 1_000_000))),
-                        "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
-                        "extra": {"name": "USD Coin", "decimals": 6, "priceUSD": price},
-                    }
-                ],
+                "accepts": [x402._accepts_entry(name, price)],
             }
         )
     return JSONResponse(
         {
-            "x402Version": 1,
+            "x402Version": x402.X402_VERSION,
             "service": "vigil-mcp",
             "name": "VIGIL — Onchain Security Scanner",
             "description": (

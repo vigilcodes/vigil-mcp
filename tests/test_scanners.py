@@ -911,13 +911,19 @@ class TestX402:
         from vigil_mcp.payments import x402
 
         req = x402.payment_requirements("vigil_safety_score", 0.001)
-        assert req["x402Version"] == 1
+        # CDP facilitator requires x402 v2 shapes.
+        assert req["x402Version"] == 2
+        assert req["error"] == "Payment required"
+        assert req["resource"]["url"].endswith("#vigil_safety_score")
         accept = req["accepts"][0]
         # CDP facilitator requires CAIP-2 network identifiers.
         assert accept["network"] == "eip155:8453"
-        # $0.001 in USDC 6-decimals == 1000 base units
-        assert accept["maxAmountRequired"] == "1000"
+        # $0.001 in USDC 6-decimals == 1000 base units (v2 uses `amount`)
+        assert accept["amount"] == "1000"
+        assert accept["payTo"] == "0x" + "1" * 40
         assert accept["asset"].lower() == x402.USDC_BASE
+        # EIP-712 token metadata the facilitator needs to validate the signature.
+        assert accept["extra"] == {"name": "USDC", "version": "2"}
 
     def test_default_price_above_facilitator_fee(self, monkeypatch):
         """Default price must exceed the CDP facilitator's $0.001/tx post-quota fee."""
@@ -942,8 +948,7 @@ class TestX402:
 
     @pytest.mark.asyncio
     async def test_verify_fails_closed_with_empty_payload(self, monkeypatch):
-        """Even with a default facilitator (OpenX402), an empty payment
-        header must fail verification."""
+        """An empty payment header must fail verification (fail closed)."""
         monkeypatch.delenv("VIGIL_X402_FACILITATOR", raising=False)
         monkeypatch.delenv("CDP_API_KEY_ID", raising=False)
         monkeypatch.delenv("CDP_API_KEY_SECRET", raising=False)
@@ -952,19 +957,17 @@ class TestX402:
         ok = await x402.verify_payment("", "vigil_safety_score", 0.001)
         assert ok is False
 
-    def test_facilitator_falls_back_to_openx402(self, monkeypatch):
-        """Without CDP keys or override, default to OpenX402 (no signup)."""
-        monkeypatch.delenv("VIGIL_X402_FACILITATOR", raising=False)
-        monkeypatch.delenv("CDP_API_KEY_ID", raising=False)
-        monkeypatch.delenv("CDP_API_KEY_SECRET", raising=False)
+    @pytest.mark.asyncio
+    async def test_settle_returns_none_with_empty_payload(self):
+        """Settling an empty/missing payment header must return None."""
         from vigil_mcp.payments import x402
 
-        assert x402._facilitator_url() == x402.OPENX402_FACILITATOR_URL
+        result = await x402.settle_payment("", "vigil_safety_score", 0.001)
+        assert result is None
 
-    def test_facilitator_prefers_cdp_when_keys_set(self, monkeypatch):
+    def test_facilitator_defaults_to_cdp(self, monkeypatch):
+        """Without an override, the facilitator is CDP (required for Builder Code)."""
         monkeypatch.delenv("VIGIL_X402_FACILITATOR", raising=False)
-        monkeypatch.setenv("CDP_API_KEY_ID", "kid")
-        monkeypatch.setenv("CDP_API_KEY_SECRET", "sec")
         from vigil_mcp.payments import x402
 
         assert x402._facilitator_url() == x402.CDP_FACILITATOR_URL
@@ -976,6 +979,145 @@ class TestX402:
         from vigil_mcp.payments import x402
 
         assert x402._facilitator_url() == "https://my.facilitator.example"
+
+    def test_decode_payment_header_base64_json(self):
+        """X-PAYMENT is base64-encoded JSON; decode round-trips."""
+        import base64
+        import json
+
+        from vigil_mcp.payments import x402
+
+        payload = {"x402Version": 1, "scheme": "exact", "payload": {"signature": "0xabc"}}
+        header = base64.b64encode(json.dumps(payload).encode()).decode()
+        assert x402.decode_payment_header(header) == payload
+
+    def test_decode_payment_header_raw_json_fallback(self):
+        """Some clients send raw JSON instead of base64 — accept that too."""
+        import json
+
+        from vigil_mcp.payments import x402
+
+        payload = {"x402Version": 1}
+        assert x402.decode_payment_header(json.dumps(payload)) == payload
+
+    def test_decode_payment_header_empty_and_garbage(self):
+        from vigil_mcp.payments import x402
+
+        assert x402.decode_payment_header("") is None
+        assert x402.decode_payment_header("!!!not-base64-not-json!!!") is None
+
+    def test_builder_code_extension_present_when_set(self, monkeypatch):
+        monkeypatch.setenv("VIGIL_X402_APP_CODE", "bc_kz42eeiy")
+        from vigil_mcp.payments import x402
+
+        req = x402.payment_requirements("vigil_scan_token", 0.005)
+        assert "extensions" in req
+        ext = req["extensions"][x402.BUILDER_CODE_EXT]
+        assert ext["info"]["a"] == "bc_kz42eeiy"
+        # Schema must be present so the facilitator can validate the echo.
+        assert ext["schema"]["properties"]["a"]["pattern"] == x402.BUILDER_CODE_PATTERN
+
+    def test_builder_code_extension_absent_when_unset(self, monkeypatch):
+        monkeypatch.delenv("VIGIL_X402_APP_CODE", raising=False)
+        from vigil_mcp.payments import x402
+
+        req = x402.payment_requirements("vigil_scan_token", 0.005)
+        assert "extensions" not in req
+
+    def test_cdp_bearer_jwt_none_without_keys(self, monkeypatch):
+        monkeypatch.delenv("CDP_API_KEY_ID", raising=False)
+        monkeypatch.delenv("CDP_API_KEY_SECRET", raising=False)
+        from vigil_mcp.payments import x402
+
+        assert x402._cdp_bearer_jwt("POST", "/platform/v2/x402/verify") is None
+
+    def test_cdp_bearer_jwt_ed25519(self, monkeypatch):
+        """A synthetic Ed25519 key produces a verifiable EdDSA JWT with uris claim."""
+        import base64
+
+        import jwt as pyjwt
+        from cryptography.hazmat.primitives.asymmetric import ed25519
+
+        # Build a base64 64-byte CDP-style secret (seed || pubkey).
+        priv = ed25519.Ed25519PrivateKey.generate()
+        from cryptography.hazmat.primitives import serialization
+
+        seed = priv.private_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PrivateFormat.Raw,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        pub = priv.public_key().public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
+        secret_b64 = base64.b64encode(seed + pub).decode()
+
+        monkeypatch.setenv("CDP_API_KEY_ID", "test-kid")
+        monkeypatch.setenv("CDP_API_KEY_SECRET", secret_b64)
+        from vigil_mcp.payments import x402
+
+        token = x402._cdp_bearer_jwt("POST", "/platform/v2/x402/verify")
+        assert token is not None
+        # Decode with the matching public key to confirm signature + claims.
+        decoded = pyjwt.decode(
+            token,
+            priv.public_key(),
+            algorithms=["EdDSA"],
+            options={"verify_aud": False},
+        )
+        assert decoded["iss"] == "cdp"
+        assert decoded["uris"] == ["POST api.cdp.coinbase.com/platform/v2/x402/verify"]
+
+    @pytest.mark.asyncio
+    async def test_verify_true_on_facilitator_valid(self, monkeypatch):
+        """verify_payment returns True when the facilitator reports isValid."""
+        import base64
+        import json
+
+        from vigil_mcp.payments import x402
+
+        async def fake_post(endpoint, body):
+            assert endpoint == "/verify"
+            assert body["paymentRequirements"]["scheme"] == "exact"
+            return {"isValid": True, "payer": "0xabc"}
+
+        monkeypatch.setattr(x402, "_post", fake_post)
+        header = base64.b64encode(json.dumps({"x402Version": 1}).encode()).decode()
+        assert await x402.verify_payment(header, "vigil_scan_token", 0.005) is True
+
+    @pytest.mark.asyncio
+    async def test_settle_success_returns_tx(self, monkeypatch):
+        import base64
+        import json
+
+        from vigil_mcp.payments import x402
+
+        async def fake_post(endpoint, body):
+            assert endpoint == "/settle"
+            return {"success": True, "transaction": "0xdead", "network": "base", "payer": "0xabc"}
+
+        monkeypatch.setattr(x402, "_post", fake_post)
+        header = base64.b64encode(json.dumps({"x402Version": 1}).encode()).decode()
+        result = await x402.settle_payment(header, "vigil_scan_token", 0.005)
+        assert result["transaction"] == "0xdead"
+
+        # Settlement response header round-trips the tx hash.
+        hdr = x402.settlement_response_header(result)
+        decoded = json.loads(base64.b64decode(hdr))
+        assert decoded["transaction"] == "0xdead"
+        assert decoded["success"] is True
+
+    @pytest.mark.asyncio
+    async def test_settle_failure_returns_none(self, monkeypatch):
+        import base64
+        import json
+
+        from vigil_mcp.payments import x402
+
+        async def fake_post(endpoint, body):
+            return {"success": False, "errorReason": "insufficient_funds", "errorMessage": "nope"}
+
+        monkeypatch.setattr(x402, "_post", fake_post)
+        header = base64.b64encode(json.dumps({"x402Version": 1}).encode()).decode()
+        assert await x402.settle_payment(header, "vigil_scan_token", 0.005) is None
 
 
 # ─── Approvals enrichment (token_symbol, spender_name) ─────
