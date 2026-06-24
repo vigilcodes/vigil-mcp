@@ -41,27 +41,27 @@ os.makedirs(OUT_DIR, exist_ok=True)
 SCRIPT = [
     ("type",  "aeon agent :: autonomous loop running", GOLD, 2),
     ("hold",  "", None, 14),
-    ("type",  "next action -> approve(spender, unlimited)", DIM, 2),
+    ("type",  "next action -> swap into $NEWTOKEN", DIM, 2),
     ("hold",  "", None, 20),
     ("blank", "", None, 0),
     ("type",  "vigil :: scan before sign  [in-loop]", GOLD, 2),
     ("hold",  "", None, 16),
-    ("print", "  goplus      ........  ok", GREEN, 8),
+    ("print", "  honeypot     ........  can sell", GREEN, 8),
     ("hold",  "", None, 8),
-    ("print", "  onchain     ........  ok", GREEN, 8),
-    ("hold",  "", None, 8),
-    ("print", "  market      ........  ok", GREEN, 8),
-    ("hold",  "", None, 8),
-    ("print", "  deployer    ........  ok", GREEN, 8),
-    ("hold",  "", None, 8),
-    ("print", "  scam db     ........  ok", GREEN, 8),
-    ("hold",  "", None, 8),
-    ("print", "  liquidity   ........  ok", GREEN, 8),
+    ("print", "  tax          ........  OWNER-MODIFIABLE", RED, 8),
+    ("hold",  "", None, 10),
+    ("print", "  ownership    ........  mint + pause live", RED, 8),
+    ("hold",  "", None, 10),
+    ("print", "  clone        ........  matches scam DB", RED, 8),
+    ("hold",  "", None, 10),
+    ("print", "  liquidity    ........  unlocked", RED, 8),
     ("hold",  "", None, 18),
     ("blank", "", None, 0),
-    ("print", "consensus: 6/6 agree  ->  SAFE", GREEN, 10),
-    ("hold",  "", None, 40),
-    ("print", "agent proceeds. no human in the loop.", DIM, 10),
+    ("print", "consensus  ->  DANGEROUS", RED, 10),
+    ("hold",  "", None, 30),
+    ("print", "agent aborts the swap. funds safe.", GREEN, 10),
+    ("hold",  "", None, 24),
+    ("print", "no human in the loop.", DIM, 10),
     ("hold",  "", None, 150),
 ]
 
@@ -111,7 +111,7 @@ def frame_svg(body, cursor):
   <line x1="60" y1="156" x2="{W-60}" y2="156" stroke="#1e1e1c" stroke-width="1"/>
   {body}
   {cursor}
-  <text x="72" y="{H-38}" fill="{DIM}" font-family="'Courier New', monospace" font-size="14">merged into the Aeon agent stack</text>
+  <text x="72" y="{H-38}" fill="{DIM}" font-family="'Courier New', monospace" font-size="14">drop-in Aeon skill . read-only . 17 tools</text>
   <text x="{W-70}" y="{H-38}" text-anchor="end" fill="{GOLD}" font-family="'Courier New', monospace" font-size="14" opacity="0.7">vigil.codes</text>
 </svg>'''
 
