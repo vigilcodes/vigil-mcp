@@ -46,8 +46,13 @@ class GoPlusResult(BaseModel):
     token_symbol: Optional[str] = None
     is_honeypot: Optional[bool] = None
     cannot_sell_all: Optional[bool] = None
+    cannot_buy: Optional[bool] = None
     buy_tax: Optional[float] = None
     sell_tax: Optional[float] = None
+    transfer_tax: Optional[float] = None
+    slippage_modifiable: Optional[bool] = None
+    personal_slippage_modifiable: Optional[bool] = None
+    trading_cooldown: Optional[bool] = None
     is_mintable: Optional[bool] = None
     is_proxy: Optional[bool] = None
     transfer_pausable: Optional[bool] = None
@@ -135,8 +140,13 @@ class GoPlusScanner:
             token_symbol=row.get("token_symbol") or None,
             is_honeypot=_b(row.get("is_honeypot")),
             cannot_sell_all=_b(row.get("cannot_sell_all")),
+            cannot_buy=_b(row.get("cannot_buy")),
             buy_tax=_f(row.get("buy_tax")),
             sell_tax=_f(row.get("sell_tax")),
+            transfer_tax=_f(row.get("transfer_tax")),
+            slippage_modifiable=_b(row.get("slippage_modifiable")),
+            personal_slippage_modifiable=_b(row.get("personal_slippage_modifiable")),
+            trading_cooldown=_b(row.get("trading_cooldown")),
             is_mintable=_b(row.get("is_mintable")),
             is_proxy=_b(row.get("is_proxy")),
             transfer_pausable=_b(row.get("transfer_pausable")),

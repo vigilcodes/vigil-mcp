@@ -1530,3 +1530,96 @@ class TestCloneFingerprintStore:
         store.record(fp, "base", "0x" + "b" * 40)
         sibs = store.siblings(fp, "base", exclude=addr)
         assert sibs == ["0x" + "b" * 40]  # addr not double-counted
+
+
+# ─── TaxScanner ────────────────────────────────────────────
+
+
+class TestTaxScanner:
+    """Tax-surface assessment logic (pure _assess over GoPlusResult)."""
+
+    def _scanner(self):
+        from vigil_mcp.scanners.tax_scanner import TaxScanner
+
+        return TaxScanner()
+
+    def _g(self, **kw):
+        from vigil_mcp.scanners.goplus import GoPlusResult
+
+        return GoPlusResult(available=True, **kw)
+
+    def test_modifiable_tax_is_dangerous(self):
+        s = self._scanner()
+        risk, notes = s._assess(self._g(buy_tax=0.0, sell_tax=0.0, slippage_modifiable=True))
+        assert risk == "dangerous"
+        assert any("MODIFIABLE" in n for n in notes)
+
+    def test_personal_modifiable_tax_is_dangerous(self):
+        s = self._scanner()
+        risk, _ = s._assess(self._g(buy_tax=0.0, sell_tax=0.0, personal_slippage_modifiable=True))
+        assert risk == "dangerous"
+
+    def test_severe_tax_is_dangerous(self):
+        s = self._scanner()
+        risk, _ = s._assess(self._g(buy_tax=0.0, sell_tax=0.6))
+        assert risk == "dangerous"
+
+    def test_high_tax_is_high(self):
+        s = self._scanner()
+        risk, _ = s._assess(self._g(buy_tax=0.12, sell_tax=0.12))
+        assert risk == "high"
+
+    def test_small_tax_is_caution(self):
+        s = self._scanner()
+        risk, _ = s._assess(self._g(buy_tax=0.03, sell_tax=0.03))
+        assert risk == "caution"
+
+    def test_zero_tax_is_safe(self):
+        s = self._scanner()
+        risk, _ = s._assess(self._g(buy_tax=0.0, sell_tax=0.0, transfer_tax=0.0))
+        assert risk == "safe"
+
+    def test_cooldown_only_is_caution(self):
+        s = self._scanner()
+        risk, _ = s._assess(self._g(buy_tax=0.0, sell_tax=0.0, trading_cooldown=True))
+        assert risk == "caution"
+
+    @pytest.mark.asyncio
+    async def test_scan_unknown_when_goplus_unavailable(self, monkeypatch):
+        from vigil_mcp.scanners import tax_scanner as tx
+        from vigil_mcp.scanners.goplus import GoPlusResult
+
+        async def fake_ts(self, token, chain):
+            return GoPlusResult(available=False, note="no data")
+
+        monkeypatch.setattr(tx.GoPlusScanner, "token_security", fake_ts)
+        s = tx.TaxScanner()
+        result = await s.scan("0x" + "9" * 40, "base")
+        assert result.determined is False
+        assert result.risk == "unknown"
+
+    @pytest.mark.asyncio
+    async def test_scan_unknown_when_no_tax_fields(self, monkeypatch):
+        from vigil_mcp.scanners import tax_scanner as tx
+        from vigil_mcp.scanners.goplus import GoPlusResult
+
+        async def fake_ts(self, token, chain):
+            # Available, but all tax fields are None.
+            return GoPlusResult(available=True, token_symbol="X")
+
+        monkeypatch.setattr(tx.GoPlusScanner, "token_security", fake_ts)
+        s = tx.TaxScanner()
+        result = await s.scan("0x" + "9" * 40, "base")
+        assert result.determined is False
+        assert result.risk == "unknown"
+
+    @pytest.mark.asyncio
+    async def test_scan_known_bluechip_is_safe(self, monkeypatch):
+        from vigil_mcp.scanners import tax_scanner as tx
+
+        # USDC on base is in the known-contracts registry.
+        s = tx.TaxScanner()
+        result = await s.scan("0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "base")
+        assert result.determined is True
+        assert result.risk == "safe"
+        assert result.buy_tax == 0.0

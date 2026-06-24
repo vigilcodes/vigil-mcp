@@ -26,6 +26,7 @@ from vigil_mcp.scanners.liquidity_lock import LiquidityLockScanner
 from vigil_mcp.scanners.market import MarketScanner
 from vigil_mcp.scanners.safety_score import SafetyScorer
 from vigil_mcp.scanners.scam_db import ScamDatabase
+from vigil_mcp.scanners.tax_scanner import TaxScanner
 from vigil_mcp.scanners.token_scanner import TokenScanner
 
 logging.basicConfig(
@@ -61,6 +62,7 @@ feed_store = FeedStore()
 liquidity_lock_scanner = LiquidityLockScanner()
 approval_simulator = ApprovalSimulator()
 clone_detector = CloneDetector()
+tax_scanner = TaxScanner()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -503,6 +505,34 @@ async def vigil_detect_clone(token: str, chain: str = "base") -> dict[str, Any]:
 
 
 @mcp.tool()
+async def vigil_check_tax(token: str, chain: str = "base") -> dict[str, Any]:
+    """Assess a token's trade-tax surface — punishing or owner-mutable fees.
+
+    A token can be fully sellable (passing the honeypot check) yet still bleed
+    you through buy/sell/transfer tax, or carry tax the owner can change after
+    you buy. This reads GoPlus token-security data and assesses tax specifically.
+
+    Returns:
+      - risk: safe / caution / high / dangerous / unknown
+      - buy_tax, sell_tax, transfer_tax (fractions; 0.05 == 5%)
+      - tax_modifiable, personal_tax_modifiable, trading_cooldown, cannot_buy
+      - notes: human-readable basis
+
+    Modifiable tax ("0% now, 99% later") is treated as dangerous. Fail-safe:
+    missing tax data returns `unknown`, never `safe`. Free core safety check.
+
+    Args:
+        token: Token contract address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    token = _validate_address(token, "token")
+    logger.info(f"Checking tax for {token} on {chain}")
+    result = await tax_scanner.scan(token, chain)
+    return result.model_dump()
+
+
+@mcp.tool()
 async def vigil_batch_scan(tokens: list[str], chain: str = "base") -> dict[str, Any]:
     """Scan multiple tokens for safety in one call.
 
@@ -872,6 +902,10 @@ TOOL_MAP = {
     "detect_clone": lambda args: vigil_detect_clone(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
+    "vigil_check_tax": lambda args: vigil_check_tax(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "check_tax": lambda args: vigil_check_tax(args.get("token") or args.get("contract", ""), args.get("chain", "base")),
 }
 
 
@@ -1113,6 +1147,24 @@ async def tools_list(request: Request) -> JSONResponse:
                 "other addresses VIGIL has seen, then cross-references siblings against "
                 "the community scam DB. Risk escalates to dangerous only when a clone "
                 "sibling is a reported scam. Free core safety check."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
+            },
+        },
+        {
+            "name": "vigil_check_tax",
+            "description": (
+                "Assess a token's trade-tax surface — punishing or owner-mutable fees. "
+                "Reads GoPlus data for buy/sell/transfer tax plus modifiability flags. "
+                "A sellable token can still bleed you on tax, or carry tax the owner can "
+                "change after you buy ('0% now, 99% later'). Modifiable tax is treated as "
+                "dangerous. Fail-safe: missing data returns unknown, never safe. Free core safety check."
             ),
             "inputSchema": {
                 "type": "object",
