@@ -176,7 +176,10 @@ def _accepts_entry(tool: str, price_usd: float) -> dict[str, Any]:
         "amount": _price_units(price_usd),
         "payTo": pay_to,
         "maxTimeoutSeconds": 60,
-        "extra": {"name": "USDC", "version": "2"},
+        # EIP-712 domain the facilitator uses to verify the EIP-3009 signature.
+        # MUST match the USDC contract's onchain domain ("USD Coin", version 2)
+        # or both signature verification and onchain settlement revert.
+        "extra": {"name": "USD Coin", "version": "2"},
     }
 
 
@@ -321,11 +324,21 @@ def decode_payment_header(header_value: str) -> Optional[dict[str, Any]]:
 
 
 def _facilitator_body(payload: dict[str, Any], tool: str, price_usd: float) -> dict[str, Any]:
-    """Build the verify/settle request body for the facilitator."""
+    """Build the verify/settle request body for the facilitator.
+
+    The builder-code extension is attached to ``paymentRequirements`` so the
+    facilitator knows our declared app code (``a``) and can encode it into the
+    settlement calldata (ERC-8021). Without this, only the facilitator's own
+    wallet code (``w``) lands onchain — our attribution is lost.
+    """
+    requirements = _accepts_entry(tool, price_usd)
+    ext = _builder_code_extension()
+    if ext:
+        requirements["extensions"] = ext
     return {
         "x402Version": X402_VERSION,
         "paymentPayload": payload,
-        "paymentRequirements": _accepts_entry(tool, price_usd),
+        "paymentRequirements": requirements,
     }
 
 
