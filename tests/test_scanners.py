@@ -923,7 +923,8 @@ class TestX402:
         assert accept["payTo"] == "0x" + "1" * 40
         assert accept["asset"].lower() == x402.USDC_BASE
         # EIP-712 token metadata the facilitator needs to validate the signature.
-        assert accept["extra"] == {"name": "USDC", "version": "2"}
+        # Must be the USDC contract's real onchain domain name ("USD Coin").
+        assert accept["extra"] == {"name": "USD Coin", "version": "2"}
 
     def test_default_price_above_facilitator_fee(self, monkeypatch):
         """Default price must exceed the CDP facilitator's $0.001/tx post-quota fee."""
