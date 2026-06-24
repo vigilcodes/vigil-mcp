@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" fill="none">
+  <defs>
+    <linearGradient id="warm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#c8a961"/><stop offset="100%" stop-color="#e8d5a3"/></linearGradient>
+    <radialGradient id="bg" cx="50%" cy="30%" r="80%"><stop offset="0%" stop-color="#16110a"/><stop offset="100%" stop-color="#070707"/></radialGradient>
+    <linearGradient id="danger" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#e0564a"/><stop offset="100%" stop-color="#f08a72"/></linearGradient>
+    <filter id="gl"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <g stroke="#c8a961" stroke-width="0.5" opacity="0.05"><line x1="0" y1="225" x2="1200" y2="225"/><line x1="0" y1="450" x2="1200" y2="450"/><line x1="400" y1="0" x2="400" y2="675"/><line x1="800" y1="0" x2="800" y2="675"/></g>
+
+  <!-- header -->
+  <text x="80" y="110" fill="#7d7d7d" font-family="DejaVu Sans Mono, monospace" font-size="26">vigil_check_tax · tool #16</text>
+  <text x="80" y="190" fill="url(#warm)" font-family="DejaVu Sans Mono, monospace" font-size="72" font-weight="700">Tax Scanner</text>
+  <text x="80" y="240" fill="#9a9a9a" font-family="DejaVu Sans Mono, monospace" font-size="30">it can sell. that doesn't mean it's safe.</text>
+
+  <!-- terminal-ish result block -->
+  <rect x="80" y="290" width="1040" height="300" rx="20" fill="#0c0c0c" stroke="#c8a961" stroke-width="1.5" opacity="0.95"/>
+  <g font-family="DejaVu Sans Mono, monospace" font-size="30">
+    <text x="120" y="360" fill="#6f6f6f">sell tax</text>
+    <text x="420" y="360" fill="#cfcfcf">0%  ← looks fine</text>
+    <text x="120" y="420" fill="#6f6f6f">tax modifiable</text>
+    <text x="420" y="420" fill="url(#danger)" font-weight="700">YES  ← owner can change it</text>
+    <text x="120" y="480" fill="#6f6f6f">verdict</text>
+  </g>
+  <rect x="420" y="448" width="300" height="56" rx="12" fill="none" stroke="url(#danger)" stroke-width="2.5"/>
+  <text x="445" y="487" fill="url(#danger)" font-family="DejaVu Sans Mono, monospace" font-size="34" font-weight="700">DANGEROUS</text>
+  <text x="120" y="550" fill="#8a8a8a" font-family="DejaVu Sans Mono, monospace" font-size="26">"0% now, 99% later" — caught before you sign.</text>
+
+  <!-- footer -->
+  <text x="80" y="640" fill="#c8a961" font-family="DejaVu Sans Mono, monospace" font-size="30" opacity="0.9">mcp.vigil.codes</text>
+  <text x="1120" y="640" text-anchor="end" fill="#6f6f6f" font-family="DejaVu Sans Mono, monospace" font-size="26">16 tools · keyless · Base</text>
+  <rect x="0.5" y="0.5" width="1199" height="674" fill="none" stroke="#c8a961" stroke-width="1" opacity="0.15"/>
+</svg>
