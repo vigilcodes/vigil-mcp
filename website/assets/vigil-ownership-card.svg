@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" fill="none">
+  <defs>
+    <linearGradient id="warm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#c8a961"/><stop offset="100%" stop-color="#e8d5a3"/></linearGradient>
+    <radialGradient id="bg" cx="50%" cy="30%" r="80%"><stop offset="0%" stop-color="#16110a"/><stop offset="100%" stop-color="#070707"/></radialGradient>
+    <linearGradient id="danger" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#e0564a"/><stop offset="100%" stop-color="#f08a72"/></linearGradient>
+    <linearGradient id="ok" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#5fae7e"/><stop offset="100%" stop-color="#8fd0a3"/></linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <g stroke="#c8a961" stroke-width="0.5" opacity="0.05"><line x1="0" y1="225" x2="1200" y2="225"/><line x1="0" y1="450" x2="1200" y2="450"/><line x1="400" y1="0" x2="400" y2="675"/><line x1="800" y1="0" x2="800" y2="675"/></g>
+
+  <text x="80" y="110" fill="#7d7d7d" font-family="DejaVu Sans Mono, monospace" font-size="26">vigil_check_ownership · tool #17</text>
+  <text x="80" y="190" fill="url(#warm)" font-family="DejaVu Sans Mono, monospace" font-size="72" font-weight="700">Ownership Scanner</text>
+  <text x="80" y="240" fill="#9a9a9a" font-family="DejaVu Sans Mono, monospace" font-size="30">who holds the keys — and what can they do?</text>
+
+  <!-- powers panel -->
+  <rect x="80" y="290" width="1040" height="300" rx="20" fill="#0c0c0c" stroke="#c8a961" stroke-width="1.5" opacity="0.95"/>
+  <g font-family="DejaVu Sans Mono, monospace" font-size="28">
+    <text x="120" y="350" fill="#6f6f6f">owner can</text>
+    <text x="120" y="405" fill="url(#danger)">⚠ mint new supply</text>
+    <text x="120" y="455" fill="url(#danger)">⚠ pause all transfers</text>
+    <text x="120" y="505" fill="url(#danger)">⚠ blacklist your wallet</text>
+
+    <text x="640" y="350" fill="#6f6f6f">but if renounced</text>
+    <text x="640" y="405" fill="url(#ok)">✓ owner = null</text>
+    <text x="640" y="455" fill="url(#ok)">✓ powers neutralized</text>
+    <text x="640" y="505" fill="url(#ok)">✓ keys thrown away</text>
+  </g>
+  <text x="120" y="560" fill="#8a8a8a" font-family="DejaVu Sans Mono, monospace" font-size="25">a renounce that can be reversed? still dangerous.</text>
+
+  <text x="80" y="640" fill="#c8a961" font-family="DejaVu Sans Mono, monospace" font-size="30" opacity="0.9">mcp.vigil.codes</text>
+  <text x="1120" y="640" text-anchor="end" fill="#6f6f6f" font-family="DejaVu Sans Mono, monospace" font-size="26">17 tools · keyless · Base</text>
+  <rect x="0.5" y="0.5" width="1199" height="674" fill="none" stroke="#c8a961" stroke-width="1" opacity="0.15"/>
+</svg>
