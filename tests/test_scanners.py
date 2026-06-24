@@ -1624,3 +1624,101 @@ class TestTaxScanner:
         assert result.determined is True
         assert result.risk == "safe"
         assert result.buy_tax == 0.0
+
+
+# ─── OwnershipScanner ──────────────────────────────────────
+
+
+class TestOwnershipScanner:
+    """Owner/permission risk assessment (pure _assess over GoPlusResult)."""
+
+    def _scanner(self):
+        from vigil_mcp.scanners.ownership_scanner import OwnershipScanner
+
+        return OwnershipScanner()
+
+    def _g(self, **kw):
+        from vigil_mcp.scanners.goplus import GoPlusResult
+
+        return GoPlusResult(available=True, **kw)
+
+    def test_can_take_back_ownership_is_dangerous(self):
+        s = self._scanner()
+        risk, powers, _ = s._assess(self._g(can_take_back_ownership=True), renounced=False)
+        assert risk == "dangerous"
+        assert "reclaim_ownership" in powers
+
+    def test_hidden_owner_is_dangerous(self):
+        s = self._scanner()
+        risk, _, _ = s._assess(self._g(hidden_owner=True), renounced=False)
+        assert risk == "dangerous"
+
+    def test_selfdestruct_is_dangerous(self):
+        s = self._scanner()
+        risk, powers, _ = s._assess(self._g(selfdestruct=True), renounced=False)
+        assert risk == "dangerous"
+        assert "selfdestruct" in powers
+
+    def test_mintable_is_high(self):
+        s = self._scanner()
+        risk, powers, _ = s._assess(self._g(is_mintable=True), renounced=False)
+        assert risk == "high"
+        assert "mint" in powers
+
+    def test_pausable_is_high(self):
+        s = self._scanner()
+        risk, _, _ = s._assess(self._g(transfer_pausable=True), renounced=False)
+        assert risk == "high"
+
+    def test_whitelist_only_is_caution(self):
+        s = self._scanner()
+        risk, _, _ = s._assess(self._g(is_whitelisted=True), renounced=False)
+        assert risk == "caution"
+
+    def test_clean_live_owner_is_safe(self):
+        s = self._scanner()
+        risk, powers, _ = s._assess(self._g(is_mintable=False, transfer_pausable=False), renounced=False)
+        assert risk == "safe"
+        assert powers == []
+
+    def test_renounced_neutralizes_powers(self):
+        s = self._scanner()
+        # Mintable flag present but ownership renounced and not reclaimable -> safe.
+        risk, _, notes = s._assess(self._g(is_mintable=True), renounced=True)
+        assert risk == "safe"
+        assert any("renounced" in n.lower() for n in notes)
+
+    def test_renounced_but_reclaimable_still_dangerous(self):
+        s = self._scanner()
+        risk, _, _ = s._assess(self._g(can_take_back_ownership=True), renounced=True)
+        assert risk == "dangerous"
+
+    def test_is_renounced_detects_null(self):
+        s = self._scanner()
+        assert s._is_renounced("0x0000000000000000000000000000000000000000") is True
+        assert s._is_renounced("0x000000000000000000000000000000000000dEaD") is True
+        assert s._is_renounced("0x916Cad53D72aB934e46693B5c778D36626bbf6aE") is False
+        assert s._is_renounced(None) is None
+
+    @pytest.mark.asyncio
+    async def test_scan_unknown_when_unavailable(self, monkeypatch):
+        from vigil_mcp.scanners import ownership_scanner as ow
+        from vigil_mcp.scanners.goplus import GoPlusResult
+
+        async def fake_ts(self, token, chain):
+            return GoPlusResult(available=False, note="no data")
+
+        monkeypatch.setattr(ow.GoPlusScanner, "token_security", fake_ts)
+        s = ow.OwnershipScanner()
+        result = await s.scan("0x" + "9" * 40, "base")
+        assert result.determined is False
+        assert result.risk == "unknown"
+
+    @pytest.mark.asyncio
+    async def test_scan_known_bluechip_is_safe(self):
+        from vigil_mcp.scanners import ownership_scanner as ow
+
+        s = ow.OwnershipScanner()
+        result = await s.scan("0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "base")
+        assert result.determined is True
+        assert result.risk == "safe"
