@@ -11,7 +11,7 @@ Verify VIGIL is live and returns a real verdict in one call:
 
 ```bash
 curl -s https://mcp.vigil.codes/health
-# -> {"status":"ok","service":"vigil-mcp","tools":15}
+# -> {"status":"ok","service":"vigil-mcp","tools":16}
 
 curl -s -X POST https://mcp.vigil.codes/tools/call \
   -H "Content-Type: application/json" \
@@ -48,6 +48,7 @@ VIGIL ships Base-first. The scanners (approvals, token, honeypot, safety score) 
 - **Liquidity Lock** — detect whether DEX liquidity is locked, burned, or freely withdrawable (rug-pull vector); missing data returns `unknown`, never `safe`
 - **Approval Simulator** — risk-assess a spender *before* you sign: contract vs EOA, known-safe, scam-flagged, unlimited amount
 - **Clone Detector** — bytecode fingerprinting flags copy-paste scam clones, cross-checked against the scam DB
+- **Tax Scanner** — flags punishing or owner-modifiable buy/sell/transfer tax (the "0% now, 99% later" trap); missing data returns `unknown`, never `safe`
 - **Approval Revoker** *(separate, BANKR_API_KEY required)* — revoke dangerous approvals via Bankr transaction signing
 
 ## Install
