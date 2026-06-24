@@ -2,7 +2,7 @@
 #
 # Drop this into your Aeon repo at the root or under skills/vigil/.
 # The agent calls VIGIL's hosted endpoint (mcp.vigil.codes) — no install,
-# no API key for read-only scans. Base-first, 13 tools.
+# no API key for read-only scans. Base-first, 17 tools.
 #
 # What this skill does when run:
 #   1. Scans the target (wallet or token) for security issues
@@ -17,7 +17,7 @@
 # Live: https://mcp.vigil.codes/health
 
 name: vigil
-description: "Onchain security scanner — 13 tools, Base-first. Detect honeypots, rugpulls, LP locks, and risky approvals before you sign."
+description: "Onchain security scanner — 17 tools, Base-first. Detect honeypots, rugpulls, LP locks, clone scams, owner-modifiable tax, and dangerous owner permissions before an agent signs."
 
 # Aeon scheduling — run on cron or on-demand via heartbeat
 schedule:
@@ -54,7 +54,8 @@ targets:
 
 # Which VIGIL tools to run per scan cycle (ordered)
 # Wallet targets: approvals + monitor + safety_score
-# Token targets: safety_score + honeypot + liquidity_lock + consensus
+# Token targets: layered pre-sign checks — score, honeypot, tax, ownership,
+#                clone, liquidity, then multi-source consensus
 tools:
   wallet:
     - vigil_scan_approvals
@@ -63,6 +64,9 @@ tools:
   token:
     - vigil_safety_score
     - vigil_detect_honeypot
+    - vigil_check_tax        # owner-modifiable tax: "0% now, 99% later"
+    - vigil_check_ownership  # mint / pause / blacklist / reclaim / selfdestruct
+    - vigil_detect_clone     # copy-paste scam clone by bytecode fingerprint
     - vigil_liquidity_lock
     - vigil_consensus  # aggregates 6 sources — note: x402-paid ($0.0075)
 
