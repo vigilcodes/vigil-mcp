@@ -641,3 +641,56 @@ onchain. Closes on "Security scanning your agents can pay for — vigil.codes".
 VIGIL: onchain security scans your AI agents can pay for. $0.005 USDC per scan on
 Base, gasless, no account — and every payment is attributed to the builder
 onchain via ERC-8021. Live at vigil.codes.
+
+
+========================================================
+ATTRIBUTION PROOF — public /attribution endpoint (attach: vigil-attribution-card.png)
+========================================================
+
+Context: mcp.vigil.codes/attribution now serves public onchain proof that
+VIGIL's x402 settlements carry the builder code (a: bc_kz42eeiy). "Don't trust,
+verify" angle. All claims true to what's live + onchain.
+
+
+=== ⭐ A — don't trust, verify (recommended) ===
+
+don't trust, verify 👁️
+
+VIGIL now serves live onchain proof of its x402 earnings:
+mcp.vigil.codes/attribution
+
+every paid scan settles on Base with our builder code in the calldata. not a
+dashboard claim — decoded from the tx itself.
+
+builders earning from what they build.
+
+
+=== B — builder-code / Base angle ===
+
+every agent that pays VIGIL for a scan credits the builder onchain 👁️
+
+new: /attribution endpoint decodes the ERC-8021 suffix from each x402
+settlement — { a: "bc_kz42eeiy" } right there in the Base calldata.
+
+verify it yourself: mcp.vigil.codes/attribution
+
+
+=== C — short ===
+
+receipts, onchain 👁️
+
+mcp.vigil.codes/attribution — every x402 scan VIGIL gets paid for, with the
+builder code decoded straight from Base calldata.
+
+don't trust. verify.
+
+
+=== QT @jessepollak (his "builders should earn from what they build" tweet) ===
+
+this is already live for us — and now provable 👁️
+
+VIGIL's /attribution endpoint decodes the builder code straight from each x402
+settlement's calldata on Base:
+mcp.vigil.codes/attribution
+
+{ a: "bc_kz42eeiy" } — builders earning from what they build, onchain.
