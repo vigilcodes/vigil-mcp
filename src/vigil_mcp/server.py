@@ -1692,6 +1692,20 @@ x402 manifest:  GET https://mcp.vigil.codes/.well-known/x402
 
 {paid_lines}
 
+## How to pay (x402, no account)
+
+Premium tools answer with HTTP 402 + payment requirements. Pay in USDC on Base
+— no signup, no API key, gas sponsored by the facilitator.
+
+1. Call the tool normally. You get HTTP 402 with an x402 v2 PaymentRequired body
+   (also at GET /x402/<tool>).
+2. Sign an EIP-3009 USDC transferWithAuthorization for the quoted amount.
+3. Retry with header `X-PAYMENT: <base64 payment payload>`.
+4. You get the result + header `X-PAYMENT-RESPONSE` (settlement tx hash).
+
+Any x402 client works (e.g. the official `x402` SDK, TS or Python). Settlement
+runs through the CDP facilitator on Base; each paid call settles onchain.
+
 ## Notable
 
 {notable}
