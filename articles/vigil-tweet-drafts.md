@@ -581,3 +581,63 @@ shipped tool #14 on VIGIL: approval simulator 👁️
 existing tools audit approvals you already gave. this one answers the question that actually matters — "should I sign THIS one?"
 
 scan before you sign. live on mcp.vigil.codes
+
+
+========================================================
+DEMO VIDEO — x402 pay-per-scan + onchain Builder Code attribution
+========================================================
+
+Asset: website/assets/vigil-x402-demo-1920x1080.mp4 (1920x1080 · 60fps · 21.8s)
+All figures are real: live mainnet settlement, verdict 92/SAFE,
+tx 0xce74cc8d…8488472c, attribution { a:"bc_kz42eeiy", w:"cdp_facil1" }.
+Attach the video to the main tweet.
+
+
+=== ⭐ A — recommended (≈275 chars) ===
+
+just shipped: VIGIL scans agents can pay for 👁️
+
+an AI agent calls a scan → pays $0.005 USDC on Base (gasless, no account)
+→ gets a real safety verdict
+→ and every payment is credited onchain to the builder via ERC-8021
+
+x402 + Builder Codes, live on mcp.vigil.codes
+
+
+=== B — short (≈180 chars) ===
+
+agents that pay for their own security checks 👁️
+
+$0.005 USDC per scan on Base · gasless · no API key
+every payment attributed onchain (ERC-8021)
+
+live → mcp.vigil.codes
+
+
+=== Thread reply (proof) ===
+
+proof it's real: one mainnet settlement, builder code landed onchain →
+tx 0xce74cc8d…8488472c
+suffix: { a: "bc_kz42eeiy", w: "cdp_facil1" }
+
+the `a` is us. attribution isn't a dashboard claim — it's in the calldata. 👁️
+
+
+=== Video alt-text (accessibility, ≤1000 chars) ===
+
+Screen recording of the VIGIL product demo. A dark terminal shows an AI agent
+calling vigil_scan_token, VIGIL replying with an x402 "402 — pay $0.005 USDC"
+prompt, the agent signing a gasless USDC payment and attaching Builder Code
+a=bc_kz42eeiy, and Coinbase's facilitator verifying and settling it onchain. A
+verdict card shows a 92/100 SAFE score for USD Coin (not a honeypot, 0% tax,
+ownership renounced). A final card shows the Base mainnet settlement tx
+0xce74cc8d…472c and the decoded ERC-8021 builder-code suffix
+{ a: "bc_kz42eeiy", w: "cdp_facil1" }, highlighting that VIGIL's code is credited
+onchain. Closes on "Security scanning your agents can pay for — vigil.codes".
+
+
+=== Short social caption (for non-X platforms) ===
+
+VIGIL: onchain security scans your AI agents can pay for. $0.005 USDC per scan on
+Base, gasless, no account — and every payment is attributed to the builder
+onchain via ERC-8021. Live at vigil.codes.

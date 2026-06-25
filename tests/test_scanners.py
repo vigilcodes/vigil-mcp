@@ -1025,6 +1025,31 @@ class TestX402:
         req = x402.payment_requirements("vigil_scan_token", 0.005)
         assert "extensions" not in req
 
+    def test_client_echo_extension_carries_app_code(self, monkeypatch):
+        """The client echo is what actually lands `a` onchain — it must carry it."""
+        monkeypatch.setenv("VIGIL_X402_APP_CODE", "bc_kz42eeiy")
+        from vigil_mcp.payments import x402
+
+        ext = x402.client_echo_extension()
+        assert ext[x402.BUILDER_CODE_EXT]["info"]["a"] == "bc_kz42eeiy"
+        # No service codes unless explicitly provided.
+        assert "s" not in ext[x402.BUILDER_CODE_EXT]["info"]
+
+    def test_client_echo_extension_includes_service_codes(self, monkeypatch):
+        monkeypatch.setenv("VIGIL_X402_APP_CODE", "bc_kz42eeiy")
+        from vigil_mcp.payments import x402
+
+        ext = x402.client_echo_extension(["bc_client1", "bc_client2"])
+        info = ext[x402.BUILDER_CODE_EXT]["info"]
+        assert info["a"] == "bc_kz42eeiy"
+        assert info["s"] == ["bc_client1", "bc_client2"]
+
+    def test_client_echo_extension_none_when_unset(self, monkeypatch):
+        monkeypatch.delenv("VIGIL_X402_APP_CODE", raising=False)
+        from vigil_mcp.payments import x402
+
+        assert x402.client_echo_extension() is None
+
     def test_cdp_bearer_jwt_none_without_keys(self, monkeypatch):
         monkeypatch.delenv("CDP_API_KEY_ID", raising=False)
         monkeypatch.delenv("CDP_API_KEY_SECRET", raising=False)
