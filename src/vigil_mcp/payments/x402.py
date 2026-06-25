@@ -28,6 +28,20 @@ Design notes
   response and echoed by the client; the facilitator encodes it onchain at
   settle time. This unlocks Base rewards/analytics/visibility for VIGIL.
 
+  IMPORTANT — declaration alone is NOT enough. Per the CDP facilitator spec,
+  the app code that lands onchain is read from the *payment payload* (the
+  client's echo), not from ``paymentRequirements``. At settle the facilitator:
+    1. checks the client's echoed ``a`` matches our declared ``a`` (mismatch =
+       settlement rejected),
+    2. reads ``a``/``s`` from the payment payload,
+    3. adds its own wallet code ``w`` (e.g. ``cdp_facil``), and
+    4. CBOR-encodes the ERC-8021 Schema-2 suffix onto the calldata.
+  So if a paying client does NOT echo ``a`` into its X-PAYMENT payload, only
+  the facilitator's ``w`` lands onchain and OUR attribution is lost — even
+  though our 402 declared the code correctly. First-party/test clients must use
+  ``client_echo_extension()`` (below) to populate the payload.
+  Refs: https://docs.cdp.coinbase.com/x402/core-concepts/builder-codes
+
 References
 - Quickstart:   https://docs.cdp.coinbase.com/x402/quickstart-for-sellers
 - Verify:       https://docs.cdp.coinbase.com/api-reference/v2/rest-api/x402-facilitator/verify-payment
@@ -158,6 +172,31 @@ def _builder_code_extension() -> Optional[dict[str, Any]]:
             },
         }
     }
+
+
+def client_echo_extension(service_codes: Optional[list[str]] = None) -> Optional[dict[str, Any]]:
+    """Build the builder-code echo a *paying client* must put in its payload.
+
+    This is the piece that actually gets VIGIL's app code (``a``) onchain. The
+    CDP facilitator reads ``a``/``s`` from the payment payload at settle time —
+    a seller-side declaration in the 402 is necessary but not sufficient. A
+    first-party or test client should merge this into the ``extensions`` block
+    of the X-PAYMENT payload it signs and sends.
+
+    Args:
+        service_codes: optional client/intermediary service code(s) (``s``).
+
+    Returns:
+        ``{"builder-code": {"info": {"a": <app>, "s": [...]}}}`` or None if no
+        app code is configured.
+    """
+    code = builder_code()
+    if not code:
+        return None
+    info: dict[str, Any] = {"a": code}
+    if service_codes:
+        info["s"] = list(service_codes)
+    return {BUILDER_CODE_EXT: {"info": info}}
 
 
 def _accepts_entry(tool: str, price_usd: float) -> dict[str, Any]:
@@ -327,9 +366,11 @@ def _facilitator_body(payload: dict[str, Any], tool: str, price_usd: float) -> d
     """Build the verify/settle request body for the facilitator.
 
     The builder-code extension is attached to ``paymentRequirements`` so the
-    facilitator knows our declared app code (``a``) and can encode it into the
-    settlement calldata (ERC-8021). Without this, only the facilitator's own
-    wallet code (``w``) lands onchain — our attribution is lost.
+    facilitator can match the client's echoed ``a`` against our declared ``a``
+    (a mismatch is rejected). NOTE: the value actually encoded onchain is read
+    from ``paymentPayload`` (the client echo), not from here — see the module
+    docstring. Attaching it here does not inject ``a`` on its own; the paying
+    client must echo it via ``client_echo_extension()``.
     """
     requirements = _accepts_entry(tool, price_usd)
     ext = _builder_code_extension()
