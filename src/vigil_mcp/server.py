@@ -1607,6 +1607,51 @@ async def public_stats(request: Request) -> JSONResponse:
     return JSONResponse(snapshot, headers=_CORS_HEADERS)
 
 
+# ─────────────────────────────────────────────────────────────
+# /attribution — public proof of onchain x402 earnings (cached 5 min)
+# Shows which USDC settlements into VIGIL's payout wallet carry our Builder
+# Code (ERC-8021 app code) onchain. Read-only, derived from public chain data.
+# ─────────────────────────────────────────────────────────────
+
+_ATTR_CACHE: dict[str, Any] = {"report": None, "at": 0.0}
+_ATTR_CACHE_TTL = 300.0  # seconds — RPC/explorer calls are heavier than feed reads
+
+
+@mcp.custom_route("/attribution", methods=["GET", "OPTIONS"])
+async def public_attribution(request: Request) -> JSONResponse:
+    """Public, verifiable proof that VIGIL is paid for and credited onchain.
+
+    Enumerates USDC x402 settlements into the payout wallet and decodes the
+    ERC-8021 attribution suffix from each settlement's calldata, reporting which
+    carry VIGIL's Builder Code. Cached 5 minutes. Read-only; no keys, no signing.
+    """
+    if request.method == "OPTIONS":
+        return JSONResponse({}, headers=_CORS_HEADERS)
+
+    import time as _time
+
+    from vigil_mcp.payments.attribution import build_attribution_report
+
+    now = _time.time()
+    cached = _ATTR_CACHE.get("report")
+    if cached is not None and (now - _ATTR_CACHE.get("at", 0.0)) < _ATTR_CACHE_TTL:
+        report = cached
+    else:
+        try:
+            report = build_attribution_report()
+        except Exception as e:  # noqa: BLE001 — never 500 the proof page on a transient RPC blip
+            logger.error(f"/attribution build failed: {e}")
+            if cached is not None:
+                report = cached  # serve last good rather than nothing
+            else:
+                return JSONResponse({"error": "attribution unavailable"}, status_code=503, headers=_CORS_HEADERS)
+        else:
+            _ATTR_CACHE["report"] = report
+            _ATTR_CACHE["at"] = now
+
+    return JSONResponse(report, headers=_CORS_HEADERS)
+
+
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request: Request) -> JSONResponse:
     """Health check endpoint."""
@@ -1682,6 +1727,7 @@ Content-Type: application/json
 List all tools: GET https://mcp.vigil.codes/tools/list
 Health:         GET https://mcp.vigil.codes/health
 Live stats:     GET https://mcp.vigil.codes/stats
+Attribution:    GET https://mcp.vigil.codes/attribution
 x402 manifest:  GET https://mcp.vigil.codes/.well-known/x402
 
 ## Free tools (no API key, no payment)
