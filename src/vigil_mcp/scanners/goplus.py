@@ -67,7 +67,10 @@ class GoPlusResult(BaseModel):
     owner_address: Optional[str] = None
     owner_percent: Optional[float] = None
     creator_address: Optional[str] = None
+    creator_percent: Optional[float] = None
     holder_count: Optional[int] = None
+    lp_holder_count: Optional[int] = None
+    holders: list[dict[str, Any]] = []
     note: str = ""
 
 
@@ -166,6 +169,9 @@ class GoPlusScanner:
             owner_address=row.get("owner_address") or None,
             owner_percent=_f(row.get("owner_percent")),
             creator_address=row.get("creator_address") or None,
+            creator_percent=_f(row.get("creator_percent")),
             holder_count=int(row["holder_count"]) if row.get("holder_count") else None,
+            lp_holder_count=int(row["lp_holder_count"]) if row.get("lp_holder_count") else None,
+            holders=row.get("holders") if isinstance(row.get("holders"), list) else [],
             note="GoPlus Security",
         )

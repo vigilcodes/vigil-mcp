@@ -21,6 +21,7 @@ from vigil_mcp.scanners.approvals import ApprovalScanner
 from vigil_mcp.scanners.clone_detector import CloneDetector
 from vigil_mcp.scanners.consensus import ConsensusEngine
 from vigil_mcp.scanners.deployer import DeployerScanner
+from vigil_mcp.scanners.holder_concentration import HolderConcentrationScanner
 from vigil_mcp.scanners.honeypot import HoneypotDetector
 from vigil_mcp.scanners.liquidity_lock import LiquidityLockScanner
 from vigil_mcp.scanners.market import MarketScanner
@@ -65,6 +66,7 @@ approval_simulator = ApprovalSimulator()
 clone_detector = CloneDetector()
 tax_scanner = TaxScanner()
 ownership_scanner = OwnershipScanner()
+holder_concentration_scanner = HolderConcentrationScanner()
 
 SUPPORTED_CHAINS = ["base", "ethereum", "polygon", "arbitrum", "solana"]
 
@@ -565,6 +567,35 @@ async def vigil_check_ownership(token: str, chain: str = "base") -> dict[str, An
 
 
 @mcp.tool()
+async def vigil_holder_concentration(token: str, chain: str = "base") -> dict[str, Any]:
+    """Assess supply concentration / whale-dump risk among wallets that can sell.
+
+    Other tools ask "is the contract malicious?". This asks "how concentrated is
+    the float, and could a few wallets dump on you?". Reads GoPlus holder data
+    and computes top-holder concentration over the DUMPABLE float — deliberately
+    excluding LP pools, burn/dead addresses, locked holders, and the contract.
+
+    Returns:
+      - risk: safe / caution / high / dangerous / unknown
+      - top1_percent, top5_percent, top10_percent (fractions of dumpable float)
+      - largest_holder, holder_count, excluded[] (why holders were excluded)
+      - notes: human-readable basis
+
+    A single wallet >50% of float is dangerous even if the contract is clean.
+    Fail-safe: missing holder data returns `unknown`, never `safe`. Free.
+
+    Args:
+        token: Token contract address (0x...)
+        chain: Blockchain name (base, ethereum, polygon, arbitrum)
+    """
+    chain = _validate_chain(chain)
+    token = _validate_address(token, "token")
+    logger.info(f"Checking holder concentration for {token} on {chain}")
+    result = await holder_concentration_scanner.scan(token, chain)
+    return result.model_dump()
+
+
+@mcp.tool()
 async def vigil_batch_scan(tokens: list[str], chain: str = "base") -> dict[str, Any]:
     """Scan multiple tokens for safety in one call.
 
@@ -944,6 +975,12 @@ TOOL_MAP = {
     "check_ownership": lambda args: vigil_check_ownership(
         args.get("token") or args.get("contract", ""), args.get("chain", "base")
     ),
+    "vigil_holder_concentration": lambda args: vigil_holder_concentration(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
+    "holder_concentration": lambda args: vigil_holder_concentration(
+        args.get("token") or args.get("contract", ""), args.get("chain", "base")
+    ),
 }
 
 
@@ -1221,6 +1258,24 @@ async def tools_list(request: Request) -> JSONResponse:
                 "reclaim ownership, hidden owner, modify balances, selfdestruct. A renounced owner "
                 "(null address) is the strongest positive signal; mint+pause+blacklist on a live "
                 "owner is high/dangerous. Fail-safe: missing data returns unknown, never safe. Free."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "token": {"type": "string", "description": "Token contract address (0x...)"},
+                    "chain": {"type": "string", "default": "base"},
+                },
+                "required": ["token"],
+            },
+        },
+        {
+            "name": "vigil_holder_concentration",
+            "description": (
+                "Assess supply concentration / whale-dump risk. Reads GoPlus holder data and "
+                "computes top-holder concentration over the DUMPABLE float — excluding LP pools, "
+                "burn/dead addresses, locked holders, and the contract. A single wallet >50% of "
+                "float is dangerous even with a clean contract. Fail-safe: missing data returns "
+                "unknown, never safe. Free core safety check."
             ),
             "inputSchema": {
                 "type": "object",
