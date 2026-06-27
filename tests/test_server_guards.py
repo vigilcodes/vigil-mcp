@@ -59,7 +59,7 @@ class TestHealthToolCount:
         # /health counts canonical vigil_* tools; TOOL_MAP also holds unprefixed
         # aliases, so the prefixed count must match /tools/list, not len(TOOL_MAP).
         prefixed = [k for k in server.TOOL_MAP if k.startswith("vigil_")]
-        assert len(prefixed) == 17
+        assert len(prefixed) == 18
         # Aliases exist too, so the raw map is larger.
         assert len(server.TOOL_MAP) > len(prefixed)
 
