@@ -11,7 +11,7 @@ Verify VIGIL is live and returns a real verdict in one call:
 
 ```bash
 curl -s https://mcp.vigil.codes/health
-# -> {"status":"ok","service":"vigil-mcp","tools":17}
+# -> {"status":"ok","service":"vigil-mcp","tools":18}
 
 curl -s -X POST https://mcp.vigil.codes/tools/call \
   -H "Content-Type: application/json" \
@@ -50,6 +50,7 @@ VIGIL ships Base-first. The scanners (approvals, token, honeypot, safety score) 
 - **Clone Detector** — bytecode fingerprinting flags copy-paste scam clones, cross-checked against the scam DB
 - **Tax Scanner** — flags punishing or owner-modifiable buy/sell/transfer tax (the "0% now, 99% later" trap); missing data returns `unknown`, never `safe`
 - **Ownership Scanner** — who controls the contract and what they can do: mint, pause, blacklist, reclaim ownership, modify balances, selfdestruct; a renounced owner neutralizes these powers
+- **Holder Concentration** — whale-dump risk: top-holder concentration over the *sellable* float, excluding LP pools, burns, and locked holders; one wallet over half the float is flagged even with a clean contract
 - **Approval Revoker** *(separate, BANKR_API_KEY required)* — revoke dangerous approvals via Bankr transaction signing
 
 ## Install
